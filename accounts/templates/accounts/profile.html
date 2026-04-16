@@ -1,0 +1,143 @@
+{% extends 'store/base.html' %}
+{% block title %}Profile{% endblock %}
+
+{% load static %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+        <!-- Increased width -->
+        <div class="col-lg-6 col-md-8">
+
+            <div class="card border-0 shadow rounded-4 p-4">
+
+                <!-- Profile Image -->
+                <div class="text-center mb-4">
+
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}"
+                             class="profile-img">
+                    {% else %}
+                        <img src="{% static 'default-avatar.png' %}"
+                             class="profile-img">
+                    {% endif %}
+
+                    <h5 class="mt-3 mb-0 fw-semibold">{{ user.username }}</h5>
+                    <small class="text-muted">Profile Information</small>
+
+                    <div class="mt-3">
+                        <a class="btn btn-outline-success btn-sm rounded-pill px-3"
+                           href="{% url 'user-profile-update' %}">
+                            Edit Profile
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Info Section -->
+                <div class="profile-info">
+
+                    <div class="info-item">
+                        <span class="label">Role</span>
+                        <span class="value">
+                            {% if user.profile.role == 'AD' %}
+                                Admin
+                            {% elif user.profile.role == 'EX' %}
+                                Executive
+                            {% else %}
+                                Operative
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">First Name</span>
+                        <span class="value">{{ user.profile.first_name }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Last Name</span>
+                        <span class="value">{{ user.profile.last_name }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Email</span>
+                        <span class="value">{{ user.email }}</span>
+                    </div>
+
+                    <div class="info-item">
+                        <span class="label">Phone</span>
+                        <span class="value">{{ user.profile.telephone }}</span>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+
+/* Font (make sure added in base.html) */
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Avatar */
+.profile-img {
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #e5e7eb;
+}
+
+/* Info layout */
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Labels */
+.label {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+/* Values */
+.value {
+    font-size: 15px;
+    font-weight: 500;
+    color: #374151;
+}
+
+/* Username */
+h5 {
+    font-size: 20px;
+}
+
+/* Subtitle */
+small {
+    font-size: 13px;
+}
+
+/* Button */
+.btn {
+    font-size: 14px;
+}
+
+/* Card */
+.card {
+    background: #ffffff;
+}
+
+</style>
+
+{% endblock %}

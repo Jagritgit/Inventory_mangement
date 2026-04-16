@@ -1,0 +1,136 @@
+{% extends 'store/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}Invoice Detail{% endblock %}
+
+{% block content %}
+
+<!-- Print Button -->
+<div class="container text-center mt-4">
+    <button onclick="window.print()" class="btn btn-dark rounded-pill px-4 print-btn">
+        <i class="fa fa-print me-2"></i> Print
+    </button>
+</div>
+
+<!-- Receipt -->
+<div class="container receipt-container mt-4 mb-5 p-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h5 class="fw-bold mb-1">InventoryMS</h5>
+            <small class="text-muted">
+                Hello, {{invoice.customer_name}} <br>
+                Thank you for your order
+            </small>
+        </div>
+
+        <div class="text-end">
+            <h4 class="text-danger fw-bold mb-1">Bills</h4>
+            <small class="text-muted">
+                #{{ invoice.id }} <br>
+                {{ invoice.date }}
+            </small>
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- Item Table -->
+    <table class="table table-sm align-middle">
+
+        <thead class="table-light">
+            <tr>
+                <th>Item</th>
+                <th class="text-center">Qty</th>
+                <th class="text-end">Price</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr>
+                <td class="fw-semibold text-primary">
+                    {{ invoice.item.name }}
+                </td>
+                <td class="text-center">{{ invoice.quantity }}</td>
+                <td class="text-end">₹ {{ invoice.price_per_item }}</td>
+            </tr>
+        </tbody>
+
+    </table>
+
+    <!-- Totals -->
+    <div class="mt-4">
+
+        <div class="d-flex justify-content-between">
+            <span class="text-muted">Subtotal</span>
+            <span>₹ {{ invoice.total }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between">
+            <span class="text-muted">Shipping</span>
+            <span>₹ {{ invoice.shipping }}</span>
+        </div>
+
+        <hr>
+
+        <div class="d-flex justify-content-between fw-bold fs-5">
+            <span>Total</span>
+            <span>₹ {{ invoice.grand_total }}</span>
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="mt-5 text-center text-muted small">
+        Have a nice day.
+    </div>
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Receipt styling */
+.receipt-container {
+    max-width: 600px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 25px rgba(0,0,0,0.08);
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+/* Table text */
+.table td, .table th {
+    font-size: 14px;
+}
+
+/* PRINT ONLY RECEIPT */
+@media print {
+
+    body * {
+        visibility: hidden;
+    }
+
+    .receipt-container, .receipt-container * {
+        visibility: visible;
+    }
+
+    .receipt-container {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        margin: 0;
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    .print-btn {
+        display: none !important;
+    }
+
+}
+
+</style>
+
+{% endblock %}

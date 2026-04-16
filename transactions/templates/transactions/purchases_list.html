@@ -1,0 +1,185 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load querystring from django_tables2 %}
+
+{% block title %}Purchases{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="container my-4">
+    <div class="card header-dark rounded p-3">
+        <div class="row align-items-center">
+
+            <div class="col-md-6">
+                <h4 class="display-6 mb-0 text-white">Purchases</h4>
+            </div>
+
+            <div class="col-md-6 d-flex justify-content-end gap-2">
+                <a class="btn btn-success btn-sm rounded-pill"
+                   href="{% url 'purchase-create' %}">
+                    <i class="fa-solid fa-plus"></i> Add Purchase
+                </a>
+
+                <a class="btn btn-outline-light btn-sm rounded-pill"
+                   href="{% url 'purchases-export' %}">
+                    <i class="fa-solid fa-download"></i> Export
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="container">
+
+    <table class="table table-sm table-striped table-bordered table-hover">
+
+        <thead class="table-light">
+            <tr>
+                <th class="fw-semibold">ID</th>
+                <th class="fw-semibold">Name</th>
+                <th class="fw-semibold">Quantity</th>
+                <th class="fw-semibold">Price</th>
+                <th class="fw-semibold">Delivery Status</th>
+                <th class="fw-semibold">Delivery Date</th>
+                <th class="fw-semibold">Vendor</th>
+                <th class="fw-semibold text-center">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+
+                <td>{{ purchase.id }}</td>
+                <td>{{ purchase.item.name }}</td>
+                <td>{{ purchase.quantity }}</td>
+                <td>₹ {{ purchase.total_value }}</td>
+
+                <!-- FIXED BADGE -->
+                <td>
+                    {% if purchase.delivery_status == 'P' %}
+                        <span class="badge bg-danger-subtle text-danger">
+                            Pending
+                        </span>
+                    {% else %}
+                        <span class="badge bg-success-subtle text-success">
+                            Completed
+                        </span>
+                    {% endif %}
+                </td>
+
+                <td>{{ purchase.delivery_date }}</td>
+                <td>{{ purchase.vendor.name }}</td>
+
+                <!-- ACTION BUTTONS -->
+                <td class="text-center">
+
+                    <a class="edit-btn me-1"
+                       href="{% url 'purchase-update' purchase.id %}">
+                        <i class="fa-solid fa-pen"></i>
+                    </a>
+
+                    <a class="delete-btn"
+                       href="{% url 'purchase-delete' purchase.id %}">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    <!-- Pagination -->
+    <div class="mt-4">
+        {% if is_paginated %}
+        <ul class="pagination justify-content-center">
+
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+            </li>
+            {% endif %}
+
+            {% for i in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+            </li>
+            {% endif %}
+
+        </ul>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Dark header */
+.header-dark {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* Center table text */
+.table th, .table td {
+    text-align: center;
+}
+
+/* Edit button */
+.edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    transition: 0.2s;
+}
+
+.edit-btn:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* Delete button */
+.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+.table {
+    font-size: 15px;  /* increase text size */
+}
+
+</style>
+
+{% endblock %}

@@ -1,0 +1,184 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load querystring from django_tables2 %}
+
+{% block title %}Deliveries{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="container my-4">
+    <div class="card header-dark rounded p-3">
+        <div class="row align-items-center">
+
+            <div class="col-md-6">
+                <h2 class="mb-0 text-white">Deliveries</h2>
+            </div>
+
+            <div class="col-md-6 d-flex justify-content-end gap-2">
+                <a class="btn btn-success btn-sm rounded-pill"
+                   href="{% url 'delivery-create' %}">
+                    <i class="fa-solid fa-plus"></i> Add Delivery
+                </a>
+
+                <a class="btn btn-outline-light btn-sm rounded-pill"
+                   href="{% querystring '_export'='xlsx' %}">
+                    <i class="fa-solid fa-download"></i> Export
+                </a>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="container">
+
+    <table class="table table-bordered table-striped table-hover table-sm">
+
+        <thead class="table-light">
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Customer</th>
+                <th>Contact</th>
+                <th>Address</th>
+                <th>Date</th>
+                <th>Status</th>
+                <th class="text-center">Action</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for delivery in deliveries %}
+            <tr>
+
+                <td>{{ delivery.id }}</td>
+                <td>{{ delivery.item.name }}</td>
+                <td>{{ delivery.customer_name }}</td>
+                <td>{{ delivery.phone_number }}</td>
+                <td>{{ delivery.location }}</td>
+                <td>{{ delivery.date }}</td>
+
+                <!-- Status -->
+                <td>
+                    {% if delivery.is_delivered %}
+                        <span class="badge bg-success-subtle text-success">
+                            Delivered
+                        </span>
+                    {% else %}
+                        <span class="badge bg-danger-subtle text-danger">
+                            Pending
+                        </span>
+                    {% endif %}
+                </td>
+
+                <!-- Actions -->
+                <td class="text-center">
+
+                    <a class="edit-btn me-1"
+                       href="{% url 'delivery-update' delivery.pk %}">
+                        <i class="fa-solid fa-pen"></i>
+                    </a>
+
+                    <a class="delete-btn"
+                       href="{% url 'delivery-delete' delivery.pk %}">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+            </li>
+            {% endif %}
+
+            {% for i in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </nav>
+    {% endif %}
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Header */
+.header-dark {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* Center table text */
+.table th, .table td {
+    text-align: center;
+}
+
+/* Edit button */
+.edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    transition: 0.2s;
+}
+
+.edit-btn:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* Delete button */
+.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+.table {
+    font-size: 15px;  /* increase text size */
+}
+
+</style>
+
+{% endblock %}

@@ -1,0 +1,241 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load querystring from django_tables2 %}
+
+{% block title %}Staff{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- 🔥 Header -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-11">
+
+            <div class="header-card d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h4 class="mb-1 text-white">Staff</h4>
+                    <strong class="text-white opacity-75">
+                        Manage staff members and roles
+                    </strong>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a class="btn btn-success btn-sm rounded-pill"
+                       href="{% url 'profile-create' %}">
+                        <i class="fa-solid fa-user-plus"></i> Add
+                    </a>
+
+                    <a class="btn btn-outline-light btn-sm rounded-pill"
+                       href="{% querystring '_export'='xlsx' %}">
+                        <i class="fa-solid fa-download"></i> Export
+                    </a>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="row justify-content-center">
+        <div class="col-lg-11">
+
+            <table class="table table-sm table-bordered table-striped table-hover">
+
+                <thead class="table-light text-center">
+                    <tr>
+                        <th>ID</th>
+                        <th>Profile</th>
+                        <th>Username</th>
+                        <th>Phone</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        {% if user.profile.role == 'AD' or user.profile.role == 'EX' %}
+                        <th>Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+
+                <tbody class="text-center">
+                    {% for profile in profiles %}
+                    <tr>
+
+                        <td>{{ profile.id }}</td>
+
+                        <!-- 🔥 Avatar -->
+                        <td>
+                            <img src="{{ profile.profile_picture.url }}"
+                                 onerror="this.onerror=null; this.src='{% static 'images/default-avatar.png' %}';"
+                                 class="avatar-img"
+                                 data-bs-toggle="modal"
+                                 data-bs-target="#imageModal"
+                                 onclick="showImage(this.src)">
+                        </td>
+
+                        <td>{{ profile.user.username }}</td>
+                        <td>{{ profile.telephone }}</td>
+
+                        <!-- Status -->
+                        <td>
+                            {% if profile.status == 'A' %}
+                                <span class="badge bg-success-subtle text-success">Active</span>
+                            {% elif profile.status == 'OL' %}
+                                <span class="badge bg-warning-subtle text-warning">On Leave</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger">Inactive</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Role -->
+                        <td>
+                            {% if profile.role == 'AD' %}
+                                <span class="badge bg-primary-subtle text-primary">Admin</span>
+                            {% elif profile.role == 'EX' %}
+                                <span class="badge bg-info-subtle text-info">Executive</span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary">Operative</span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Actions -->
+                        {% if user.profile.role == 'AD' or user.profile.role == 'EX' %}
+                        <td>
+
+                            <a class="edit-btn me-1"
+                               href="{% url 'profile-update' profile.id %}">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+
+                            {% if user.profile.role == 'AD' %}
+                            <a class="delete-btn"
+                               href="{% url 'profile-delete' profile.id %}">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+                            {% endif %}
+
+                        </td>
+                        {% endif %}
+
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- 🔥 Image Modal -->
+<div class="modal fade" id="imageModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content bg-transparent border-0">
+
+      <div class="modal-body text-center p-0">
+        <img id="previewImage" class="preview-img">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- SCRIPT -->
+<script>
+function showImage(src) {
+    document.getElementById("previewImage").src = src;
+}
+</script>
+
+<!-- STYLE -->
+<style>
+
+/* Header */
+.header-card {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* Avatar */
+.avatar-img {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+
+    border: 2px solid #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.avatar-img:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+}
+
+/* Modal size */
+.modal-dialog {
+    max-width: 260px;
+}
+
+/* Preview Image */
+.preview-img {
+    width: 220px;
+    height: 220px;
+
+    border-radius: 16px;
+    object-fit: cover;
+
+    box-shadow: 0 12px 35px rgba(0,0,0,0.35);
+}
+
+/* Edit button */
+.edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    transition: 0.2s;
+}
+
+.edit-btn:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* Delete button */
+.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+.table {
+    font-size: 15px;  /* increase text size */
+}
+
+</style>
+
+{% endblock %}

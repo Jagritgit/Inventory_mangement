@@ -1,0 +1,156 @@
+{% extends "store/base.html" %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- 🔥 Header (MATCHED WIDTH) -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-10 col-lg-8">
+
+            <div class="header-card">
+                <div class="d-flex justify-content-between align-items-center">
+
+                    <div>
+                        <h4 class="mb-1 text-white">
+                            {% if form.instance.pk %}Update Delivery{% else %}Create Delivery{% endif %}
+                        </h4>
+                        
+                    </div>
+
+                    <div class="header-icon">
+                        <i class="fa-solid fa-truck"></i>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+
+            <div class="card form-card p-4">
+
+                <form method="post"
+                      action="{% if form.instance.pk %}{% url 'delivery-update' form.instance.pk %}{% else %}{% url 'delivery-create' %}{% endif %}">
+                    
+                    {% csrf_token %}
+
+                    <!-- Your form rows unchanged -->
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.item.label }}</label>
+                            {{ form.item }}
+                            <div class="text-danger small">{{ form.item.errors }}</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.customer_name.label }}</label>
+                            {{ form.customer_name }}
+                            <div class="text-danger small">{{ form.customer_name.errors }}</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.phone_number.label }}</label>
+                            {{ form.phone_number }}
+                            <div class="text-danger small">{{ form.phone_number.errors }}</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.location.label }}</label>
+                            {{ form.location }}
+                            <div class="text-danger small">{{ form.location.errors }}</div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label class="form-label">{{ form.date.label }}</label>
+                            {{ form.date }}
+                            <div class="text-danger small">{{ form.date.errors }}</div>
+                        </div>
+
+                        <div class="col-md-6 d-flex align-items-center mt-4">
+                            <div class="form-check">
+                                {{ form.is_delivered }}
+                                <label class="form-check-label ms-2">
+                                    Delivered
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn submit-btn">
+                            <i class="fa fa-save me-1"></i>
+                            {% if form.instance.pk %}Update{% else %}Create{% endif %}
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Header */
+.header-card {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border-radius: 14px;
+    padding: 16px 20px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* Icon */
+.header-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+/* Form */
+.form-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+}
+
+/* Inputs */
+.form-card input,
+.form-card select {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+}
+
+/* Button */
+.submit-btn {
+    background: #2563eb;
+    color: #fff;
+    padding: 10px 26px;
+    border-radius: 10px;
+    border: none;
+}
+
+</style>
+
+{% endblock %}

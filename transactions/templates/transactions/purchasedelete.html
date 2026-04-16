@@ -1,0 +1,115 @@
+{% extends "store/base.html" %}
+{% block title %}Confirm Delete{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+
+            <div class="card delete-card text-center p-4">
+
+                <!-- Warning Icon -->
+                <div class="mb-3">
+                    <div class="warning-icon">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                </div>
+
+                <!-- Title -->
+                <h5 class="fw-bold text-danger mb-2">Delete Purchase</h5>
+
+                <p class="mb-4">
+                    Are you sure you want to delete<br>
+                    <strong>"{{ object.slug }}"</strong>?
+                </p>
+
+                <!-- Form -->
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="d-flex justify-content-center gap-3">
+
+                        <!-- DELETE -->
+                        <button class="btn delete-btn">
+                            <i class="fa-solid fa-trash me-1"></i> Delete
+                        </button>
+
+                        <!-- CANCEL -->
+                        <a class="btn cancel-btn"
+                           href="{% url 'purchaseslist' %}">
+                            Cancel
+                        </a>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Card */
+.delete-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.1);
+}
+
+/* Warning icon */
+.warning-icon {
+    width: 60px;
+    height: 60px;
+    margin: auto;
+    border-radius: 50%;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+}
+
+/* DELETE BUTTON */
+.delete-btn {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-weight: 500;
+    background: #dc2626;
+    color: #fff;
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.delete-btn:hover {
+    background: #b91c1c;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(220, 38, 38, 0.3);
+}
+
+/* CANCEL BUTTON (fixed visibility) */
+.cancel-btn {
+    padding: 10px 24px;
+    border-radius: 10px;
+    font-weight: 500;
+    background: #ffffff;
+    color: #111;
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+}
+
+</style>
+
+{% endblock %}

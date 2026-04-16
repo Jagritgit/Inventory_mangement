@@ -1,0 +1,199 @@
+{% load crispy_forms_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <title>IMS: Register</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #25343F;
+        }
+
+        /* FULL HEIGHT */
+        .main-row {
+            height: 100vh;
+        }
+
+        /* LEFT IMAGE */
+        .image-side {
+            height: 100vh;
+        }
+
+        .image-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* RIGHT SIDE */
+        .register-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-left: 2px solid rgba(255,255,255,0.1);
+        }
+
+        /* CARD */
+        .register-card {
+            width: 100%;
+            max-width: 360px;
+        }
+
+        .register-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        /* INPUT */
+        .input-box {
+            background: rgba(255,255,255,0.08);
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 5px;
+        }
+
+        .input-box input {
+            border: none;
+            background: transparent;
+            color: white;
+            width: 100%;
+            outline: none;
+        }
+
+        .input-box:focus-within {
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* BUTTON */
+        .btn-register {
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+            font-weight: 500;
+        }
+
+        .btn-register:hover {
+            background: #e6e6e6;
+        }
+
+        /* TEXT */
+        .bottom-text {
+            text-align: center;
+            margin-top: 15px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .bottom-text a {
+            color: white;
+            text-decoration: none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row main-row">
+
+        <!-- LEFT IMAGE -->
+        <div class="col-md-7 d-none d-md-block image-side">
+            <img src="{% static 'images/login.jpg' %}" alt="Inventory Image">
+        </div>
+
+        <!-- RIGHT REGISTER -->
+        <div class="col-md-5 register-container">
+
+            <div class="register-card">
+
+                <h4 class="register-title">Create Account</h4>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{message.tags}}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <!-- Username -->
+                    <div class="mb-3">
+                        <label class="text-light">Username</label>
+                        <div class="input-box">
+                            {{ form.username }}
+                        </div>
+                        <small class="text-danger">{{ form.username.errors }}</small>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="text-light">Email</label>
+                        <div class="input-box">
+                            {{ form.email }}
+                        </div>
+                        <small class="text-danger">{{ form.email.errors }}</small>
+                    </div>
+
+                    <!-- Password -->
+                    <div class="mb-3">
+                        <label class="text-light">Password</label>
+                        <div class="input-box">
+                            {{ form.password1 }}
+                        </div>
+                        <small class="text-danger">{{ form.password1.errors }}</small>
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div class="mb-3">
+                        <label class="text-light">Confirm Password</label>
+                        <div class="input-box">
+                            {{ form.password2 }}
+                        </div>
+                        <small class="text-danger">{{ form.password2.errors }}</small>
+                    </div>
+
+                    <button class="btn btn-register w-100">
+                        Register
+                    </button>
+
+                </form>
+
+                <div class="bottom-text">
+                    <h6>Already have an account?
+                    <a href="{% url 'user-login' %}">Login</a>
+                    </h6>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>

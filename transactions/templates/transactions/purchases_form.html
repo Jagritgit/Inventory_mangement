@@ -1,0 +1,141 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Update Purchase{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-center mb-2">
+        <div class="header-dark header-box text-center px-4 py-2">
+            <h4 class="text-white mb-0">Update Purchase</h4>
+        </div>
+    </div>
+
+    <!-- Form Card -->
+    <div class="row justify-content-center">
+        <div class="col-md-10 col-lg-8">
+
+            <div class="card form-card p-4">
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {{ form.non_field_errors }}
+
+                    <!-- Row 1 -->
+                    <div class="row mt-2">
+                        <div class="col-md-4 form-group">
+                            {{ form.item.label_tag }}
+                            {{ form.item }}
+                            {{ form.item.errors }}
+                        </div>
+
+                        <div class="col-md-4 form-group">
+                            {{ form.vendor.label_tag }}
+                            {{ form.vendor }}
+                            {{ form.vendor.errors }}
+                        </div>
+
+                        <div class="col-md-4 form-group">
+                            {{ form.description.label_tag }}
+                            {{ form.description }}
+                            {{ form.description.errors }}
+                        </div>
+                    </div>
+
+                    <!-- Row 2 -->
+                    <div class="row mt-2">
+                        <div class="col-md-6 form-group">
+                            {{ form.delivery_date.label_tag }}
+                            {{ form.delivery_date }}
+                            {{ form.delivery_date.errors }}
+                        </div>
+
+                        <div class="col-md-6 form-group">
+                            {{ form.quantity.label_tag }}
+                            {{ form.quantity }}
+                            {{ form.quantity.errors }}
+                        </div>
+                    </div>
+
+                    <!-- Row 3 -->
+                    <div class="row mt-2">
+                        <div class="col-md-4 form-group">
+                            {{ form.delivery_status.label_tag }}
+                            {{ form.delivery_status }}
+                            {{ form.delivery_status.errors }}
+                        </div>
+
+                        <div class="col-md-4 form-group">
+                            {{ form.price.label_tag }}
+                            {{ form.price }}
+                            {{ form.price.errors }}
+                        </div>
+                    </div>
+
+                    <!-- Button -->
+                    <div class="text-center mt-4">
+                        <button type="submit" class="btn save-btn">
+                            <i class="fa-solid fa-floppy-disk me-1"></i> Save
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Header */
+.header-dark {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* Prevent stretching */
+.header-box {
+    width: fit-content;
+    border-radius: 10px;
+}
+
+/* Form card */
+.form-card {
+    border: none;
+    border-radius: 14px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+}
+
+/* Spacing */
+.form-group {
+    margin-bottom: 12px;
+}
+
+/* Save button */
+.save-btn {
+    background: #2563eb;
+    color: #fff;
+    padding: 10px 28px;
+    border-radius: 10px;
+    border: none;
+    transition: 0.2s;
+}
+
+.save-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+}
+
+</style>
+
+{% endblock %}

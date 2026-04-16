@@ -1,0 +1,189 @@
+{% extends "store/base.html" %}
+{% load render_table from django_tables2 %}
+{% load querystring from django_tables2 %}
+{% load static %}
+
+{% block title %}Invoices{% endblock %}
+
+{% block content %}
+
+    <!--Header-->
+    <div class="container py-4">
+
+        <div class="card header-dark rounded p-3 mb-4">
+        
+        <div class="d-flex justify-content-between align-items-center flex-wrap">
+
+            <!-- Left Side: Title + Subtitle -->
+            <div>
+                <h2 class="mb-1 text-white">Bills</h2>
+                <small class="text-light opacity-75">
+                   <strong>Manage billing for individual customers (B2C)</strong>
+                </small>
+            </div>
+
+            <!-- Right Side: Buttons -->
+            <div class="d-flex gap-2 mt-2 mt-md-0">
+                <a class="btn btn-success btn-sm rounded-pill"
+                href="{% url 'invoice-create' %}">
+                    <i class="fa-solid fa-plus"></i> Create Bills
+                </a>
+
+                <a class="btn btn-outline-light btn-sm rounded-pill"
+                href="{% querystring '_export'='xlsx' %}">
+                    <i class="fa-solid fa-download"></i> Export
+                </a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- Table -->
+    <table class="table table-sm table-striped table-bordered table-hover">
+
+        <thead class="table-light">
+            <tr>
+                <th class="fw-semibold">ID</th>
+                <th class="fw-semibold">Customer</th>
+                <th class="fw-semibold">Phone</th>
+                <th class="fw-semibold">Item</th>
+                <th class="fw-semibold">Price</th>
+                <th class="fw-semibold">Qty</th>
+                <th class="fw-semibold">Total</th>
+                <th class="fw-semibold">Shipping</th>
+                <th class="fw-semibold">Grand Total</th>
+                <th class="fw-semibold text-center">Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for invoice in invoices %}
+            <tr>
+
+                <td>{{ invoice.id }}</td>
+
+                <td>
+                    <a class="text-decoration-none fw-bold text-primary"
+                       href="{% url 'invoice-detail' invoice.slug %}">
+                        {{ invoice.customer_name }}
+                    </a>
+                </td>
+
+                <td>{{ invoice.contact_number }}</td>
+                <td>{{ invoice.item.name }}</td>
+                <td>₹ {{ invoice.price_per_item }}</td>
+                <td>{{ invoice.quantity }}</td>
+                <td>₹ {{ invoice.total }}</td>
+                <td>₹ {{ invoice.shipping }}</td>
+                <td>₹ {{ invoice.grand_total }}</td>
+
+                <td class="text-center">
+
+                    <!-- Edit -->
+                    <a class="edit-btn me-1"
+                       href="{% url 'invoice-update' invoice.slug %}">
+                        <i class="fa-solid fa-pen"></i>
+                    </a>
+
+                    <!-- Delete -->
+                    <a class="delete-btn"
+                       href="{% url 'invoice-delete' invoice.pk %}">
+                        <i class="fa-solid fa-trash"></i>
+                    </a>
+
+                </td>
+
+            </tr>
+            {% endfor %}
+        </tbody>
+
+    </table>
+
+    <!-- Pagination -->
+    <div class="mt-4">
+        {% if is_paginated %}
+        <ul class="pagination justify-content-center">
+
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+            </li>
+            {% endif %}
+
+            {% for i in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+            </li>
+            {% endif %}
+
+        </ul>
+        {% endif %}
+    </div>
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Header */
+.header-dark {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* Table center */
+.table th, .table td {
+    text-align: center;
+}
+
+/* Edit button */
+.edit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
+    transition: 0.2s;
+}
+
+.edit-btn:hover {
+    background: #2563eb;
+    color: #fff;
+}
+
+/* Delete button */
+.delete-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #dc2626;
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    background: #dc2626;
+    color: #fff;
+}
+
+.table {
+    font-size: 15px;  /* increase text size */
+}
+
+</style>
+
+{% endblock %}

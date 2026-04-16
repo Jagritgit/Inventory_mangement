@@ -1,0 +1,104 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Update Delivery{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- Header -->
+    <div class="text-center mb-4">
+        <h3 class="fw-bold text-dark">Update Delivery</h3>
+        <p class="text-muted small">Modify delivery details below</p>
+    </div>
+
+    <!-- Form Card -->
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-6">
+
+            <div class="card form-card p-4">
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {{ form.media }}
+
+                    <!-- Form Fields -->
+                    <div class="custom-form">
+                        {{ form|crispy }}
+                    </div>
+
+                    <!-- Button -->
+                    <div class="mt-4 text-center">
+                        <button class="btn save-btn">
+                            <i class="fa-solid fa-truck me-1"></i> Update Delivery
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Card */
+.form-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.08);
+    background: #ffffff;
+}
+
+/* Form improvements */
+.custom-form input,
+.custom-form select,
+.custom-form textarea {
+    border-radius: 8px !important;
+    border: 1px solid #d1d5db !important;
+    padding: 10px !important;
+    font-size: 14px;
+    transition: 0.2s;
+}
+
+/* Focus effect */
+.custom-form input:focus,
+.custom-form select:focus,
+.custom-form textarea:focus {
+    border-color: #2563eb !important;
+    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+/* Labels */
+.custom-form label {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+/* Button */
+.save-btn {
+    background: #2563eb;
+    color: #fff;
+    padding: 12px 28px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.save-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
+}
+
+</style>
+
+{% endblock %}

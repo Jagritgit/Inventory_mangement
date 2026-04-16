@@ -1,0 +1,236 @@
+{% load static %}
+
+<!-- Sidebar -->
+<style>
+
+/* Sidebar */
+.sidebar {
+    width: 260px;
+    background: #25343F;
+    color: #e5e7eb;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #1f2937;
+    font-family: 'Source Sans 3', sans-serif;
+}
+
+/* Header */
+.sidebar-header {
+    border-bottom: 1px solid #1f2937;
+}
+
+/* Profile image */
+.sidebar-header img {
+    border: 2px solid #3b4a55;
+}
+
+/* Nav container */
+.nav-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+}
+
+/* Nav links */
+.nav-link {
+    color: #9ca3af;
+    padding: 10px 14px;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+}
+
+/* Hover */
+.nav-link:hover {
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    transform: translateX(4px);
+}
+
+/* Active */
+.nav-link.active {
+    background: rgba(34,197,94,0.15);
+    color: #22c55e;
+    border-left: 3px solid #22c55e;
+}
+
+/* Icons */
+.nav-link i {
+    width: 18px;
+}
+
+/* Dropdown */
+.dropdown-menu {
+    background: #2f3f4b;
+    border-radius: 8px;
+    padding: 5px;
+}
+
+/* Dropdown items */
+.dropdown-item {
+    color: #d1d5db;
+    font-size: 14px;
+    border-radius: 6px;
+}
+
+/* Dropdown hover */
+.dropdown-item:hover {
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+}
+
+/* Footer */
+.sidebar-footer {
+    border-top: 1px solid #1f2937;
+    padding: 15px;
+}
+
+/* Logout button */
+.sidebar-footer .btn {
+    border-radius: 8px;
+    background: #ef4444;
+    border: none;
+    transition: 0.2s;
+}
+
+.sidebar-footer .btn:hover {
+    background: #dc2626;
+}
+
+</style>
+
+<aside class="sidebar">
+
+    <!-- Header -->
+    <div class="sidebar-header d-flex align-items-center px-3 py-4">
+        <a href="{% url 'user-profile' %}" class="d-flex align-items-center text-decoration-none text-light">
+
+            {% if request.user.profile.profile_picture %}
+                <img class="rounded-circle img-fluid" width="45"
+                     src="{{ request.user.profile.profile_picture.url }}">
+            {% else %}
+                <img class="rounded-circle img-fluid" width="45"
+                     src="{% static 'default-avatar.png' %}">
+            {% endif %}
+
+            <div class="ms-3">
+                <h6 class="mb-0 fw-semibold">
+                    {{ request.user.username }}
+                    {% if request.user.profile.role == 'AD' %}
+                        <i class="fa-solid fa-circle-check text-success"></i>
+                    {% endif %}
+                </h6>
+
+                <span class="badge bg-success-subtle text-success">
+                    {% if request.user.profile.role == 'AD' %}
+                        Admin
+                    {% elif request.user.profile.role == 'EX' %}
+                        Executive
+                    {% else %}
+                        Operative
+                    {% endif %}
+                </span>
+            </div>
+
+        </a>
+    </div>
+
+    <!-- Navigation -->
+    <div class="nav-container">
+        <ul class="nav flex-column mt-2">
+
+            <!-- Dashboard -->
+            <li class="nav-item mb-1">
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                   href="{% url 'dashboard' %}">
+                    <i class="fa fa-tachometer-alt me-2"></i> Dashboard
+                </a>
+            </li>
+
+            <!-- Products -->
+            <li class="nav-item mb-1 dropdown">
+                <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name == 'productslist' %}active{% endif %}"
+                   href="#" data-bs-toggle="dropdown">
+                    <i class="fa fa-folder me-2"></i> Products
+                </a>
+
+                <ul class="dropdown-menu border-0">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'productslist' %}">
+                            All Products
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item" href="{% url 'category-list' %}">
+                            Categories
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <!-- Orders -->
+            <li class="nav-item mb-1">
+                <a class="nav-link" href="{% url 'saleslist' %}">
+                    <i class="fa fa-shopping-bag me-2"></i> Sales Orders
+                </a>
+            </li>
+
+            <li class="nav-item mb-1">
+                <a class="nav-link" href="{% url 'purchaseslist' %}">
+                    <i class="fa fa-shopping-cart me-2"></i> Purchase Orders
+                </a>
+            </li>
+
+            <!-- Logistics -->
+            <li class="nav-item mb-1">
+                <a class="nav-link" href="{% url 'deliveries' %}">
+                    <i class="fa-solid fa-box me-2"></i> Package
+                </a>
+            </li>
+
+            <!-- Finance -->
+            <li class="nav-item mb-1">
+                <a class="nav-link" href="{% url 'bill_list' %}">
+                    <i class="fa-solid fa-receipt me-2"></i> Invoices
+                </a>
+            </li>
+
+            <li class="nav-item mb-1">
+                <a class="nav-link" href="{% url 'invoicelist' %}">
+                    <i class="fa-solid fa-file-invoice me-2"></i> Bills
+                </a>
+            </li>
+
+            <!-- Accounts -->
+            <li class="nav-item mb-1 dropdown">
+                <a class="nav-link dropdown-toggle"
+                   href="#" data-bs-toggle="dropdown">
+                    <i class="fa fa-users me-2"></i> Accounts
+                </a>
+
+                <ul class="dropdown-menu border-0">
+                    <li><a class="dropdown-item" href="{% url 'profile_list' %}">All Staff</a></li>
+                    <li><a class="dropdown-item" href="{% url 'customer_list' %}">Customers</a></li>
+                    <li><a class="dropdown-item" href="{% url 'vendor-list' %}">Vendors</a></li>
+                </ul>
+            </li>
+
+        </ul>
+    </div>
+
+    <!-- Footer -->
+    <div class="sidebar-footer text-center">
+        <form method="post" action="{% url 'user-logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn w-100">
+                <i class="fa fa-sign-out me-2"></i> Logout
+            </button>
+        </form>
+    </div>
+
+</aside>

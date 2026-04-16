@@ -1,0 +1,109 @@
+{% load static %}
+{% block content %}
+
+<div class="container-fluid py-4">
+
+     <!-- Charts -->
+    <div class="row g-4">
+
+        <!-- Pie Chart -->
+        <div class="col-lg-6 col-12">
+            <div class="card chart-card h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="chart-title mb-3">Category Distribution</h6>
+                    <div class="chart-container">
+                        <canvas id="pieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Line Chart -->
+        <div class="col-lg-6 col-12">
+            <div class="card chart-card h-100 shadow-sm">
+                <div class="card-body">
+                    <h6 class="chart-title mb-3">Sales Over Time</h6>
+                    <div class="chart-container">
+                        <canvas id="lineChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Chart JS -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+/* Pie Chart */
+new Chart(document.getElementById('pieChart'), {
+    type: 'doughnut',
+    data: {
+        labels: {{ categories|safe }},
+        datasets: [{
+            data: {{ category_counts|safe }},
+            backgroundColor: ['#6366F1', '#10B981', '#F59E0B', '#EF4444', '#3B82F6'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+/* Line Chart */
+new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+        labels: {{ sale_dates_labels|safe }},
+        datasets: [{
+            data: {{ sale_dates_values|safe }},
+            borderColor: '#6366F1',
+            backgroundColor: 'rgba(99,102,241,0.1)',
+            fill: true,
+            tension: 0.3
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false }
+        }
+    }
+});
+</script>
+
+<!-- Styling -->
+<style>
+
+/* Chart Cards */
+.chart-card {
+    border-radius: 12px;
+    border: none;
+}
+
+/* Title */
+.chart-title {
+    font-weight: 600;
+    font-size: 15px;
+}
+
+/* Chart size */
+.chart-container {
+    height: 320px;
+}
+
+</style>
+
+{% endblock %}

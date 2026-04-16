@@ -1,0 +1,110 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Update Bill{% endblock %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <!-- 🔥 Header -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-lg-8 col-md-10">
+
+            <div class="header-card d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h4 class="mb-1 text-white">Update Invoice</h4>
+                    <small class="text-light opacity-75">
+                        Modify billing record details
+                    </small>
+                </div>
+
+                <div class="header-icon">
+                    <i class="fa-solid fa-file-pen"></i>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-md-10">
+
+            <div class="card form-card p-4">
+
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    {{ form.media }}
+                    {{ form|crispy }}
+
+                    <!-- Button -->
+                    <div class="text-center mt-4">
+                        <button class="btn submit-btn">
+                            <i class="fa-solid fa-check me-1"></i> Update Bill
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- STYLE -->
+<style>
+
+/* Header */
+.header-card {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border-radius: 14px;
+    padding: 14px 18px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+/* Header icon */
+.header-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+/* Form card */
+.form-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+}
+
+/* Button */
+.submit-btn {
+    background: #16a34a;
+    color: #fff;
+    padding: 12px 30px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 500;
+    transition: 0.2s;
+}
+
+.submit-btn:hover {
+    background: #15803d;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(22, 163, 74, 0.3);
+}
+
+</style>
+
+{% endblock %}

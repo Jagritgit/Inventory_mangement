@@ -1,0 +1,160 @@
+{% extends "store/base.html" %}
+{% load static %}
+{% load render_table from django_tables2 %}
+{% load querystring from django_tables2 %}
+
+{% block title %}Products{% endblock %}
+
+{% block content %}
+
+<div class="container py-4">
+
+    <!-- Header (DARK THEME) -->
+    <div class="card header-dark rounded-4 p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+
+            <h4 class="fw-bold mb-0 text-white">Products</h4>
+
+            <div class="d-flex gap-2">
+                <a class="btn btn-success btn-sm px-3 rounded-pill"
+                   href="{% url 'product-create' %}">
+                    <i class="fa-solid fa-plus"></i> Add Item
+                </a>
+
+                <a class="btn btn-outline-light btn-sm px-3 rounded-pill"
+                   href="{% querystring '_export'='xlsx' %}">
+                    <i class="fa-solid fa-download"></i> Export
+                </a>
+            </div>
+
+        </div>
+
+        <!-- Search -->
+        <form class="input-group mt-4"
+              method="get"
+              action="{% url 'item_search_list_view' %}">
+
+            <input name="q" type="text"
+                   class="form-control search-dark rounded-start-pill border-0"
+                   placeholder="Search products...">
+
+            <button class="btn btn-success rounded-end-pill px-3">
+                <i class="fa-solid fa-search"></i>
+            </button>
+
+        </form>
+    </div>
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="table-responsive">
+
+            <table class="table align-middle mb-0">
+
+                <thead class="table-light">
+                    <tr>
+                        <th class="fw-semibold">ID</th>
+                        <th class="fw-semibold">Name</th>
+                        <th class="fw-semibold">Category</th>
+                        <th class="fw-semibold">Quantity</th>
+                        <th class="fw-semibold">Price</th>
+                        <th class="fw-semibold">Date</th>
+                        <th class="fw-semibold">Vendor</th>
+                        <th class="fw-semibold text-center">Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td >{{ item.id }}</td>
+                        <td >{{ item.name }}</td>
+                        <td >{{ item.category }}</td>
+                        <td >{{ item.quantity }}</td>
+                        <td >₹ {{ item.price }}</td>
+                        <td >{{ item.expiring_date }}</td>
+                        <td >{{ item.vendor }}</td>
+                        <td class="text-center">
+
+                            <a class="btn btn-sm btn-outline-primary me-1"
+                               href="{% url 'product-update' item.slug %}">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+
+                            <a class="btn btn-sm btn-outline-danger"
+                               href="{% url 'product-delete' item.slug %}">
+                                <i class="fa-solid fa-trash"></i>
+                            </a>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-4">
+        <ul class="pagination justify-content-center">
+
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+            </li>
+            {% endif %}
+
+            {% for i in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                </li>
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+            </li>
+            {% endif %}
+
+        </ul>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ONLY HEADER STYLING -->
+<style>
+
+/* Dark header */
+.header-dark {
+    background: linear-gradient(135deg, #1f2937, #111827);
+    border: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+}
+
+/* Dark search input */
+.search-dark {
+    background: #374151;
+    color: #fff;
+}
+
+.search-dark::placeholder {
+    color: #d1d5db;
+}
+
+.search-dark:focus {
+    background: #374151;
+    color: #fff;
+    box-shadow: none;
+}
+
+.table {
+    font-size: 15px;  /* increase text size */
+}
+
+</style>
+
+{% endblock %}

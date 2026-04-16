@@ -1,0 +1,174 @@
+{% extends 'store/base.html' %}
+{% block title %}Profile{% endblock %}
+
+{% load crispy_forms_tags %}
+{% load static %}
+
+{% block content %}
+
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+        <!-- Increased width -->
+        <div class="col-lg-6 col-md-8">
+
+            <div class="card border-0 shadow rounded-4 p-4">
+
+                <!-- Profile Image -->
+                <div class="text-center mb-4">
+                    <div class="position-relative d-inline-block">
+
+                        {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}"
+                                 class="profile-img">
+                        {% else %}
+                            <img src="{% static 'default-avatar.png' %}"
+                                 class="profile-img">
+                        {% endif %}
+
+                        <input type="file" name="profile_picture"
+                               id="profileUpload" class="d-none">
+
+                        <label for="profileUpload" class="edit-icon">
+                            <i class="fa-solid fa-camera"></i>
+                        </label>
+
+                    </div>
+
+                    <h4 class="mt-3 mb-1 fw-semibold">{{ user.username }}</h4>
+                    <small class="text-muted">Edit your profile</small>
+                </div>
+
+                <!-- Form -->
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <!-- Name -->
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">First Name</label>
+                            {{ p_form.first_name }}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">Last Name</label>
+                            {{ p_form.last_name }}
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        {{ u_form.email }}
+                    </div>
+
+                    <!-- Phone -->
+                    <div class="mb-3">
+                        <label class="form-label">Mobile Number</label>
+                        {{ p_form.telephone }}
+                    </div>
+
+                    <!-- Hidden real input -->
+                    <div class="d-none">
+                        {{ p_form.profile_picture }}
+                    </div>
+
+                    <!-- Button -->
+                    <div class="d-grid mt-4">
+                        <button class="btn btn-success rounded-pill py-2 fw-medium">
+                            Save Changes
+                        </button>
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<style>
+
+/* Font */
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+/* Avatar */
+.profile-img {
+    width: 130px;
+    height: 130px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid #e5e7eb;
+    transition: 0.3s;
+}
+
+.profile-img:hover {
+    transform: scale(1.05);
+}
+
+/* Edit icon */
+.edit-icon {
+    position: absolute;
+    bottom: 6px;
+    right: 6px;
+    background: #198754;
+    color: white;
+    border-radius: 50%;
+    padding: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.edit-icon:hover {
+    transform: scale(1.1);
+}
+
+/* Inputs */
+input {
+    border-radius: 12px !important;
+    padding: 11px;
+    border: 1px solid #ddd;
+    width: 100%;
+    font-size: 14px;
+}
+
+input:focus {
+    border-color: #198754;
+    box-shadow: 0 0 0 0.12rem rgba(25,135,84,0.2);
+}
+
+/* Labels */
+.form-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 5px;
+}
+
+/* Button */
+.btn {
+    font-size: 14px;
+    letter-spacing: 0.3px;
+}
+
+/* Card */
+.card {
+    background: #ffffff;
+}
+
+</style>
+
+<script>
+document.getElementById("profileUpload").addEventListener("change", function() {
+    const realInput = document.querySelector('input[name="profile_picture"]:not(#profileUpload)');
+    if (realInput) {
+        realInput.files = this.files;
+    }
+});
+</script>
+
+{% endblock %}

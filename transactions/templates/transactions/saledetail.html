@@ -1,0 +1,160 @@
+{% extends "store/base.html" %}
+{% block content %}
+
+<!-- Buttons -->
+<div class="text-center my-3">
+    <button onclick="printReceipt()" class="btn btn-success btn-sm me-2">
+        🖨 Print
+    </button>
+
+    <button onclick="downloadPDF()" class="btn btn-primary btn-sm">
+        ⬇ Download PDF
+    </button>
+</div>
+
+<!-- Receipt -->
+<div class="d-flex justify-content-center">
+    <div id="receipt">
+
+        <div class="text-center">
+            <h4 class="fw-bold mb-1">InventoryMS</h4>
+            <p class="mb-1">Chhattisgarh, India</p>
+            <p class="mb-1">Phone: +91 XXXXX</p>
+        </div>
+
+        <hr>
+
+        <p>Date: {{ sale.date_added|date:"Y-m-d H:i:s" }}</p>
+        <p>Receipt: IMS{{ sale.id }}</p>
+
+        <hr>
+
+        <div class="row-line">
+            <span>Sub Total</span>
+            <span>₹ {{ sale.sub_total }}</span>
+        </div>
+
+        <div class="row-line">
+            <span>Tax</span>
+            <span>₹ {{ sale.tax_amount }}</span>
+        </div>
+
+        <div class="row-line fw-bold">
+            <span>Total</span>
+            <span>₹ {{ sale.grand_total }}</span>
+        </div>
+
+        <hr>
+
+        <div class="row-line">
+            <span>Paid</span>
+            <span>₹ {{ sale.amount_paid }}</span>
+        </div>
+
+        <div class="row-line">
+            <span>Balance</span>
+            <span>₹ {{ sale.amount_change }}</span>
+        </div>
+
+        <hr>
+
+        <p class="text-center mt-3">
+            Customer: {{ sale.customer.first_name }}
+        </p>
+
+        <h5 class="text-center fw-bold mt-3">THANK YOU</h5>
+
+    </div>
+</div>
+
+<!-- PDF Library -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+
+<script>
+function printReceipt() {
+    window.print();
+}
+
+function downloadPDF() {
+    const element = document.getElementById("receipt");
+
+    // Temporarily resize for proper PDF scaling
+    const originalWidth = element.style.width;
+    element.style.width = "300px";
+
+    const opt = {
+        margin: 5,
+        filename: 'receipt.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: {
+            unit: 'mm',
+            format: [80, 200],   // proper receipt size
+            orientation: 'portrait'
+        }
+    };
+
+    html2pdf().set(opt).from(element).save().then(() => {
+        element.style.width = originalWidth; // restore
+    });
+}
+</script>
+
+<!-- Styling -->
+<style>
+
+/* Web View (Big & Comfortable) */
+#receipt {
+    width: 450px;
+    min-height: 600px;
+    margin: auto;
+    background: white;
+    padding: 25px;
+    font-family: monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    box-shadow: 0 0 12px rgba(0,0,0,0.1);
+}
+
+/* Row layout */
+.row-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+/* PRINT STYLE */
+@media print {
+
+    body {
+        background: white !important;
+    }
+
+    body * {
+        visibility: hidden;
+    }
+
+    #receipt, #receipt * {
+        visibility: visible;
+    }
+
+    #receipt {
+        position: absolute;
+        left: 50%;
+        top: 0;
+        transform: translateX(-50%);
+        width: 320px !important;
+        font-size: 13px !important;
+        padding: 20px;
+        box-shadow: none;
+        border: none;
+    }
+
+    button {
+        display: none !important;
+    }
+}
+
+</style>
+
+{% endblock %}

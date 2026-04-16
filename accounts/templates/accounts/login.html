@@ -1,0 +1,169 @@
+{% load crispy_forms_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <title>IMS: Login</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #25343F;
+        }
+
+        /* FULL HEIGHT */
+        .main-row {
+            height: 100vh;
+        }
+
+        /* LEFT IMAGE */
+        .image-side {
+            height: 100vh;
+        }
+
+        .image-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* RIGHT SIDE */
+        .login-container {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-left: 2px solid rgba(255,255,255,0.1); /* 🔥 separator */
+        }
+
+        /* LOGIN BOX */
+        .login-card {
+            width: 100%;
+            max-width: 340px;
+        }
+
+        /* Title */
+        .login-title {
+            color: white;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        /* Inputs */
+        .login-card input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            margin-top: 5px;
+        }
+
+        .login-card input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+        }
+
+        /* Button */
+        .btn-login {
+            background: white;
+            border-radius: 6px;
+            padding: 10px;
+            font-weight: 500;
+        }
+
+        .btn-login:hover {
+            background: #e6e6e6;
+        }
+
+        /* Register */
+        .register-text {
+            text-align: center;
+            margin-top: 15px;
+            color: #ccc;
+            font-size: 14px;
+        }
+
+        .register-text a {
+            color: white;
+            text-decoration: none;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container-fluid">
+    <div class="row main-row">
+
+        <!-- LEFT IMAGE -->
+        <div class="col-md-7 d-none d-md-block image-side">
+            <img src="{% static 'images/login.jpg' %}" alt="Inventory Image">
+        </div>
+
+        <!-- RIGHT LOGIN -->
+        <div class="col-md-4 login-container">
+
+            <div class="login-card">
+
+                <h4 class="login-title">Login</h4>
+
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert alert-{{message.tags}}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for error in form.non_field_errors %}
+                            {{ error }}
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="POST">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="text-light">Username</label>
+                        {{ form.username }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="text-light">Password</label>
+                        {{ form.password }}
+                    </div>
+
+                    <button class="btn btn-login w-100">
+                        Login
+                    </button>
+
+                </form>
+
+                <div class="register-text">
+                    <h6>
+                    Not registered?
+                    <a href="{% url 'user-register' %}">Create account</a>
+                    </h6>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+</body>
+</html>
