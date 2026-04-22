@@ -1,7 +1,5 @@
 {% extends "store/base.html" %}
 {% load static %}
-{% load render_table from django_tables2 %}
-{% load querystring from django_tables2 %}
 
 {% block title %}Sales{% endblock %}
 
@@ -39,16 +37,15 @@
 
         <thead class="table-light">
             <tr>
-                <th class="fw-semibold">ID</th>
-                <th class="fw-semibold">Date</th>
-                <th class="fw-semibold">Customer</th>
-                <th class="fw-semibold">Sub Total</th>
-                <th class="fw-semibold">Grand Total</th>
-                <th class="fw-semibold">Tax Amount</th>
-                <th class="fw-semibold">Tax Percentage</th>
-                <th class="fw-semibold">Amount Paid</th>
-                <th class="fw-semibold">Amount Change</th>
-                <th class="fw-semibold text-center">Actions</th>
+                <th>ID</th>
+                <th>Date</th>
+                <th>Customer</th>
+                <th>Items</th>
+                <th>Grand Total</th>
+                <th>Amount Paid</th>
+                <th>Change</th>
+                <th>Status</th>
+                <th class="text-center">Actions</th>
             </tr>
         </thead>
 
@@ -58,19 +55,36 @@
                 <td>{{ sale.id }}</td>
                 <td>{{ sale.date_added|date:"Y-m-d H:i:s" }}</td>
                 <td>{{ sale.customer }}</td>
-                <td>{{ sale.sub_total }}</td>
-                <td>{{ sale.grand_total }}</td>
-                <td>{{ sale.tax_amount }}</td>
-                <td>{{ sale.tax_percentage }}</td>
-                <td>{{ sale.amount_paid }}</td>
-                <td>{{ sale.amount_change }}</td>
-                <td class="text-center">
 
-                    <a class="view-btn"
-                       href="{% url 'sale-detail' sale.id %}">
+                <!-- Items -->
+                <td class="single-line-items">
+                    {% for detail in sale.saledetail_set.all %}
+                        {{ detail.item.name }} ({{ detail.quantity }}){% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        None
+                    {% endfor %}
+                </td>
+
+                <td>₹ {{ sale.grand_total }}</td>
+                <td>₹ {{ sale.amount_paid }}</td>
+                <td>₹ {{ sale.amount_change }}</td>
+
+                <!-- ✅ FIXED STATUS -->
+                <td>
+                    {% if sale.amount_paid >= sale.grand_total %}
+                        <span class="badge bg-success">Paid</span>
+                    {% elif sale.amount_paid > 0 %}
+                        <span class="badge bg-warning text-dark">Partial</span>
+                    {% else %}
+                        <span class="badge bg-danger">Unpaid</span>
+                    {% endif %}
+                </td>
+
+                <!-- Actions -->
+                <td class="text-center">
+                    <a class="view-btn" href="{% url 'sale-detail' sale.id %}">
                         <i class="fa-solid fa-eye"></i>
                     </a>
-
                 </td>
             </tr>
             {% endfor %}
@@ -117,7 +131,7 @@
     box-shadow: 0 6px 20px rgba(0,0,0,0.2);
 }
 
-/* Eye button only */
+/* View button */
 .view-btn {
     display: inline-flex;
     align-items: center;
@@ -135,8 +149,23 @@
     color: #fff;
 }
 
+/* Table */
 .table {
-    font-size: 15px;  /* increase text size */
+    font-size: 15px;
+}
+
+/* Items */
+.single-line-items {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Status badge */
+.badge {
+    font-size: 12px;
+    padding: 6px 10px;
 }
 
 </style>

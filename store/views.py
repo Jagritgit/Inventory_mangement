@@ -47,34 +47,81 @@ from .tables import ItemTable
 
 @login_required
 def dashboard(request):
+    from django.db.models import Sum, Count
+    from transactions.models import Sale, SaleDetail
+
+    # Basic data
     profiles = Profile.objects.all()
-    Category.objects.annotate(nitem=Count("item"))
     items = Item.objects.all()
+
     total_items = (
-        Item.objects.all()
-        .aggregate(Sum("quantity"))
+        Item.objects.aggregate(Sum("quantity"))
         .get("quantity__sum", 0.00)
     )
+
     items_count = items.count()
     profiles_count = profiles.count()
 
-    # Prepare data for charts
-    category_counts = Category.objects.annotate(
+    # Deliveries
+    completed_deliveries = Delivery.objects.filter(is_delivered=True).count()
+    pending_deliveries = Delivery.objects.filter(is_delivered=False).count()
+
+    # -----------------------------
+    # 🔥 TOP SELLING PRODUCT
+    # -----------------------------
+    top = (
+        SaleDetail.objects
+        .values('item__name')
+        .annotate(total=Sum('quantity'))
+        .order_by('-total')
+        .first()
+    )
+
+    top_product = top['item__name'] if top else None
+
+    # -----------------------------
+    # 🔥 RECENT SELLING PRODUCT
+    # -----------------------------
+    recent = (
+        SaleDetail.objects
+        .select_related('item')
+        .order_by('-id')
+        .first()
+    )
+
+    recent_product = recent.item.name if recent else None
+
+    # -----------------------------
+    # Charts: Category
+    # -----------------------------
+    category_counts_qs = Category.objects.annotate(
         item_count=Count("item")
     ).values("name", "item_count")
-    categories = [cat["name"] for cat in category_counts]
-    category_counts = [cat["item_count"] for cat in category_counts]
 
+    categories = [cat["name"] for cat in category_counts_qs]
+    category_counts = [cat["item_count"] for cat in category_counts_qs]
+
+    # -----------------------------
+    # Charts: Sales Over Time
+    # -----------------------------
     sale_dates = (
         Sale.objects.values("date_added__date")
         .annotate(total_sales=Sum("grand_total"))
         .order_by("date_added__date")
     )
-    sale_dates_labels = [
-        date["date_added__date"].strftime("%Y-%m-%d") for date in sale_dates
-    ]
-    sale_dates_values = [float(date["total_sales"]) for date in sale_dates]
 
+    sale_dates_labels = [
+        date["date_added__date"].strftime("%Y-%m-%d")
+        for date in sale_dates
+    ]
+
+    sale_dates_values = [
+        float(date["total_sales"]) for date in sale_dates
+    ]
+
+    # -----------------------------
+    # Final Context
+    # -----------------------------
     context = {
         "items": items,
         "profiles": profiles,
@@ -82,13 +129,23 @@ def dashboard(request):
         "items_count": items_count,
         "total_items": total_items,
         "vendors": Vendor.objects.all(),
-        "delivery": Delivery.objects.all(),
+
+        "completed_deliveries": completed_deliveries,
+        "pending_deliveries": pending_deliveries,
+
         "sales": Sale.objects.all(),
+
+        # ✅ NEW DATA
+        "top_product": top_product,
+        "recent_product": recent_product,
+
+        # Charts
         "categories": categories,
         "category_counts": category_counts,
         "sale_dates_labels": sale_dates_labels,
         "sale_dates_values": sale_dates_values,
     }
+
     return render(request, "store/dashboard.html", context)
 
 
