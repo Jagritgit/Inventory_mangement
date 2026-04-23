@@ -15,7 +15,28 @@ SECRET_KEY = 'django-insecure-g_n2+2bznu6e@1wel!i(&-4tp86_7lop5395ww+i4x%9*7^old
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CSRF_TRUSTED_ORIGINS = ['https://*.replit.dev', 'https://*.repl.co', 'https://*.replit.app']
+
+# Replit serves the dev app inside a cross-origin iframe (the workspace
+# preview / published webview). For Django's CSRF check to work the browser
+# must (a) be allowed to set the csrftoken cookie inside that iframe and
+# (b) be allowed to send it back on POST. Both require SameSite=None + Secure.
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.replit.dev',
+    'https://*.repl.co',
+    'https://*.replit.app',
+    'https://*.riker.replit.dev',
+    'https://*.sisko.replit.dev',
+    'https://*.picard.replit.dev',
+    'https://*.kirk.replit.dev',
+    'https://*.janeway.replit.dev',
+]
+CSRF_COOKIE_SAMESITE = 'None'
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = 'None'
+SESSION_COOKIE_SECURE = True
+# Honor the X-Forwarded-Proto header set by Replit's proxy so request.is_secure()
+# returns True — required for Secure cookies to actually be sent.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 
 # Application definition
