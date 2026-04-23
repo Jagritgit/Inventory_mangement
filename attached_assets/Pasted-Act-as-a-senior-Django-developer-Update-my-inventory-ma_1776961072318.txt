@@ -1,0 +1,144 @@
+Act as a senior Django developer.
+
+Update my inventory management project with real-world features and Indian-based sample data.
+
+---
+
+## 1. Admin Account
+
+* Create default admin user:
+  Username: jagrit
+  Password: JK810jkup
+* Ensure login works correctly
+
+---
+
+## 2. Database
+
+* Use SQLite database
+* Configure settings.py properly
+* Ensure migrations run without errors
+
+---
+
+## 3. Indian Sample Data (IMPORTANT)
+
+Create realistic Indian data using a management command or fixtures.
+
+### Categories:
+
+* Electronics
+* Accessories
+* Appliances
+* Furniture
+* Stationery
+* FMCG
+* Clothing
+* Hardware & Tools
+
+---
+
+### Products (10–15 items):
+
+Include Indian market-style products like:
+
+* Mobile Phones (e.g., Redmi, Samsung)
+* Laptops (HP, Dell)
+* Mixer Grinder
+* Plastic Chairs
+* Notebooks, Pens
+* Packaged Foods (Biscuits, Snacks)
+* T-shirts, Jeans
+* Tools (Hammer, Drill Machine)
+
+Each product must have:
+
+* Name
+* SKU (unique)
+* Category
+* Price in INR (₹)
+* Stock quantity
+* Low stock threshold
+
+---
+
+### Vendors / Suppliers (5–7):
+
+Use Indian-style names:
+
+* Sharma Traders
+* Gupta Electronics
+* Reddy Supplies
+* Patel Distributors
+* Khan Hardware Store
+
+Include:
+
+* Phone number (Indian format)
+* Address (Indian cities like Hyderabad, Mumbai, Delhi, etc.)
+
+---
+
+### Customers (5–10):
+
+Use Indian names:
+
+* Rahul Sharma
+* Priya Reddy
+* Amit Patel
+* Sneha Verma
+
+Include:
+
+* Phone/email
+
+---
+
+### Sales Records:
+
+* Create multiple sales
+* Each sale:
+
+  * 1–3 products
+  * Correct price calculation
+  * Status: Pending / Completed
+* Reduce stock correctly
+
+---
+
+### Delivery Records:
+
+* Link with sales
+* Status: Pending / Delivered
+* Include delivery dates
+
+---
+
+## 4. Logic Requirements
+
+* Prevent negative stock
+* Auto update stock on sales
+* Data should be properly linked (no random entries)
+
+---
+
+## 5. Output Requirements
+
+* Provide complete working code
+* Include:
+
+  * management command (recommended: seed_data)
+  * or fixtures
+* Provide instructions to run:
+  python manage.py migrate
+  python manage.py seed_data
+
+---
+
+## 6. Rules
+
+* Do NOT rewrite entire project
+* Modify cleanly
+* Ensure everything runs without errors
+
+Start by creating admin user and then add Indian sample data.

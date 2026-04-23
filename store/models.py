@@ -38,15 +38,21 @@ class Category(models.Model):
 class Item(models.Model):
     slug = AutoSlugField(unique=True, populate_from='name')
     name = models.CharField(max_length=50)
+    sku = models.CharField(max_length=32, unique=True, null=True, blank=True)
     description = models.TextField(max_length=256)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0)
+    low_stock_threshold = models.PositiveIntegerField(default=5)
 
     price = models.FloatField(default=0)         # selling price
-    cost_price = models.FloatField(default=0)    # 🔥 ADD THIS
+    cost_price = models.FloatField(default=0)
 
     expiring_date = models.DateTimeField(null=True, blank=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True)
+
+    @property
+    def is_low_stock(self):
+        return self.quantity <= self.low_stock_threshold
 
     def __str__(self):
         """

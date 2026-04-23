@@ -6,6 +6,10 @@ Django 5.1 inventory management system (SQLite). Apps: store, accounts, transact
 - Workflow `Start application`: `python manage.py runserver 0.0.0.0:5000`
 - Deployment: autoscale, gunicorn `InventoryMS.wsgi:application` on port 5000.
 
+## Seed data
+- `python manage.py seed_data` — creates admin `jagrit` / `JK810jkup`, 8 categories, 6 vendors, 8 customers, 18 products (with SKU + low-stock threshold), 8 sales (GST 18%), and linked deliveries. All Indian-market sample data.
+- `python manage.py seed_data --flush` — wipes existing sample data first (idempotent reseed).
+
 ## Test suite
 - Run: `python manage.py test`
 - 56 tests across 5 apps: models, forms, views, business logic, integration flow, auth.
