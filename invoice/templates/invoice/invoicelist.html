@@ -1,189 +1,71 @@
 {% extends "store/base.html" %}
-{% load render_table from django_tables2 %}
-{% load querystring from django_tables2 %}
-{% load static %}
-
 {% block title %}Invoices{% endblock %}
-
 {% block content %}
+{% include "invoice/_styles.html" %}
 
-    <!--Header-->
-    <div class="container py-4">
+<div class="module-wrap">
 
-        <div class="card header-dark rounded p-3 mb-4">
-        
-        <div class="d-flex justify-content-between align-items-center flex-wrap">
-
-            <!-- Left Side: Title + Subtitle -->
-            <div>
-                <h2 class="mb-1 text-white">Bills</h2>
-                <small class="text-light opacity-75">
-                   <strong>Manage billing for individual customers (B2C)</strong>
-                </small>
-            </div>
-
-            <!-- Right Side: Buttons -->
-            <div class="d-flex gap-2 mt-2 mt-md-0">
-                <a class="btn btn-success btn-sm rounded-pill"
-                href="{% url 'invoice-create' %}">
-                    <i class="fa-solid fa-plus"></i> Create Bills
-                </a>
-
-                <a class="btn btn-outline-light btn-sm rounded-pill"
-                href="{% querystring '_export'='xlsx' %}">
-                    <i class="fa-solid fa-download"></i> Export
-                </a>
-            </div>
-
+    <div class="module-header">
+        <div>
+            <h2>Invoices</h2>
+            <small>Money to receive from customers (Sales)</small>
         </div>
-
+        <div class="module-actions">
+            <a class="btn-action primary" href="{% url 'invoice-create' %}">+ New Invoice</a>
+        </div>
     </div>
 
-    <!-- Table -->
-    <table class="table table-sm table-striped table-bordered table-hover">
+    <form method="get" class="filter-bar">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search invoice # or customer">
+        <select name="status">
+            <option value="">All statuses</option>
+            <option value="PAID"      {% if status == 'PAID' %}selected{% endif %}>Paid</option>
+            <option value="PENDING"   {% if status == 'PENDING' %}selected{% endif %}>Pending</option>
+            <option value="CANCELLED" {% if status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+        </select>
+        <select name="date">
+            <option value="">Any date</option>
+            <option value="today" {% if date == 'today' %}selected{% endif %}>Today</option>
+            <option value="week"  {% if date == 'week' %}selected{% endif %}>Last 7 days</option>
+            <option value="month" {% if date == 'month' %}selected{% endif %}>Last 30 days</option>
+        </select>
+        <button type="submit">Apply</button>
+    </form>
 
-        <thead class="table-light">
+    <table class="data-table">
+        <thead>
             <tr>
-                <th class="fw-semibold">ID</th>
-                <th class="fw-semibold">Customer</th>
-                <th class="fw-semibold">Phone</th>
-                <th class="fw-semibold">Item</th>
-                <th class="fw-semibold">Price</th>
-                <th class="fw-semibold">Qty</th>
-                <th class="fw-semibold">Total</th>
-                <th class="fw-semibold">Shipping</th>
-                <th class="fw-semibold">Grand Total</th>
-                <th class="fw-semibold text-center">Actions</th>
+                <th>Invoice #</th>
+                <th>Customer</th>
+                <th>Item</th>
+                <th class="num">Qty</th>
+                <th class="num">Total (₹)</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th></th>
             </tr>
         </thead>
-
         <tbody>
             {% for invoice in invoices %}
             <tr>
-
-                <td>{{ invoice.id }}</td>
-
-                <td>
-                    <a class="text-decoration-none fw-bold text-primary"
-                       href="{% url 'invoice-detail' invoice.slug %}">
-                        {{ invoice.customer_name }}
-                    </a>
-                </td>
-
-                <td>{{ invoice.contact_number }}</td>
+                <td><strong>{{ invoice.invoice_number|default:invoice.slug }}</strong></td>
+                <td>{{ invoice.customer.get_full_name|default:invoice.customer_name }}</td>
                 <td>{{ invoice.item.name }}</td>
-                <td>₹ {{ invoice.price_per_item }}</td>
-                <td>{{ invoice.quantity }}</td>
-                <td>₹ {{ invoice.total }}</td>
-                <td>₹ {{ invoice.shipping }}</td>
-                <td>₹ {{ invoice.grand_total }}</td>
-
-                <td class="text-center">
-
-                    <!-- Edit -->
-                    <a class="edit-btn me-1"
-                       href="{% url 'invoice-update' invoice.slug %}">
-                        <i class="fa-solid fa-pen"></i>
-                    </a>
-
-                    <!-- Delete -->
-                    <a class="delete-btn"
-                       href="{% url 'invoice-delete' invoice.pk %}">
-                        <i class="fa-solid fa-trash"></i>
-                    </a>
-
+                <td class="num">{{ invoice.quantity|floatformat:0 }}</td>
+                <td class="num">₹ {{ invoice.grand_total|floatformat:2 }}</td>
+                <td><span class="status-badge {{ invoice.status_color }}">{{ invoice.get_status_display }}</span></td>
+                <td>{{ invoice.date|date:"d M Y" }}</td>
+                <td>
+                    <a href="{% url 'invoice-detail' invoice.slug %}">View</a>
+                    &middot;
+                    <a href="{% url 'invoice-update' invoice.slug %}">Edit</a>
                 </td>
-
             </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center; padding:24px; color:#6b7280;">No invoices found.</td></tr>
             {% endfor %}
         </tbody>
-
     </table>
 
-    <!-- Pagination -->
-    <div class="mt-4">
-        {% if is_paginated %}
-        <ul class="pagination justify-content-center">
-
-            {% if page_obj.has_previous %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
-            </li>
-            {% endif %}
-
-            {% for i in paginator.page_range %}
-                <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-                </li>
-            {% endfor %}
-
-            {% if page_obj.has_next %}
-            <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
-            </li>
-            {% endif %}
-
-        </ul>
-        {% endif %}
-    </div>
-
 </div>
-
-<!-- STYLE -->
-<style>
-
-/* Header */
-.header-dark {
-    background: linear-gradient(135deg, #1f2937, #111827);
-    border: none;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
-}
-
-/* Table center */
-.table th, .table td {
-    text-align: center;
-}
-
-/* Edit button */
-.edit-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(59, 130, 246, 0.1);
-    color: #2563eb;
-    transition: 0.2s;
-}
-
-.edit-btn:hover {
-    background: #2563eb;
-    color: #fff;
-}
-
-/* Delete button */
-.delete-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: rgba(239, 68, 68, 0.1);
-    color: #dc2626;
-    transition: 0.2s;
-}
-
-.delete-btn:hover {
-    background: #dc2626;
-    color: #fff;
-}
-
-.table {
-    font-size: 15px;  /* increase text size */
-}
-
-</style>
-
 {% endblock %}

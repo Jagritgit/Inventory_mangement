@@ -1,107 +1,93 @@
-# Django core imports
-from django.urls import reverse
-
-# Authentication and permissions
+from datetime import timedelta
+from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView
+from django.db.models import Q
 
-# Class-based views
-from django.views.generic import (
-    DetailView, CreateView, UpdateView, DeleteView
-)
-
-# Third-party packages
-from django_tables2 import SingleTableView
-from django_tables2.export.views import ExportMixin
-
-# Local app imports
 from .models import Invoice
-from .tables import InvoiceTable
+from .forms import InvoiceForm
 
 
-class InvoiceListView(LoginRequiredMixin, ExportMixin, SingleTableView):
-    """
-    View for listing invoices with table export functionality.
-    """
+class InvoiceListView(LoginRequiredMixin, ListView):
     model = Invoice
-    table_class = InvoiceTable
-    template_name = 'invoice/invoicelist.html'
-    context_object_name = 'invoices'
-    paginate_by = 10
-    table_pagination = False  # Disable table pagination
+    template_name = "invoice/invoicelist.html"
+    context_object_name = "invoices"
+    paginate_by = 15
+
+    def get_queryset(self):
+        qs = super().get_queryset().select_related("item", "customer")
+
+        q = self.request.GET.get("q")
+        if q:
+            qs = qs.filter(
+                Q(invoice_number__icontains=q)
+                | Q(customer_name__icontains=q)
+                | Q(customer__first_name__icontains=q)
+                | Q(customer__last_name__icontains=q)
+            )
+
+        status = self.request.GET.get("status")
+        if status in {"PAID", "PENDING", "CANCELLED"}:
+            qs = qs.filter(status=status)
+
+        date_filter = self.request.GET.get("date")
+        now = timezone.now()
+        if date_filter == "today":
+            qs = qs.filter(date__date=now.date())
+        elif date_filter == "week":
+            qs = qs.filter(date__gte=now - timedelta(days=7))
+        elif date_filter == "month":
+            qs = qs.filter(date__gte=now - timedelta(days=30))
+
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["q"] = self.request.GET.get("q", "")
+        ctx["status"] = self.request.GET.get("status", "")
+        ctx["date"] = self.request.GET.get("date", "")
+        return ctx
 
 
-class InvoiceDetailView(DetailView):
-    """
-    View for displaying invoice details.
-    """
+class InvoiceDetailView(LoginRequiredMixin, DetailView):
     model = Invoice
-    template_name = 'invoice/invoicedetail.html'
-
-    def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful action.
-        """
-        return reverse('invoice-detail', kwargs={'slug': self.object.pk})
+    template_name = "invoice/invoicedetail.html"
+    context_object_name = "invoice"
 
 
 class InvoiceCreateView(LoginRequiredMixin, CreateView):
-    """
-    View for creating a new invoice.
-    """
     model = Invoice
-    template_name = 'invoice/invoicecreate.html'
-    fields = [
-        'customer_name', 'contact_number', 'item',
-        'price_per_item', 'quantity', 'shipping'
-    ]
+    form_class = InvoiceForm
+    template_name = "invoice/invoice_form.html"
+    success_url = reverse_lazy("invoicelist")
 
-    def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful creation.
-        """
-        return reverse('invoicelist')
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except ValueError as e:
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
 
 
-class InvoiceUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """
-    View for updating an existing invoice.
-    """
+class InvoiceUpdateView(LoginRequiredMixin, UpdateView):
     model = Invoice
-    template_name = 'invoice/invoiceupdate.html'
-    fields = [
-        'customer_name', 'contact_number', 'item',
-        'price_per_item', 'quantity', 'shipping'
-    ]
+    form_class = InvoiceForm
+    template_name = "invoice/invoice_form.html"
+    success_url = reverse_lazy("invoicelist")
 
-    def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful update.
-        """
-        return reverse('invoicelist')
-
-    def test_func(self):
-        """
-        Determine if the user has permission to update the invoice.
-        """
-        return self.request.user.is_superuser
+    def form_valid(self, form):
+        try:
+            return super().form_valid(form)
+        except ValueError as e:
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
 
 
 class InvoiceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """
-    View for deleting an invoice.
-    """
     model = Invoice
-    template_name = 'invoice/invoicedelete.html'
-    success_url = '/products'  # Can be overridden in get_success_url()
-
-    def get_success_url(self):
-        """
-        Return the URL to redirect to after a successful deletion.
-        """
-        return reverse('invoicelist')
+    template_name = "invoice/invoicedelete.html"
+    success_url = reverse_lazy("invoicelist")
 
     def test_func(self):
-        """
-        Determine if the user has permission to delete the invoice.
-        """
         return self.request.user.is_superuser

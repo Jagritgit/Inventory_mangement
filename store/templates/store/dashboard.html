@@ -199,6 +199,61 @@
 
     </div>
 
+    <!-- INVOICES & BILLS ROW -->
+    <div class="row">
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'invoicelist' %}" class="card-link">
+                <div class="dash-card kpi-card">
+                    <div>
+                        <div class="kpi-title">Pending Invoices</div>
+                        <div class="kpi-value">{{ pending_invoices_count }}</div>
+                    </div>
+                    <div class="kpi-foot">₹ {{ pending_invoices_total }} to receive</div>
+                    <div class="icon-box yellow"><i class="fa fa-file-invoice"></i></div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'invoicelist' %}?status=PAID" class="card-link">
+                <div class="dash-card kpi-card">
+                    <div>
+                        <div class="kpi-title">Invoice Revenue</div>
+                        <div class="kpi-value">₹ {{ paid_invoice_revenue }}</div>
+                    </div>
+                    <div class="kpi-foot">From paid invoices</div>
+                    <div class="icon-box green"><i class="fa fa-check-circle"></i></div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'bill_list' %}" class="card-link">
+                <div class="dash-card kpi-card">
+                    <div>
+                        <div class="kpi-title">Pending Bills</div>
+                        <div class="kpi-value">{{ pending_bills_count }}</div>
+                    </div>
+                    <div class="kpi-foot">₹ {{ pending_bills_total }} to pay</div>
+                    <div class="icon-box rose"><i class="fa fa-file-invoice-dollar"></i></div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'bill_list' %}?status=PAID" class="card-link">
+                <div class="dash-card kpi-card">
+                    <div>
+                        <div class="kpi-title">Total Expenses</div>
+                        <div class="kpi-value">₹ {{ total_expenses }}</div>
+                    </div>
+                    <div class="kpi-foot">From paid bills</div>
+                    <div class="icon-box purple"><i class="fa fa-money-bill-wave"></i></div>
+                </div>
+            </a>
+        </div>
+    </div>
+
     <!-- ACTIVITY ROW -->
     <div class="row">
 

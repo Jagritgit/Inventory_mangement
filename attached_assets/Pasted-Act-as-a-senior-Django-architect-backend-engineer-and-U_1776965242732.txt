@@ -1,0 +1,277 @@
+Act as a senior Django architect, backend engineer, and UI/UX designer.
+
+Upgrade and refactor my Inventory Management System into a professional, production-level system with a complete Invoice (Sales) and Bill (Purchase) module.
+
+---
+
+# 🧾 1. SYSTEM UNDERSTANDING (VERY IMPORTANT)
+
+Implement two clearly separated business flows:
+
+## Invoice (Sales)
+
+* Represents money to RECEIVE from customers
+* Reduces stock
+* Contributes to REVENUE (only when Paid)
+
+## Bill (Purchase)
+
+* Represents money to PAY to suppliers
+* Increases stock
+* Contributes to EXPENSES
+
+---
+
+# 🧾 2. INVOICE DESIGN (HOW IT SHOULD LOOK & WORK)
+
+## Structure:
+
+Each invoice must contain:
+
+* Invoice Number (auto-generated, unique)
+* Customer:
+
+  * Name
+  * Phone/email
+* Product table:
+
+  * Product name
+  * Quantity
+  * Price
+  * Subtotal
+* Total amount (₹, 2 decimal places)
+* Date
+* Due date (if pending)
+* Status:
+
+  * Paid
+  * Pending
+  * Cancelled
+
+---
+
+## UI Layout:
+
+* Header: Invoice number + customer info
+* Middle: Product table
+* Bottom:
+
+  * Total amount
+  * Status badge (colored)
+* Clean, professional, readable design
+
+---
+
+## Logic:
+
+* On CREATE:
+
+  * Reduce stock
+  * Validate stock availability
+* On UPDATE:
+
+  * Restore previous stock
+  * Apply new stock changes
+* Prevent negative stock
+* Only Paid invoices count toward revenue
+
+---
+
+## Features:
+
+* Search (invoice number, customer)
+* Filters:
+
+  * Date (today/week/month)
+  * Status
+* Pagination
+* Click → detail page
+
+---
+
+# 🧾 3. BILL DESIGN (HOW IT SHOULD LOOK & WORK)
+
+## Structure:
+
+Each bill must contain:
+
+* Bill Number (auto-generated, unique)
+* Vendor:
+
+  * Name
+  * Contact
+* Product table:
+
+  * Product
+  * Quantity
+  * Cost price
+  * Subtotal
+* Total cost (₹)
+* Input tax (GST optional)
+* Date
+* Status:
+
+  * Paid
+  * Pending
+
+---
+
+## UI Layout:
+
+* Similar to invoice (consistent design)
+* Vendor info instead of customer
+* Clear cost breakdown
+
+---
+
+## Logic:
+
+* On CREATE:
+
+  * Increase stock
+* On UPDATE:
+
+  * Reverse previous stock addition
+  * Apply new values
+* Update product cost price (optional)
+
+---
+
+## Features:
+
+* Search (bill number, vendor)
+* Filters:
+
+  * Date
+  * Status
+* Vendor-wise purchase history
+* Pending payment tracking
+
+---
+
+# 🔧 4. ARCHITECTURE (VERY IMPORTANT)
+
+Use proper Django structure:
+
+## Views (Class-Based):
+
+* InvoiceCreateView
+
+* InvoiceUpdateView
+
+* InvoiceListView
+
+* InvoiceDetailView
+
+* BillCreateView
+
+* BillUpdateView
+
+* BillListView
+
+* BillDetailView
+
+---
+
+## Templates:
+
+Invoice:
+
+* invoice_list.html
+* invoice_form.html
+* invoice_detail.html
+
+Bill:
+
+* bill_list.html
+* bill_form.html
+* bill_detail.html
+
+---
+
+## Forms:
+
+* Use ModelForms
+* Use formsets for multiple products
+
+---
+
+## URLs:
+
+/invoices/
+/invoices/create/
+/invoices/<id>/
+/invoices/<id>/edit/
+
+/bills/
+/bills/create/
+/bills/<id>/
+/bills/<id>/edit/
+
+---
+
+# 📊 5. BUSINESS CALCULATIONS
+
+Implement:
+
+* Revenue = sum of Paid invoices
+* Expenses = sum of Bills
+* Profit = Revenue - Expenses
+
+Ensure accurate aggregation using Django ORM.
+
+---
+
+# 🎨 6. UI/UX REQUIREMENTS
+
+* Clean table design
+* Proper spacing and alignment
+* Status colors:
+
+  * Paid → green
+  * Pending → yellow
+  * Cancelled → red
+* Responsive layout
+* Dashboard integration (summary cards)
+
+---
+
+# 🧠 7. DATA INTEGRITY RULES
+
+* No negative stock
+* Consistent totals
+* Valid quantities
+* Proper relationships:
+
+  * Invoice → Customer → Products
+  * Bill → Vendor → Products
+
+---
+
+# 📋 8. OUTPUT REQUIREMENTS
+
+Provide COMPLETE working code:
+
+* models.py (if needed)
+* views.py (CBVs)
+* forms.py
+* urls.py
+* templates (all pages)
+
+Also:
+
+* Clearly explain logic for stock updates
+* Ensure everything runs without errors
+
+---
+
+# ⚠️ STRICT RULES
+
+* Do NOT rewrite the entire project blindly
+* Extend and refactor cleanly
+* Focus on correctness over shortcuts
+* Do NOT skip stock update logic
+
+---
+
+Start with Invoice module, then Bill module, then integrate everything.

@@ -1,153 +1,69 @@
 {% extends "store/base.html" %}
-{% load render_table from django_tables2 %}
-{% load querystring from django_tables2 %}
-{% load static %}
-
 {% block title %}Bills{% endblock %}
-
 {% block content %}
+{% include "invoice/_styles.html" %}
 
-<div class="container-fluid pt-3 pb-4">
+<div class="module-wrap">
 
-    <!-- 🔥 Header -->
-    <div class="row justify-content-center mb-3">
-        <div class="col-xl-12 px-3">
-
-            <div class="header-card d-flex justify-content-between align-items-center flex-wrap gap-2">
-
-                <div>
-                    <h3 class="mb-1 text-white">Invoices</h3>
-                    <small class="text-light opacity-75">
-                        <strong>Invoice records for business-to-business transactions (B2B)</strong> 
-                    </small>
-                </div>
-
-                <div class="d-flex gap-2">
-                    <a class="btn btn-success btn-sm rounded-pill px-3"
-                       href="{% url 'bill_create' %}">
-                        <i class="fa-solid fa-plus"></i> Add Invoice
-                    </a>
-
-                    <a class="btn btn-outline-light btn-sm rounded-pill px-3"
-                       href="{% querystring '_export'='xlsx' %}">
-                        <i class="fa-solid fa-download"></i> Export
-                    </a>
-                </div>
-
-            </div>
-
+    <div class="module-header" style="background: linear-gradient(135deg, #7c2d12 0%, #b45309 100%);">
+        <div>
+            <h2>Bills</h2>
+            <small>Money to pay vendors / suppliers (Purchases)</small>
+        </div>
+        <div class="module-actions">
+            <a class="btn-action primary" href="{% url 'bill_create' %}" style="color:#7c2d12;">+ New Bill</a>
         </div>
     </div>
 
-    <!-- Table -->
-    <div class="row justify-content-center">
-        <div class="col-xl-12 px-3">
+    <form method="get" class="filter-bar">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search bill # or vendor">
+        <select name="status">
+            <option value="">All statuses</option>
+            <option value="PAID"    {% if status == 'PAID' %}selected{% endif %}>Paid</option>
+            <option value="PENDING" {% if status == 'PENDING' %}selected{% endif %}>Pending</option>
+        </select>
+        <select name="date">
+            <option value="">Any date</option>
+            <option value="today" {% if date == 'today' %}selected{% endif %}>Today</option>
+            <option value="week"  {% if date == 'week' %}selected{% endif %}>Last 7 days</option>
+            <option value="month" {% if date == 'month' %}selected{% endif %}>Last 30 days</option>
+        </select>
+        <button type="submit">Apply</button>
+    </form>
 
-            <table class="table table-sm table-bordered table-striped table-hover">
-
-                <thead class="table-light text-center">
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Contact</th>
-                        <th>Email</th>
-                        <th>Payment</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody class="text-center">
-                    {% for bill in bills %}
-                    <tr>
-
-                        <td>{{ bill.id }}</td>
-                        <td>{{ bill.institution_name }}</td>
-                        <td>{{ bill.description }}</td>
-                        <td>{{ bill.phone_number }}</td>
-                        <td>{{ bill.email }}</td>
-                        <td>{{ bill.payment_details }}</td>
-                        <td>₹{{ bill.amount }}</td>
-
-                        <!-- Status -->
-                        <td>
-                            {% if bill.status %}
-                                <span class="badge bg-success text-light">Paid</span>
-                            {% else %}
-                                <span class="badge bg-danger text-light">Pending</span>
-                            {% endif %}
-                        </td>
-
-                        <!-- Actions -->
-                        <td>
-                            <a class="text-info"
-                               href="{% url 'bill_update' bill.slug %}">
-                                <i class="fa-solid fa-pen"></i>
-                            </a>
-
-                            <a class="text-danger ms-2"
-                               href="{% url 'bill_delete' bill.pk %}">
-                                <i class="fa-solid fa-trash"></i>
-                            </a>
-                        </td>
-
-                    </tr>
-                    {% endfor %}
-                </tbody>
-
-            </table>
-
-        </div>
-    </div>
-
-    <!-- Pagination -->
-    <div class="mt-3">
-        {% if is_paginated %}
-        <nav>
-            <ul class="pagination justify-content-center">
-
-                {% if page_obj.has_previous %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
-                </li>
-                {% endif %}
-
-                {% for i in paginator.page_range %}
-                <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
-                </li>
-                {% endfor %}
-
-                {% if page_obj.has_next %}
-                <li class="page-item">
-                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
-                </li>
-                {% endif %}
-
-            </ul>
-        </nav>
-        {% endif %}
-    </div>
-
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Bill #</th>
+                <th>Vendor</th>
+                <th>Item</th>
+                <th class="num">Qty</th>
+                <th class="num">Amount (₹)</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for bill in bills %}
+            <tr>
+                <td><strong>{{ bill.bill_number|default:bill.slug }}</strong></td>
+                <td>{{ bill.vendor.name|default:bill.institution_name }}</td>
+                <td>{{ bill.item.name|default:"—" }}</td>
+                <td class="num">{{ bill.quantity }}</td>
+                <td class="num">₹ {{ bill.amount|floatformat:2 }}</td>
+                <td><span class="status-badge {{ bill.status_color }}">{{ bill.get_status_display }}</span></td>
+                <td>{{ bill.date|date:"d M Y" }}</td>
+                <td>
+                    <a href="{% url 'bill_detail' bill.slug %}">View</a>
+                    &middot;
+                    <a href="{% url 'bill_update' bill.slug %}">Edit</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" style="text-align:center;padding:24px;color:#6b7280;">No bills found.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
-
-<!-- STYLE -->
-<style>
-
-/* Header */
-.header-card {
-    background: linear-gradient(135deg, #1f2937, #111827);
-    border-radius: 14px;
-    padding: 12px 18px; /* reduced spacing */
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-.table {
-    font-size: 15px;  /* increase text size */
-}
-
-</style>
-
 {% endblock %}

@@ -1,0 +1,39 @@
+{% extends "store/base.html" %}
+{% block title %}{% if form.instance.pk %}Edit{% else %}New{% endif %} Invoice{% endblock %}
+{% block content %}
+{% include "invoice/_styles.html" %}
+
+<div class="module-wrap">
+    <div class="module-header">
+        <div>
+            <h2>{% if form.instance.pk %}Edit Invoice {{ form.instance.invoice_number }}{% else %}New Invoice{% endif %}</h2>
+            <small>Sale to a customer — stock will be deducted automatically.</small>
+        </div>
+        <a class="btn-action ghost" href="{% url 'invoicelist' %}">← Back</a>
+    </div>
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div style="background:#fee2e2;color:#991b1b;padding:10px;border-radius:8px;margin-bottom:12px;">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="{% if field.name == 'customer_name' or field.name == 'description' %}full{% endif %}">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<small style="color:#dc2626;">{{ field.errors|striptags }}</small>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top:18px;text-align:right;">
+            <a href="{% url 'invoicelist' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="background:#2563eb;color:#fff;border:none;padding:8px 22px;border-radius:8px;font-weight:600;">
+                Save Invoice
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

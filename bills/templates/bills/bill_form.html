@@ -1,0 +1,39 @@
+{% extends "store/base.html" %}
+{% block title %}{% if form.instance.pk %}Edit{% else %}New{% endif %} Bill{% endblock %}
+{% block content %}
+{% include "invoice/_styles.html" %}
+
+<div class="module-wrap">
+    <div class="module-header" style="background: linear-gradient(135deg, #7c2d12 0%, #b45309 100%);">
+        <div>
+            <h2>{% if form.instance.pk %}Edit Bill {{ form.instance.bill_number }}{% else %}New Bill{% endif %}</h2>
+            <small>Purchase from a vendor — stock will be added automatically.</small>
+        </div>
+        <a class="btn-action ghost" href="{% url 'bill_list' %}">← Back</a>
+    </div>
+
+    <form method="post" class="form-card">
+        {% csrf_token %}
+        {% if form.non_field_errors %}
+            <div style="background:#fee2e2;color:#991b1b;padding:10px;border-radius:8px;margin-bottom:12px;">
+                {{ form.non_field_errors }}
+            </div>
+        {% endif %}
+        <div class="form-grid">
+            {% for field in form %}
+                <div class="{% if field.name == 'address' or field.name == 'description' or field.name == 'payment_details' %}full{% endif %}">
+                    <label>{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}<small style="color:#dc2626;">{{ field.errors|striptags }}</small>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <div style="margin-top:18px;text-align:right;">
+            <a href="{% url 'bill_list' %}">Cancel</a>
+            <button type="submit" style="background:#b45309;color:#fff;border:none;padding:8px 22px;border-radius:8px;font-weight:600;margin-left:10px;">
+                Save Bill
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

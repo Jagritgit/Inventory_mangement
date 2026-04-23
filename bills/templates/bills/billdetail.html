@@ -1,3 +1,45 @@
-<div>
-    Invoice detail pages
+{% extends "store/base.html" %}
+{% block title %}{{ bill.bill_number }}{% endblock %}
+{% block content %}
+{% include "invoice/_styles.html" %}
+
+<div class="module-wrap">
+    <div class="module-header" style="background: linear-gradient(135deg, #7c2d12 0%, #b45309 100%);">
+        <div>
+            <h2>{{ bill.bill_number }}</h2>
+            <small>Issued {{ bill.date|date:"d M Y, H:i" }} &middot;
+                <span class="status-badge {{ bill.status_color }}">{{ bill.get_status_display }}</span>
+            </small>
+        </div>
+        <div class="module-actions">
+            <a class="btn-action ghost" href="{% url 'bill_list' %}">← Back</a>
+            <a class="btn-action primary" href="{% url 'bill_update' bill.slug %}" style="color:#7c2d12;">Edit</a>
+        </div>
+    </div>
+
+    <div class="detail-card">
+        <div class="detail-grid">
+            <div><div class="label">Vendor</div><div class="value">{{ bill.vendor.name|default:bill.institution_name }}</div></div>
+            <div><div class="label">Phone</div><div class="value">{{ bill.phone_number|default:"—" }}</div></div>
+            <div><div class="label">Email</div><div class="value">{{ bill.email|default:"—" }}</div></div>
+            <div><div class="label">Address</div><div class="value">{{ bill.address|default:"—" }}</div></div>
+            <div><div class="label">Item</div><div class="value">{{ bill.item.name|default:"—" }}</div></div>
+            <div><div class="label">Description</div><div class="value">{{ bill.description|default:"—" }}</div></div>
+            <div><div class="label">Payment Details</div><div class="value">{{ bill.payment_details }}</div></div>
+        </div>
+
+        <div class="totals">
+            <div class="row"><span class="label">Quantity</span><span class="value">{{ bill.quantity }}</span></div>
+            <div class="row"><span class="label">Cost / item</span><span class="value">₹ {{ bill.cost_price|floatformat:2 }}</span></div>
+            <div class="row"><span class="label">Tax (GST)</span><span class="value">₹ {{ bill.tax|floatformat:2 }}</span></div>
+            <div class="row grand"><span class="label">Total</span><span class="value">₹ {{ bill.amount|floatformat:2 }}</span></div>
+        </div>
+    </div>
+
+    {% if user.is_superuser %}
+    <div style="text-align:right;">
+        <a href="{% url 'bill_delete' bill.id %}" style="color:#dc2626;font-size:13px;">Delete bill</a>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}

@@ -124,8 +124,32 @@ def dashboard(request):
     # -----------------------------
     # 💰 TOTAL REVENUE
     # -----------------------------
-    total_revenue = money(
+    from invoice.models import Invoice
+    from bills.models import Bill
+
+    sales_revenue = money(
         Sale.objects.aggregate(total=Sum("grand_total")).get("total")
+    )
+    paid_invoice_revenue = money(
+        Invoice.objects.filter(status="PAID")
+        .aggregate(total=Sum("grand_total")).get("total")
+    )
+    total_revenue = money(sales_revenue + paid_invoice_revenue)
+
+    total_expenses = money(
+        Bill.objects.filter(status="PAID")
+        .aggregate(total=Sum("amount")).get("total")
+    )
+
+    pending_invoices_count = Invoice.objects.filter(status="PENDING").count()
+    pending_bills_count = Bill.objects.filter(status="PENDING").count()
+    pending_invoices_total = money(
+        Invoice.objects.filter(status="PENDING")
+        .aggregate(total=Sum("grand_total")).get("total")
+    )
+    pending_bills_total = money(
+        Bill.objects.filter(status="PENDING")
+        .aggregate(total=Sum("amount")).get("total")
     )
 
     # -----------------------------
@@ -214,6 +238,13 @@ def dashboard(request):
         # 🔥 IMPORTANT
         "total_revenue": total_revenue,
         "total_profit": total_profit,
+        "total_expenses": total_expenses,
+        "sales_revenue": sales_revenue,
+        "paid_invoice_revenue": paid_invoice_revenue,
+        "pending_invoices_count": pending_invoices_count,
+        "pending_bills_count": pending_bills_count,
+        "pending_invoices_total": pending_invoices_total,
+        "pending_bills_total": pending_bills_total,
 
         "top_product": top_product,
         "recent_product": recent_product,
