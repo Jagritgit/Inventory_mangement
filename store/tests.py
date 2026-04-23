@@ -163,6 +163,47 @@ class CategoryViewTests(TestCase):
         self.assertEqual(resp.status_code, 200)
 
 
+class RevenuePageTests(TestCase):
+    def setUp(self):
+        from accounts.models import Customer
+        from transactions.models import Sale
+        self.user = User.objects.create_user("rev", password="pw12345!")
+        self.client.login(username="rev", password="pw12345!")
+        cust = Customer.objects.create(first_name="R")
+        Sale.objects.create(
+            customer=cust, sub_total=100, grand_total=118,
+            tax_amount=18, tax_percentage=18,
+            amount_paid=118, amount_change=0,
+        )
+
+    def test_revenue_page_default_daily(self):
+        resp = self.client.get(reverse("revenue"))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Daily")
+        self.assertContains(resp, "118.00")
+
+    def test_revenue_page_weekly(self):
+        resp = self.client.get(reverse("revenue") + "?period=weekly")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Weekly")
+
+    def test_revenue_page_monthly(self):
+        resp = self.client.get(reverse("revenue") + "?period=monthly")
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Monthly")
+
+    def test_revenue_requires_login(self):
+        self.client.logout()
+        resp = self.client.get(reverse("revenue"))
+        self.assertEqual(resp.status_code, 302)
+
+    def test_dashboard_revenue_is_2dp(self):
+        resp = self.client.get(reverse("dashboard"))
+        self.assertEqual(resp.status_code, 200)
+        # Revenue card should render with exactly two decimals.
+        self.assertContains(resp, "₹ 118.00")
+
+
 class DeliveryModelTests(TestCase):
     def test_delivery_create(self):
         from django.utils import timezone

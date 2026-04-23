@@ -4,229 +4,286 @@
 {% block content %}
 
 <style>
-
 /* DASHBOARD */
 .dashboard-wrapper {
-    padding: 10px;
+    padding: 16px;
+    color: #1f2937;
 }
 
-/* GRID */
+/* GRID spacing */
 .dashboard-wrapper .row {
-    margin-left: -5px;
-    margin-right: -5px;
+    margin-left: -8px;
+    margin-right: -8px;
 }
 .dashboard-wrapper .row > div {
-    padding: 5px;
+    padding: 8px;
 }
 
 /* CARD */
-.card {
+.dash-card {
+    background: #ffffff;
     border-radius: 14px;
-    border: none;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    padding: 10px;
-    transition: 0.2s;
+    border: 1px solid #eef0f4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 18px 20px;
+    transition: transform .18s ease, box-shadow .18s ease;
+    position: relative;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
-.card:hover {
+.dash-card:hover {
     transform: translateY(-3px);
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
 }
 
-/* SAME HEIGHT */
-.top-card,
-.middle-card {
-    height: 110px;
-}
+/* Equal heights */
+.kpi-card { min-height: 130px; }
+.info-card { min-height: 160px; }
 
-/* TEXT */
-.title {
-    font-size: 15px;
-    font-weight: 700;
-}
-.value {
-    font-size: 24px;
-    font-weight: 800;
-}
-.subtext {
+/* TEXT — high contrast */
+.kpi-title {
     font-size: 13px;
-    font-weight: 600;
-    color: #444;
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 10px;
 }
+.kpi-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1.1;
+}
+.kpi-foot {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 6px;
+}
+.section-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #374151;
+    margin-bottom: 8px;
+}
+.muted { color: #6b7280; font-size: 13px; }
+.bold-num { font-weight: 800; color: #111827; }
 
-/* ICON */
+/* ICON badge */
 .icon-box {
     position: absolute;
-    top: 6px;
-    right: 8px;
-    width: 34px;
-    height: 34px;
-    border-radius: 8px;
+    top: 14px;
+    right: 14px;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 16px;
+}
+.blue   { background: #dbeafe; color: #2563eb; }
+.green  { background: #dcfce7; color: #16a34a; }
+.yellow { background: #fef3c7; color: #d97706; }
+.purple { background: #ede9fe; color: #7c3aed; }
+.rose   { background: #ffe4e6; color: #e11d48; }
+
+/* Stat split row */
+.split {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-top: 10px;
+}
+.split .col {
+    flex: 1;
+}
+.split .col + .col {
+    text-align: right;
 }
 
-/* COLORS */
-.blue { background: #e0e7ff; color: #3b82f6; }
-.green { background: #dcfce7; color: #22c55e; }
-.yellow { background: #fef3c7; color: #f59e0b; }
-
-/* TABLE */
-.delivery-table {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 6px;
+/* Delivery pill numbers */
+.pill {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 13px;
 }
-.delivery-table td, .delivery-table th {
-    border: 1px solid #ddd;
-    text-align: center;
-    padding: 4px;
-    font-size: 11px;
-}
+.pill.done    { background: #dcfce7; color: #166534; }
+.pill.pending { background: #fee2e2; color: #b91c1c; }
 
-/* CHART */
+/* CHARTS */
 .chart-card {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #eef0f4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    padding: 16px;
     height: 360px;
 }
+.chart-card h6 {
+    font-weight: 700;
+    color: #111827;
+    margin-bottom: 10px;
+}
 .chart-card canvas {
-    height: 300px !important;
+    height: 290px !important;
 }
 
-/* LINKS */
+/* LINK wrapper preserves card visual */
 .card-link {
     text-decoration: none;
     color: inherit;
     display: block;
+    height: 100%;
 }
-
 </style>
 
 <div class="dashboard-wrapper">
 
-<!-- TOP ROW -->
-<div class="row justify-content-center mb-3">
+    <!-- KPI ROW -->
+    <div class="row">
 
-    <div class="col-md-3">
-        <a href="{% url 'productslist' %}" class="card-link">
-            <div class="card top-card position-relative">
-                <div class="title">Products</div>
-                <div class="value">{{ items_count }}</div>
-                <div class="icon-box blue"><i class="fa fa-box"></i></div>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-md-3">
-        <a href="{% url 'profile_list' %}" class="card-link">
-            <div class="card top-card position-relative">
-                <div class="title">Staff</div>
-                <div class="value">{{ profiles_count }}</div>
-                <div class="icon-box green"><i class="fa fa-users"></i></div>
-            </div>
-        </a>
-    </div>
-
-    <div class="col-md-3">
-        <div class="card top-card position-relative">
-            <div class="title">Revenue</div>
-            <div class="value">₹ {{ total_revenue|default:"0" }}</div>
-            <div class="icon-box yellow">
-                <i class="fa fa-rupee-sign"></i>
-            </div>
-        </div>
-    </div>
-
-</div>
-
-<!-- BOTTOM ROW -->
-<div class="row justify-content-center mb-3">
-
-    <!-- SALES CARD -->
-    <div class="col-md-3">
-        <a href="{% url 'saleslist' %}" class="card-link">
-            <div class="card middle-card">
-
-                <div class="d-flex h-100 align-items-center">
-
-                    <!-- LEFT -->
-                    <div style="width:50%;">
-                        <div class="title">Sales</div>
-                        <div class="value">{{ sales.count }}</div>
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'productslist' %}" class="card-link">
+                <div class="dash-card kpi-card">
+                    <div>
+                        <div class="kpi-title">Products</div>
+                        <div class="kpi-value">{{ items_count }}</div>
                     </div>
-
-                    <!-- RIGHT -->
-                    <div style="width:50%; text-align:right;">
-                        <div class="subtext">
-                            Top: {{ top_product|default:"None" }}
-                        </div>
-                        <div class="subtext">
-                            Recent: {{ recent_product|default:"None" }}
-                        </div>
-                    </div>
-
+                    <div class="kpi-foot">{{ total_items }} units in stock</div>
+                    <div class="icon-box blue"><i class="fa fa-box"></i></div>
                 </div>
-
-            </div>
-        </a>
-    </div>
-
-    <!-- DELIVERIES -->
-    <div class="col-md-3">
-        <a href="{% url 'deliveries' %}" class="card-link">
-            <div class="card middle-card">
-                <div class="title">Deliveries</div>
-
-                <table class="delivery-table">
-                    <tr>
-                        <th>Done</th>
-                        <th>Pending</th>
-                    </tr>
-                    <tr>
-                        <td style="color:green;">{{ completed_deliveries }}</td>
-                        <td style="color:red;">{{ pending_deliveries }}</td>
-                    </tr>
-                </table>
-            </div>
-        </a>
-    </div>
-
-</div>
-
-<!-- CHARTS -->
-<div class="row justify-content-center">
-
-    <div class="col-md-5">
-        <div class="card chart-card">
-            <h6>Products by Category</h6>
-            <canvas id="categoryChart"></canvas>
+            </a>
         </div>
-    </div>
 
-    <div class="col-md-5">
-        <div class="card chart-card">
-            <h6>Sales Over Time</h6>
-            <canvas id="salesChart"></canvas>
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'profile_list' %}" class="card-link">
+                <div class="dash-card kpi-card">
+                    <div>
+                        <div class="kpi-title">Staff</div>
+                        <div class="kpi-value">{{ profiles_count }}</div>
+                    </div>
+                    <div class="kpi-foot">Active team members</div>
+                    <div class="icon-box green"><i class="fa fa-users"></i></div>
+                </div>
+            </a>
         </div>
+
+        <div class="col-md-3 col-sm-6">
+            <a href="{% url 'revenue' %}" class="card-link">
+                <div class="dash-card kpi-card">
+                    <div>
+                        <div class="kpi-title">Revenue</div>
+                        <div class="kpi-value">₹ {{ total_revenue }}</div>
+                    </div>
+                    <div class="kpi-foot">Click for daily / weekly / monthly</div>
+                    <div class="icon-box yellow"><i class="fa fa-rupee-sign"></i></div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-3 col-sm-6">
+            <div class="dash-card kpi-card">
+                <div>
+                    <div class="kpi-title">Profit</div>
+                    <div class="kpi-value">₹ {{ total_profit }}</div>
+                </div>
+                <div class="kpi-foot">Across all sales</div>
+                <div class="icon-box purple"><i class="fa fa-chart-line"></i></div>
+            </div>
+        </div>
+
     </div>
 
-</div>
+    <!-- ACTIVITY ROW -->
+    <div class="row">
+
+        <!-- SALES -->
+        <div class="col-md-6">
+            <a href="{% url 'saleslist' %}" class="card-link">
+                <div class="dash-card info-card">
+                    <div class="section-title">Sales</div>
+                    <div>
+                        <div class="kpi-value">{{ sales.count }}</div>
+                        <div class="kpi-foot">total transactions</div>
+                    </div>
+                    <div class="split">
+                        <div class="col">
+                            <div class="muted">Top product</div>
+                            <div class="bold-num">{{ top_product|default:"—" }}</div>
+                        </div>
+                        <div class="col">
+                            <div class="muted">Most recent</div>
+                            <div class="bold-num">{{ recent_product|default:"—" }}</div>
+                        </div>
+                    </div>
+                    <div class="icon-box rose"><i class="fa fa-cart-shopping"></i></div>
+                </div>
+            </a>
+        </div>
+
+        <!-- DELIVERIES -->
+        <div class="col-md-6">
+            <a href="{% url 'deliveries' %}" class="card-link">
+                <div class="dash-card info-card">
+                    <div class="section-title">Deliveries</div>
+                    <div>
+                        <div class="kpi-value">
+                            {{ completed_deliveries|add:pending_deliveries }}
+                        </div>
+                        <div class="kpi-foot">total scheduled</div>
+                    </div>
+                    <div class="split">
+                        <div class="col">
+                            <div class="muted">Delivered</div>
+                            <span class="pill done">{{ completed_deliveries }}</span>
+                        </div>
+                        <div class="col">
+                            <div class="muted">Pending</div>
+                            <span class="pill pending">{{ pending_deliveries }}</span>
+                        </div>
+                    </div>
+                    <div class="icon-box green"><i class="fa fa-truck"></i></div>
+                </div>
+            </a>
+        </div>
+
+    </div>
+
+    <!-- CHARTS -->
+    <div class="row">
+
+        <div class="col-md-6">
+            <div class="chart-card">
+                <h6>Products by Category</h6>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="chart-card">
+                <h6>Sales Over Time</h6>
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+
+    </div>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
 <script>
 new Chart(document.getElementById('categoryChart'), {
     type: 'doughnut',
     data: {
         labels: {{ categories|safe }},
-        datasets: [{
-            data: {{ category_counts|safe }}
-        }]
+        datasets: [{ data: {{ category_counts|safe }} }]
     },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
+    options: { responsive: true, maintainAspectRatio: false }
 });
 
 new Chart(document.getElementById('salesChart'), {
@@ -234,16 +291,15 @@ new Chart(document.getElementById('salesChart'), {
     data: {
         labels: {{ sale_dates_labels|safe }},
         datasets: [{
-            label: 'Sales',
+            label: 'Sales (₹)',
             data: {{ sale_dates_values|safe }},
-            borderColor: '#3b82f6',
-            fill: false
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+            tension: 0.3
         }]
     },
-    options: {
-        responsive: true,
-        maintainAspectRatio: false
-    }
+    options: { responsive: true, maintainAspectRatio: false }
 });
 </script>
 

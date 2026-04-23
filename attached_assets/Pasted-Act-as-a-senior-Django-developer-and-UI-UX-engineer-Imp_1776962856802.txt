@@ -1,0 +1,135 @@
+Act as a senior Django developer and UI/UX engineer.
+
+Improve my Django inventory dashboard and implement a proper revenue system.
+
+---
+
+## 🔧 1. Revenue Card Fix
+
+* Format revenue values to show only 2 decimal places
+  Example: ₹1234.50 (not ₹1234.56789)
+
+* Ensure formatting is handled:
+
+  * In template OR backend (preferred: backend)
+
+---
+
+## 🎨 2. Dashboard UI/UX Improvements
+
+Fix visibility and design issues:
+
+* Improve text visibility:
+
+  * Increase contrast (dark text on light background)
+  * Fix faded or hard-to-read text
+* Ensure:
+
+  * Proper spacing between elements
+  * Consistent font sizes
+  * Clean alignment of cards
+* Cards must:
+
+  * Have equal width and height
+  * Have proper padding
+  * Not overlap or look compressed
+
+---
+
+## 📊 3. Sales & Deliveries Cards Improvement
+
+* Improve UI:
+
+  * Clear headings (Sales, Deliveries)
+  * Show:
+
+    * Total count
+    * Recent activity
+* Add:
+
+  * Better layout structure (top: title, middle: data, bottom: extra info)
+* Ensure design consistency with other cards
+
+---
+
+## 🔗 4. Revenue Card Click → Revenue Page
+
+* Make revenue card clickable
+
+* Redirect to a new page:
+  /revenue/
+
+* Add:
+
+  * URL configuration
+  * View function/class
+  * Template (revenue.html)
+
+---
+
+## 📅 5. Revenue Page Features
+
+Create a professional revenue page with:
+
+### Filters:
+
+* Daily
+* Weekly
+* Monthly
+
+### Functionality:
+
+* Show revenue data grouped by selected filter
+* Example:
+
+  * Daily → revenue per day
+  * Weekly → revenue per week
+  * Monthly → revenue per month
+
+### Sorting:
+
+* Latest first (default)
+* Allow filtering by date range (optional)
+
+---
+
+## 📈 6. Revenue Calculation Logic
+
+* Revenue = sum of all completed sales
+* Ignore pending/cancelled sales
+* Ensure correct aggregation
+
+---
+
+## 🧠 7. Backend Improvements
+
+* Use Django ORM aggregation:
+
+  * Sum, annotate, group by date
+* Optimize queries
+* Keep logic clean and reusable
+
+---
+
+## 📋 8. Output Requirements
+
+Provide COMPLETE working code:
+
+* Updated dashboard template
+* Updated views.py
+* Updated urls.py
+* New revenue.html template
+* Any required model changes (if needed)
+
+---
+
+## ⚠️ Rules
+
+* Do NOT rewrite entire project
+* Modify existing dashboard cleanly
+* Ensure everything works without errors
+* Keep UI modern and professional
+
+---
+
+Start by fixing revenue formatting and UI, then implement revenue page with filters.

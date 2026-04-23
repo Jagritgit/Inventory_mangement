@@ -30,6 +30,9 @@ urlpatterns = [
     # Dashboard
     path('', views.dashboard, name='dashboard'),
 
+    # Revenue
+    path('revenue/', views.revenue_view, name='revenue'),
+
     # Product URLs
     path(
         'products/',

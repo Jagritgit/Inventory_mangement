@@ -46,9 +46,65 @@ from .tables import ItemTable
 
 
 @login_required
+def revenue_view(request):
+    """
+    Revenue page with daily/weekly/monthly grouping.
+
+    NOTE: The Sale model has no `status` field — every persisted Sale row is
+    a completed transaction (it ran inside an atomic block that already
+    decremented stock). If a status field is ever added, filter here.
+    """
+    from decimal import Decimal, ROUND_HALF_UP
+    from django.db.models import Sum, Count
+    from django.db.models.functions import TruncDay, TruncWeek, TruncMonth
+    from transactions.models import Sale
+
+    period = request.GET.get("period", "daily")
+    trunc_map = {
+        "daily": TruncDay("date_added"),
+        "weekly": TruncWeek("date_added"),
+        "monthly": TruncMonth("date_added"),
+    }
+    trunc = trunc_map.get(period, TruncDay("date_added"))
+
+    rows_qs = (
+        Sale.objects
+        .annotate(bucket=trunc)
+        .values("bucket")
+        .annotate(revenue=Sum("grand_total"), sales_count=Count("id"))
+        .order_by("-bucket")  # Latest first
+    )
+
+    q = Decimal("0.01")
+    rows = [
+        {
+            "bucket": r["bucket"],
+            "revenue": Decimal(str(r["revenue"] or 0)).quantize(q, ROUND_HALF_UP),
+            "sales_count": r["sales_count"],
+        }
+        for r in rows_qs
+    ]
+
+    total = sum((r["revenue"] for r in rows), Decimal("0.00")).quantize(q)
+
+    return render(request, "store/revenue.html", {
+        "period": period,
+        "rows": rows,
+        "total_revenue": total,
+    })
+
+
+@login_required
 def dashboard(request):
+    from decimal import Decimal, ROUND_HALF_UP
     from django.db.models import Sum, Count, F, FloatField, ExpressionWrapper
     from transactions.models import Sale, SaleDetail
+
+    def money(value):
+        """Round any numeric to 2 decimal places for display."""
+        if value is None:
+            return Decimal("0.00")
+        return Decimal(str(value)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
     # Basic data
     profiles = Profile.objects.all()
@@ -68,15 +124,14 @@ def dashboard(request):
     # -----------------------------
     # 💰 TOTAL REVENUE
     # -----------------------------
-    total_revenue = (
-        Sale.objects.aggregate(total=Sum("grand_total"))
-        .get("total", 0.00)
+    total_revenue = money(
+        Sale.objects.aggregate(total=Sum("grand_total")).get("total")
     )
 
     # -----------------------------
     # 💰 TOTAL PROFIT (FIXED)
     # -----------------------------
-    total_profit = (
+    total_profit = money(
         SaleDetail.objects.aggregate(
             profit=Sum(
                 ExpressionWrapper(
@@ -84,7 +139,7 @@ def dashboard(request):
                     output_field=FloatField()
                 )
             )
-        ).get("profit", 0.00)
+        ).get("profit")
     )
 
     # -----------------------------
