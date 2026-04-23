@@ -181,8 +181,20 @@ def SaleCreateView(request):
                     new_sale = Sale.objects.create(**sale_attributes)
 
                     for item in items:
-                        item_instance = Item.objects.get(id=int(item["id"]))
+                        item_instance = Item.objects.select_for_update().get(
+                            id=int(item["id"])
+                        )
                         quantity = int(float(item["quantity"]))
+
+                        if quantity <= 0:
+                            raise ValueError(
+                                f"Quantity for {item_instance.name} must be positive."
+                            )
+                        if item_instance.quantity < quantity:
+                            raise ValueError(
+                                f"Insufficient stock for {item_instance.name}: "
+                                f"requested {quantity}, available {item_instance.quantity}."
+                            )
 
                         SaleDetail.objects.create(
                             sale=new_sale,

@@ -1,0 +1,187 @@
+You are a senior Django architect and QA engineer building a production-grade Inventory Management System.
+
+I have an existing Django-based inventory project. Your job is to transform it into a scalable, professional, real-world system AND ensure it is fully tested.
+
+---
+
+## 🔍 PHASE 1: FULL PROJECT AUDIT
+
+Analyze the entire project and identify:
+
+* Broken URLs, routing issues
+* Template errors or bad structure
+* Static files not loading properly
+* Poor UI/UX design
+* Inefficient database models
+* Missing real-world features
+* Code duplication or bad practices
+
+Fix ALL critical issues first.
+
+---
+
+## 🏗️ PHASE 2: ARCHITECTURE IMPROVEMENT
+
+* Organize apps properly (products, sales, inventory, users)
+* Use template inheritance (base.html)
+* Create reusable components (navbar, sidebar, cards, tables)
+* Clean URL routing with namespaces
+* Follow Django best practices
+
+---
+
+## 🎨 PHASE 3: UI/UX UPGRADE
+
+* Build a modern SaaS-style dashboard
+* KPI cards (Products, Sales, Revenue, Low Stock)
+* Charts (sales trends, stock levels)
+* Equal card sizes and proper spacing
+* Icons at top-right of cards
+* Clean tables with borders, sorting, filtering
+* Responsive design
+
+---
+
+## ⚙️ PHASE 4: CORE FEATURES
+
+### Product Management
+
+* Name, SKU (unique), category, supplier
+* Cost price, selling price, stock
+* Minimum stock alert
+* Auto-generate SKU
+
+### Inventory Control
+
+* Auto update stock on sales and purchases
+* Low stock alerts
+* Inventory history tracking
+
+### Sales System
+
+* Multi-item cart system
+* Auto total calculation
+* Status: Pending / Completed / Cancelled
+
+### Supplier & Purchases
+
+* Supplier model
+* Purchase tracking (increase stock)
+
+### Users & Roles
+
+* Authentication (login/logout)
+* Roles: Admin, Staff
+* Permission restrictions
+
+### Search & Filters
+
+* Products and sales filtering and sorting
+
+### Dashboard Analytics
+
+* Revenue, sales count
+* Top products
+* Low stock alerts
+
+---
+
+## 🧠 PHASE 5: BACKEND IMPROVEMENT
+
+* Use class-based views
+* Optimize queries (select_related, prefetch_related)
+* Clean business logic in models
+* Proper form validation
+* Error handling
+
+---
+
+## 🧪 PHASE 6: TESTING (VERY IMPORTANT)
+
+Write and run comprehensive test cases using Django’s test framework:
+
+### Unit Tests
+
+* Model tests:
+
+  * Product creation
+  * Stock updates
+  * SKU uniqueness
+* Business logic tests:
+
+  * Stock reduction on sale
+  * Stock increase on purchase
+
+### View Tests
+
+* Test all CRUD operations:
+
+  * Product create/update/delete
+  * Sales creation
+* Ensure correct HTTP responses (200, 302, 404)
+
+### Form Tests
+
+* Validate forms:
+
+  * Required fields
+  * Invalid inputs
+  * Edge cases
+
+### Integration Tests
+
+* Full workflow:
+
+  * Add product → create sale → stock updates correctly
+  * Add purchase → stock increases
+
+### Authentication Tests
+
+* Login/logout works
+* Role-based access restrictions enforced
+
+### Test Rules
+
+* Use Django TestCase
+* Use test database (no real data)
+* Ensure tests are isolated and repeatable
+* Cover edge cases
+
+Run:
+python manage.py test
+
+Fix ALL failing tests until everything passes.
+
+---
+
+## 🚀 PHASE 7: EXTRA FEATURES
+
+* Export data to CSV
+* Low stock notifications
+* Activity logs (audit trail)
+* Dark mode toggle
+* Optional REST API
+
+---
+
+## 📋 OUTPUT REQUIREMENTS
+
+* Provide COMPLETE working code
+* Include all test files (tests.py or separate test modules)
+* Explain:
+
+  * What was broken
+  * What you fixed
+  * What you improved
+* Ensure project runs without errors
+
+---
+
+## ⚠️ STRICT RULES
+
+* Do NOT skip testing
+* Do NOT provide partial code
+* Do NOT ignore failing tests
+* Treat this like a real production SaaS product
+
+Start from PHASE 1 and proceed step by step.

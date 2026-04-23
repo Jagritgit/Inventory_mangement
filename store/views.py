@@ -55,8 +55,7 @@ def dashboard(request):
     items = Item.objects.all()
 
     total_items = (
-        Item.objects.aggregate(Sum("quantity"))
-        .get("quantity__sum", 0.00)
+        Item.objects.aggregate(Sum("quantity")).get("quantity__sum") or 0
     )
 
     items_count = items.count()
@@ -256,11 +255,10 @@ class ProductCreateView(LoginRequiredMixin, CreateView):
     success_url = "/products"
 
     def test_func(self):
-        # item = Item.objects.get(id=pk)
-        if self.request.POST.get("quantity") < 1:
+        try:
+            return int(self.request.POST.get("quantity", 0)) >= 1
+        except (TypeError, ValueError):
             return False
-        else:
-            return True
 
 
 class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
