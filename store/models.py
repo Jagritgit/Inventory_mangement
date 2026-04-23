@@ -35,17 +35,16 @@ class Category(models.Model):
     class Meta:
         verbose_name_plural = 'Categories'
 
-
 class Item(models.Model):
-    """
-    Represents an item in the inventory.
-    """
     slug = AutoSlugField(unique=True, populate_from='name')
     name = models.CharField(max_length=50)
     description = models.TextField(max_length=256)
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     quantity = models.IntegerField(default=0)
-    price = models.FloatField(default=0)
+
+    price = models.FloatField(default=0)         # selling price
+    cost_price = models.FloatField(default=0)    # 🔥 ADD THIS
+
     expiring_date = models.DateTimeField(null=True, blank=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True)
 

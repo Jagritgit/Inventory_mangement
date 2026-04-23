@@ -1,276 +1,235 @@
 {% extends "store/base.html" %}
 {% load static %}
-{% block title %}Dashboard{% endblock title %}
 
 {% block content %}
 
-<div class="container-fluid py-4 px-2">
-
 <style>
-a { text-decoration: none; color: inherit; }
+
+/* DASHBOARD */
+.dashboard-wrapper {
+    padding: 10px;
+}
+
+/* GRID */
+.dashboard-wrapper .row {
+    margin-left: -5px;
+    margin-right: -5px;
+}
+.dashboard-wrapper .row > div {
+    padding: 5px;
+}
 
 /* CARD */
 .card {
-    border-radius: 16px !important;
-    border: none !important;
-    background: #fff;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.06);
-    transition: 0.25s;
+    border-radius: 14px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 10px;
+    transition: 0.2s;
 }
-.card:hover { transform: translateY(-5px); }
+.card:hover {
+    transform: translateY(-3px);
+}
 
-/* HEIGHTS */
-.top-card { height: 120px; }
-.bottom-card { height: 170px; }
-.chart-card { height: 320px; }
-
-/* BODY */
-.card-body {
-    position: relative;
-    padding: 0 12px;
-    height: 100%;
+/* SAME HEIGHT */
+.top-card,
+.middle-card {
+    height: 110px;
 }
 
 /* TEXT */
 .title {
-    font-size: 18px;
+    font-size: 15px;
     font-weight: 700;
-    padding-right: 40px; /* prevent overlap with icon */
-    margin-left: 2px;
 }
-
 .value {
-    font-size: 26px;
-    font-weight: 700;
-    margin-left: 2px;
+    font-size: 24px;
+    font-weight: 800;
 }
-
 .subtext {
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 600;
     color: #444;
 }
 
 /* ICON */
-.icon-circle {
-    width: 42px;
-    height: 42px;
-    border-radius: 10px;
+.icon-box {
+    position: absolute;
+    top: 6px;
+    right: 8px;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-/* TOP RIGHT ICON */
-.icon-top-right {
-    position: absolute;
-    top: 10px;
-    right: 12px;
-}
-
 /* COLORS */
-.bg-soft-primary { background: rgba(59,130,246,0.1); color: #3b82f6; }
-.bg-soft-success { background: rgba(34,197,94,0.1); color: #22c55e; }
-.bg-soft-warning { background: rgba(245,158,11,0.1); color: #f59e0b; }
-.bg-soft-info { background: rgba(6,182,212,0.1); color: #06b6d4; }
+.blue { background: #e0e7ff; color: #3b82f6; }
+.green { background: #dcfce7; color: #22c55e; }
+.yellow { background: #fef3c7; color: #f59e0b; }
 
-/* 🔥 LEFT ALIGN FIX FOR TOP CARDS */
-.top-card .card-body {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-start;
-}
-
-/* DELIVERY TABLE */
+/* TABLE */
 .delivery-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 6px;
 }
-.delivery-table th,
-.delivery-table td {
-    border: 1px solid #000;
-    padding: 4px;
-    font-size: 13px;
+.delivery-table td, .delivery-table th {
+    border: 1px solid #ddd;
     text-align: center;
+    padding: 4px;
+    font-size: 11px;
 }
 
 /* CHART */
+.chart-card {
+    height: 360px;
+}
 .chart-card canvas {
-    height: 240px !important;
+    height: 300px !important;
 }
 
-/* GRID TIGHT */
-.row {
-    margin-left: -6px;
-    margin-right: -6px;
-}
-.row > div {
-    padding-left: 6px;
-    padding-right: 6px;
+/* LINKS */
+.card-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
 }
 
 </style>
 
-<div class="row">
+<div class="dashboard-wrapper">
 
-    <!-- LEFT SIDE -->
-    <div class="col-lg-6">
+<!-- TOP ROW -->
+<div class="row justify-content-center mb-3">
 
-        <!-- TOP ROW -->
-        <div class="row g-2 mb-2">
-
-            <!-- Products -->
-            <div class="col-md-6">
-                <a href="{% url 'productslist' %}">
-                    <div class="card top-card">
-                        <div class="card-body">
-
-                            <div class="icon-circle bg-soft-primary icon-top-right">
-                                <i class="fa fa-box"></i>
-                            </div>
-
-                            <div class="title">Products</div>
-                            <div class="value">{{ items_count }}</div>
-
-                        </div>
-                    </div>
-                </a>
+    <div class="col-md-3">
+        <a href="{% url 'productslist' %}" class="card-link">
+            <div class="card top-card position-relative">
+                <div class="title">Products</div>
+                <div class="value">{{ items_count }}</div>
+                <div class="icon-box blue"><i class="fa fa-box"></i></div>
             </div>
-
-            <!-- Staff -->
-            <div class="col-md-6">
-                <a href="{% url 'profile_list' %}">
-                    <div class="card top-card">
-                        <div class="card-body">
-
-                            <div class="icon-circle bg-soft-success icon-top-right">
-                                <i class="fa fa-users"></i>
-                            </div>
-
-                            <div class="title">Staff</div>
-                            <div class="value">{{ profiles_count }}</div>
-
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-        </div>
-
-        <!-- BOTTOM ROW -->
-        <div class="row g-2">
-
-            <!-- Sales -->
-            <div class="col-md-6">
-                <a href="{% url 'saleslist' %}">
-                    <div class="card bottom-card">
-                        <div class="card-body d-flex flex-column justify-content-between">
-
-                            <div class="icon-circle bg-soft-warning icon-top-right">
-                                <i class="fa fa-shopping-cart"></i>
-                            </div>
-
-                            <div class="title">Sales</div>
-                            <div class="value">{{ sales.count }}</div>
-
-                            <div>
-                                <div class="subtext">
-                                    <strong>Top:</strong> {{ top_product|default:"None" }}
-                                </div>
-                                <div class="subtext">
-                                    <strong>Recent:</strong> {{ recent_product|default:"None" }}
-                                </div>
-                            </div>
-
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-            <!-- Deliveries -->
-            <div class="col-md-6">
-                <a href="{% url 'deliveries' %}">
-                    <div class="card bottom-card">
-                        <div class="card-body d-flex flex-column justify-content-between">
-
-                            <div class="icon-circle bg-soft-info icon-top-right">
-                                <i class="fa fa-truck"></i>
-                            </div>
-
-                            <div class="title">Deliveries</div>
-
-                            <table class="delivery-table">
-                                <thead>
-                                    <tr>
-                                        <th>Done</th>
-                                        <th>Pending</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>{{ completed_deliveries }}</td>
-                                        <td>{{ pending_deliveries }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                        </div>
-                    </div>
-                </a>
-            </div>
-
-        </div>
-
+        </a>
     </div>
 
-    <!-- RIGHT SIDE -->
-    <div class="col-lg-6">
+    <div class="col-md-3">
+        <a href="{% url 'profile_list' %}" class="card-link">
+            <div class="card top-card position-relative">
+                <div class="title">Staff</div>
+                <div class="value">{{ profiles_count }}</div>
+                <div class="icon-box green"><i class="fa fa-users"></i></div>
+            </div>
+        </a>
+    </div>
 
-        <div class="card chart-card mb-2">
-            <div class="card-body">
-                <h5 class="fw-bold">Category Distribution</h5>
-                <canvas id="categoryChart"></canvas>
+    <div class="col-md-3">
+        <div class="card top-card position-relative">
+            <div class="title">Revenue</div>
+            <div class="value">₹ {{ total_revenue|default:"0" }}</div>
+            <div class="icon-box yellow">
+                <i class="fa fa-rupee-sign"></i>
             </div>
         </div>
+    </div>
 
+</div>
+
+<!-- BOTTOM ROW -->
+<div class="row justify-content-center mb-3">
+
+    <!-- SALES CARD -->
+    <div class="col-md-3">
+        <a href="{% url 'saleslist' %}" class="card-link">
+            <div class="card middle-card">
+
+                <div class="d-flex h-100 align-items-center">
+
+                    <!-- LEFT -->
+                    <div style="width:50%;">
+                        <div class="title">Sales</div>
+                        <div class="value">{{ sales.count }}</div>
+                    </div>
+
+                    <!-- RIGHT -->
+                    <div style="width:50%; text-align:right;">
+                        <div class="subtext">
+                            Top: {{ top_product|default:"None" }}
+                        </div>
+                        <div class="subtext">
+                            Recent: {{ recent_product|default:"None" }}
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </a>
+    </div>
+
+    <!-- DELIVERIES -->
+    <div class="col-md-3">
+        <a href="{% url 'deliveries' %}" class="card-link">
+            <div class="card middle-card">
+                <div class="title">Deliveries</div>
+
+                <table class="delivery-table">
+                    <tr>
+                        <th>Done</th>
+                        <th>Pending</th>
+                    </tr>
+                    <tr>
+                        <td style="color:green;">{{ completed_deliveries }}</td>
+                        <td style="color:red;">{{ pending_deliveries }}</td>
+                    </tr>
+                </table>
+            </div>
+        </a>
+    </div>
+
+</div>
+
+<!-- CHARTS -->
+<div class="row justify-content-center">
+
+    <div class="col-md-5">
         <div class="card chart-card">
-            <div class="card-body">
-                <h5 class="fw-bold">Sales Over Time</h5>
-                <canvas id="salesChart"></canvas>
-            </div>
+            <h6>Products by Category</h6>
+            <canvas id="categoryChart"></canvas>
         </div>
+    </div>
 
+    <div class="col-md-5">
+        <div class="card chart-card">
+            <h6>Sales Over Time</h6>
+            <canvas id="salesChart"></canvas>
+        </div>
     </div>
 
 </div>
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx1 = document.getElementById('categoryChart').getContext('2d');
-
-new Chart(ctx1, {
+new Chart(document.getElementById('categoryChart'), {
     type: 'doughnut',
     data: {
         labels: {{ categories|safe }},
         datasets: [{
-            data: {{ category_counts|safe }},
-            backgroundColor: ['#6366f1','#22c55e','#f59e0b','#ef4444','#06b6d4']
+            data: {{ category_counts|safe }}
         }]
     },
     options: {
         responsive: true,
-        maintainAspectRatio: false,
-        cutoutPercentage: 60
+        maintainAspectRatio: false
     }
 });
 
-const ctx2 = document.getElementById('salesChart').getContext('2d');
-
-new Chart(ctx2, {
+new Chart(document.getElementById('salesChart'), {
     type: 'line',
     data: {
         labels: {{ sale_dates_labels|safe }},

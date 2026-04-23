@@ -32,12 +32,6 @@ from .tables import ProfileTable
 
 
 def register(request):
-    """
-    Handle user registration.
-    If the request is POST, process the form data to create a new user.
-    Redirect to the login page on successful registration.
-    For GET requests, render the registration form.
-    """
     if request.method == 'POST':
         form = CreateUserForm(request.POST)
         if form.is_valid():
@@ -51,22 +45,11 @@ def register(request):
 
 @login_required
 def profile(request):
-    """
-    Render the user profile page.
-    Requires user to be logged in.
-    """
     return render(request, 'accounts/profile.html')
 
 
 @login_required
 def profile_update(request):
-    """
-    Handle profile update.
-    If the request is POST, process the form data
-    to update user information and profile.
-    Redirect to the profile page on success.
-    For GET requests, render the update forms.
-    """
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
         p_form = ProfileUpdateForm(
@@ -90,12 +73,6 @@ def profile_update(request):
 
 
 class ProfileListView(LoginRequiredMixin, ExportMixin, SingleTableView):
-    """
-    Display a list of profiles in a table format.
-    Requires user to be logged in
-    and supports exporting the table data.
-    Pagination is applied with 10 profiles per page.
-    """
     model = Profile
     template_name = 'accounts/stafflist.html'
     context_object_name = 'profiles'
@@ -105,92 +82,47 @@ class ProfileListView(LoginRequiredMixin, ExportMixin, SingleTableView):
 
 
 class ProfileCreateView(LoginRequiredMixin, CreateView):
-    """
-    Create a new profile.
-    Requires user to be logged in and have superuser status.
-    Redirects to the profile list upon successful creation.
-    """
     model = Profile
     template_name = 'accounts/staffcreate.html'
     fields = ['user', 'role', 'status']
 
     def get_success_url(self):
-        """
-        Return the URL to redirect to after successfully creating a profile.
-        """
         return reverse('profile_list')
 
     def test_func(self):
-        """
-        Check if the user is a superuser.
-        """
         return self.request.user.is_superuser
 
 
 class ProfileUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """
-    Update an existing profile.
-    Requires user to be logged in and have superuser status.
-    Redirects to the profile list upon successful update.
-    """
     model = Profile
     template_name = 'accounts/staffupdate.html'
     fields = ['user', 'role', 'status']
 
     def get_success_url(self):
-        """
-        Return the URL to redirect to after successfully updating a profile.
-        """
         return reverse('profile_list')
 
     def test_func(self):
-        """
-        Check if the user is a superuser.
-        """
         return self.request.user.is_superuser
 
 
 class ProfileDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """
-    Delete an existing profile.
-    Requires user to be logged in and have superuser status.
-    Redirects to the profile list upon successful deletion.
-    """
     model = Profile
     template_name = 'accounts/staffdelete.html'
 
     def get_success_url(self):
-        """
-        Return the URL to redirect to after successfully deleting a profile.
-        """
         return reverse('profile_list')
 
     def test_func(self):
-        """
-        Check if the user is a superuser.
-        """
         return self.request.user.is_superuser
 
 
 class CustomerListView(LoginRequiredMixin, ListView):
-    """
-    View for listing all customers.
-
-    Requires the user to be logged in. Displays a list of all Customer objects.
-    """
     model = Customer
     template_name = 'accounts/customer_list.html'
     context_object_name = 'customers'
 
 
 class CustomerCreateView(LoginRequiredMixin, CreateView):
-    """
-    View for creating a new customer.
-
-    Requires the user to be logged in.
-    Provides a form for creating a new Customer object.
-    On successful form submission, redirects to the customer list.
-    """
     model = Customer
     template_name = 'accounts/customer_form.html'
     form_class = CustomerForm
@@ -198,13 +130,6 @@ class CustomerCreateView(LoginRequiredMixin, CreateView):
 
 
 class CustomerUpdateView(LoginRequiredMixin, UpdateView):
-    """
-    View for updating an existing customer.
-
-    Requires the user to be logged in.
-    Provides a form for editing an existing Customer object.
-    On successful form submission, redirects to the customer list.
-    """
     model = Customer
     template_name = 'accounts/customer_form.html'
     form_class = CustomerForm
@@ -212,13 +137,6 @@ class CustomerUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class CustomerDeleteView(LoginRequiredMixin, DeleteView):
-    """
-    View for deleting a customer.
-
-    Requires the user to be logged in.
-    Displays a confirmation page for deleting an existing Customer object.
-    On confirmation, deletes the object and redirects to the customer list.
-    """
     model = Customer
     template_name = 'accounts/customer_confirm_delete.html'
     success_url = reverse_lazy('customer_list')
@@ -232,12 +150,21 @@ def is_ajax(request):
 @require_POST
 @login_required
 def get_customers(request):
-    if is_ajax(request) and request.method == 'POST':
+    # BUG FIX #11: Original code filtered on `name__icontains` and selected
+    # `id, name` — but the Customer model has no `name` field. It has
+    # `first_name` and `last_name`. This caused a FieldError crash whenever
+    # the customer search was used in the sale form.
+    if is_ajax(request):
         term = request.POST.get('term', '')
         customers = Customer.objects.filter(
-            name__icontains=term
-        ).values('id', 'name')
-        customer_list = list(customers)
+            first_name__icontains=term
+        ) | Customer.objects.filter(
+            last_name__icontains=term
+        )
+        customer_list = [
+            {'id': c.id, 'text': c.get_full_name()}
+            for c in customers[:20]
+        ]
         return JsonResponse(customer_list, safe=False)
     return JsonResponse({'error': 'Invalid request method'}, status=400)
 

@@ -5,32 +5,62 @@
 
 {% block content %}
 
-<!-- Header -->
+<!-- HEADER -->
 <div class="container my-4">
-    <div class="card header-dark rounded p-3">
-        <div class="row align-items-center">
+    <div class="card header-dark rounded-4 p-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
 
-            <div class="col-md-6">
-                <h4 class="display-6 mb-0 text-white">Sales</h4>
+            <!-- TITLE -->
+            <div>
+                <h4 class="mb-1 text-white fw-bold">Sales</h4>
+                <small class="text-light opacity-75">Track and manage all sales</small>
             </div>
 
-            <div class="col-md-6 d-flex justify-content-end gap-2">
-                <a class="btn btn-success btn-sm rounded-pill"
-                   href="{% url 'sale-create' %}">
-                    <i class="fa-solid fa-plus"></i> Add Sale Order
+            <!-- RIGHT SIDE -->
+            <div class="d-flex flex-wrap align-items-center gap-3">
+
+                <!-- SORT -->
+                <div class="sort-container">
+
+                    <a href="?order=old"
+                       class="sort-btn {% if request.GET.order == 'old' or not request.GET.order %}active-primary{% endif %}">
+                        Oldest
+                    </a>
+
+                    <a href="?order=new"
+                       class="sort-btn {% if request.GET.order == 'new' %}active-primary{% endif %}">
+                        Newest
+                    </a>
+
+                    <a href="?order=high"
+                       class="sort-btn {% if request.GET.order == 'high' %}active-success{% endif %}">
+                        High
+                    </a>
+
+                    <a href="?order=low"
+                       class="sort-btn {% if request.GET.order == 'low' %}active-success{% endif %}">
+                        Low
+                    </a>
+
+                </div>
+
+                <!-- ADD SALE -->
+                <a href="{% url 'sale-create' %}" class="btn add-sale-btn">
+                    + Add Sale
                 </a>
 
-                <a class="btn btn-outline-light btn-sm rounded-pill"
-                   href="{% url 'sales-export' %}">
-                    <i class="fa-solid fa-download"></i> Export
+                <!-- EXPORT -->
+                <a href="{% url 'sales-export' %}" class="btn export-btn">
+                    Export
                 </a>
+
             </div>
 
         </div>
     </div>
 </div>
 
-<!-- Table -->
+<!-- SIMPLE TABLE -->
 <div class="container px-3">
 
     <table class="table table-bordered table-striped table-hover table-sm">
@@ -42,7 +72,7 @@
                 <th>Customer</th>
                 <th>Items</th>
                 <th>Grand Total</th>
-                <th>Amount Paid</th>
+                <th>Paid</th>
                 <th>Change</th>
                 <th>Status</th>
                 <th class="text-center">Actions</th>
@@ -52,12 +82,11 @@
         <tbody>
             {% for sale in sales %}
             <tr>
-                <td>{{ sale.id }}</td>
-                <td>{{ sale.date_added|date:"Y-m-d H:i:s" }}</td>
+                <td>#{{ sale.id }}</td>
+                <td>{{ sale.date_added|date:"Y-m-d H:i" }}</td>
                 <td>{{ sale.customer }}</td>
 
-                <!-- Items -->
-                <td class="single-line-items">
+                <td class="items-cell">
                     {% for detail in sale.saledetail_set.all %}
                         {{ detail.item.name }} ({{ detail.quantity }}){% if not forloop.last %}, {% endif %}
                     {% empty %}
@@ -69,7 +98,6 @@
                 <td>₹ {{ sale.amount_paid }}</td>
                 <td>₹ {{ sale.amount_change }}</td>
 
-                <!-- ✅ FIXED STATUS -->
                 <td>
                     {% if sale.amount_paid >= sale.grand_total %}
                         <span class="badge bg-success">Paid</span>
@@ -80,7 +108,6 @@
                     {% endif %}
                 </td>
 
-                <!-- Actions -->
                 <td class="text-center">
                     <a class="view-btn" href="{% url 'sale-detail' sale.id %}">
                         <i class="fa-solid fa-eye"></i>
@@ -92,26 +119,35 @@
 
     </table>
 
-    <!-- Pagination -->
+    <!-- PAGINATION -->
     <div class="d-flex justify-content-center mt-4">
         {% if is_paginated %}
         <ul class="pagination">
 
             {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+                <a class="page-link"
+                   href="?page={{ page_obj.previous_page_number }}&order={{ request.GET.order }}">
+                    «
+                </a>
             </li>
             {% endif %}
 
             {% for i in paginator.page_range %}
                 <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    <a class="page-link"
+                       href="?page={{ i }}&order={{ request.GET.order }}">
+                        {{ i }}
+                    </a>
                 </li>
             {% endfor %}
 
             {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+                <a class="page-link"
+                   href="?page={{ page_obj.next_page_number }}&order={{ request.GET.order }}">
+                    »
+                </a>
             </li>
             {% endif %}
 
@@ -124,14 +160,77 @@
 <!-- STYLE -->
 <style>
 
-/* Header */
+/* HEADER */
 .header-dark {
-    background: linear-gradient(135deg, #1f2937, #111827);
-    border: none;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    background: linear-gradient(135deg, #0f172a, #1e293b);
 }
 
-/* View button */
+/* SORT BUTTONS (slightly bigger) */
+.sort-container {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sort-btn {
+    padding: 8px 18px;
+    font-size: 15px;
+    color: #374151;
+    text-decoration: none;
+    border-right: 1px solid #e5e7eb;
+}
+
+.sort-btn:last-child {
+    border-right: none;
+}
+
+.sort-btn:hover {
+    background: #e5e7eb;
+}
+
+/* ACTIVE */
+.active-primary {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.active-success {
+    background: #10b981;
+    color: #fff;
+}
+
+/* ADD SALE BUTTON */
+.add-sale-btn {
+    background: #22c55e;
+    color: #fff;
+    font-weight: 600;
+    padding: 8px 16px;
+    border-radius: 8px;
+}
+
+.add-sale-btn:hover {
+    background: #16a34a;
+    color: #fff;
+}
+
+/* EXPORT */
+.export-btn {
+    border: 1px solid #cbd5f5;
+    color: #fff;
+    padding: 7px 14px;
+    border-radius: 8px;
+}
+
+/* ITEMS */
+.items-cell {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* VIEW BUTTON */
 .view-btn {
     display: inline-flex;
     align-items: center;
@@ -139,33 +238,13 @@
     width: 34px;
     height: 34px;
     border-radius: 8px;
-    background: rgba(59, 130, 246, 0.1);
+    background: rgba(59,130,246,0.1);
     color: #2563eb;
-    transition: 0.2s;
 }
 
 .view-btn:hover {
     background: #2563eb;
     color: #fff;
-}
-
-/* Table */
-.table {
-    font-size: 15px;
-}
-
-/* Items */
-.single-line-items {
-    max-width: 250px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Status badge */
-.badge {
-    font-size: 12px;
-    padding: 6px 10px;
 }
 
 </style>

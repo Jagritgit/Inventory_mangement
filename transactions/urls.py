@@ -14,7 +14,6 @@ from .views import (
     SaleDetailView,
     SaleCreateView,
     SaleDeleteView,
-
     export_sales_to_excel,
     export_purchases_to_excel
 )
@@ -24,36 +23,38 @@ urlpatterns = [
     # Purchase URLs
     path('purchases/', PurchaseListView.as_view(), name='purchaseslist'),
     path(
-         'purchase/<slug:slug>/', PurchaseDetailView.as_view(),
-         name='purchase-detail'
-     ),
+        'purchase/<slug:slug>/', PurchaseDetailView.as_view(),
+        name='purchase-detail'
+    ),
     path(
-         'new-purchase/', PurchaseCreateView.as_view(),
-         name='purchase-create'
-     ),
+        'new-purchase/', PurchaseCreateView.as_view(),
+        name='purchase-create'
+    ),
     path(
-         'purchase/<int:pk>/update/', PurchaseUpdateView.as_view(),
-         name='purchase-update'
-     ),
+        'purchase/<int:pk>/update/', PurchaseUpdateView.as_view(),
+        name='purchase-update'
+    ),
     path(
-         'purchase/<int:pk>/delete/', PurchaseDeleteView.as_view(),
-         name='purchase-delete'
-     ),
+        'purchase/<int:pk>/delete/', PurchaseDeleteView.as_view(),
+        name='purchase-delete'
+    ),
 
     # Sale URLs
     path('sales/', SaleListView.as_view(), name='saleslist'),
     path('sale/<int:pk>/', SaleDetailView.as_view(), name='sale-detail'),
     path('new-sale/', SaleCreateView, name='sale-create'),
+
+    # BUG FIX #10: SaleDeleteView used <slug:slug> in the URL but Sale model
+    # has no slug field — it only has an integer pk. Changed to <int:pk>.
     path(
-         'sale/<slug:slug>/delete/', SaleDeleteView.as_view(),
-         name='sale-delete'
-     ),
+        'sale/<int:pk>/delete/', SaleDeleteView.as_view(),
+        name='sale-delete'
+    ),
 
     # Sales and purchases export
     path('sales/export/', export_sales_to_excel, name='sales-export'),
-    path('purchases/export/', export_purchases_to_excel,
-         name='purchases-export'),
+    path('purchases/export/', export_purchases_to_excel, name='purchases-export'),
 ]
 
-# Static media files configuration for development
+# Static media files for development
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

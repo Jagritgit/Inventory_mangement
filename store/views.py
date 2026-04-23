@@ -47,7 +47,7 @@ from .tables import ItemTable
 
 @login_required
 def dashboard(request):
-    from django.db.models import Sum, Count
+    from django.db.models import Sum, Count, F, FloatField, ExpressionWrapper
     from transactions.models import Sale, SaleDetail
 
     # Basic data
@@ -67,7 +67,29 @@ def dashboard(request):
     pending_deliveries = Delivery.objects.filter(is_delivered=False).count()
 
     # -----------------------------
-    # 🔥 TOP SELLING PRODUCT
+    # 💰 TOTAL REVENUE
+    # -----------------------------
+    total_revenue = (
+        Sale.objects.aggregate(total=Sum("grand_total"))
+        .get("total", 0.00)
+    )
+
+    # -----------------------------
+    # 💰 TOTAL PROFIT (FIXED)
+    # -----------------------------
+    total_profit = (
+        SaleDetail.objects.aggregate(
+            profit=Sum(
+                ExpressionWrapper(
+                    F("quantity") * (F("price") - F("item__cost_price")),
+                    output_field=FloatField()
+                )
+            )
+        ).get("profit", 0.00)
+    )
+
+    # -----------------------------
+    # 🔥 TOP PRODUCT
     # -----------------------------
     top = (
         SaleDetail.objects
@@ -80,7 +102,7 @@ def dashboard(request):
     top_product = top['item__name'] if top else None
 
     # -----------------------------
-    # 🔥 RECENT SELLING PRODUCT
+    # 🔥 RECENT PRODUCT
     # -----------------------------
     recent = (
         SaleDetail.objects
@@ -92,7 +114,7 @@ def dashboard(request):
     recent_product = recent.item.name if recent else None
 
     # -----------------------------
-    # Charts: Category
+    # CATEGORY CHART
     # -----------------------------
     category_counts_qs = Category.objects.annotate(
         item_count=Count("item")
@@ -102,7 +124,7 @@ def dashboard(request):
     category_counts = [cat["item_count"] for cat in category_counts_qs]
 
     # -----------------------------
-    # Charts: Sales Over Time
+    # SALES CHART
     # -----------------------------
     sale_dates = (
         Sale.objects.values("date_added__date")
@@ -120,7 +142,7 @@ def dashboard(request):
     ]
 
     # -----------------------------
-    # Final Context
+    # FINAL CONTEXT
     # -----------------------------
     context = {
         "items": items,
@@ -135,7 +157,10 @@ def dashboard(request):
 
         "sales": Sale.objects.all(),
 
-        # ✅ NEW DATA
+        # 🔥 IMPORTANT
+        "total_revenue": total_revenue,
+        "total_profit": total_profit,
+
         "top_product": top_product,
         "recent_product": recent_product,
 
@@ -150,23 +175,28 @@ def dashboard(request):
 
 
 class ProductListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
-    """
-    View class to display a list of products.
-
-    Attributes:
-    - model: The model associated with the view.
-    - table_class: The table class used for rendering.
-    - template_name: The HTML template used for rendering the view.
-    - context_object_name: The variable name for the context object.
-    - paginate_by: Number of items per page for pagination.
-    """
-
     model = Item
     table_class = ItemTable
     template_name = "store/productslist.html"
     context_object_name = "items"
     paginate_by = 10
     SingleTableView.table_pagination = False
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        order = self.request.GET.get('order', 'old')
+
+        if order == 'new':
+            return queryset.order_by('-id')
+
+        elif order == 'high':
+            return queryset.order_by('-price')
+
+        elif order == 'low':
+            return queryset.order_by('price')
+
+        else:  # default = oldest
+            return queryset.order_by('id')
 
 
 class ItemSearchListView(ProductListView):
@@ -277,23 +307,36 @@ class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
             return False
 
 
-class DeliveryListView(
-    LoginRequiredMixin, ExportMixin, tables.SingleTableView
-):
-    """
-    View class to display a list of deliveries.
-
-    Attributes:
-    - model: The model associated with the view.
-    - pagination: Number of items per page for pagination.
-    - template_name: The HTML template used for rendering the view.
-    - context_object_name: The variable name for the context object.
-    """
-
+class DeliveryListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
     model = Delivery
-    pagination = 10
     template_name = "store/deliveries.html"
     context_object_name = "deliveries"
+    paginate_by = 10
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # SEARCH
+        query = self.request.GET.get("q")
+        if query:
+            queryset = queryset.filter(customer_name__icontains=query)
+
+        # FILTER / SORT
+        order = self.request.GET.get("order", "old")
+
+        if order == "new":
+            queryset = queryset.order_by("-id")
+
+        elif order == "delivered":
+            queryset = queryset.filter(is_delivered=True).order_by("-id")
+
+        elif order == "pending":
+            queryset = queryset.filter(is_delivered=False).order_by("-id")
+
+        else:
+            queryset = queryset.order_by("id")
+
+        return queryset
 
 
 class DeliverySearchListView(DeliveryListView):

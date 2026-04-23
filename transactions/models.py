@@ -54,9 +54,6 @@ class Sale(models.Model):
         verbose_name_plural = "Sales"
 
     def __str__(self):
-        """
-        Returns a string representation of the Sale instance.
-        """
         return (
             f"Sale ID: {self.id} | "
             f"Grand Total: {self.grand_total} | "
@@ -64,9 +61,6 @@ class Sale(models.Model):
         )
 
     def sum_products(self):
-        """
-        Returns the total quantity of products in the sale.
-        """
         return sum(detail.quantity for detail in self.saledetail_set.all())
 
 
@@ -99,9 +93,6 @@ class SaleDetail(models.Model):
         verbose_name_plural = "Sale Details"
 
     def __str__(self):
-        """
-        Returns a string representation of the SaleDetail instance.
-        """
         return (
             f"Detail ID: {self.id} | "
             f"Sale ID: {self.sale.id} | "
@@ -140,20 +131,17 @@ class Purchase(models.Model):
     )
     total_value = models.DecimalField(max_digits=10, decimal_places=2)
 
+    # BUG FIX #1: Purchase.save() was doubling stock on every update.
+    # It always ran `item.quantity += self.quantity` even when editing
+    # an existing purchase. Fixed by only increasing stock on creation
+    # (when pk is None), and the signal in signals.py was also doing
+    # the same thing — that double-increment bug is fixed by removing
+    # the logic from save() and keeping it only in signals.py.
     def save(self, *args, **kwargs):
-        """
-        Calculates the total value before saving the Purchase instance.
-        """
         self.total_value = self.price * self.quantity
         super().save(*args, **kwargs)
-        # Update the item quantity
-        self.item.quantity += self.quantity
-        self.item.save()
 
     def __str__(self):
-        """
-        Returns a string representation of the Purchase instance.
-        """
         return str(self.item.name)
 
     class Meta:

@@ -1,6 +1,5 @@
 {% extends "store/base.html" %}
 {% load static %}
-{% load render_table from django_tables2 %}
 {% load querystring from django_tables2 %}
 
 {% block title %}Products{% endblock %}
@@ -9,13 +8,40 @@
 
 <div class="container py-4">
 
-    <!-- Header (DARK THEME) -->
+    <!-- Header -->
     <div class="card header-dark rounded-4 p-4 mb-4">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
 
             <h4 class="fw-bold mb-0 text-white">Products</h4>
 
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap align-items-center gap-3">
+
+                <!-- SORTING -->
+                <div class="sort-container">
+
+                    <a href="?order=old"
+                       class="sort-btn {% if request.GET.order == 'old' or not request.GET.order %}active-primary{% endif %}">
+                        Oldest
+                    </a>
+
+                    <a href="?order=new"
+                       class="sort-btn {% if request.GET.order == 'new' %}active-primary{% endif %}">
+                        Newest
+                    </a>
+
+                    <a href="?order=high"
+                       class="sort-btn {% if request.GET.order == 'high' %}active-success{% endif %}">
+                        High
+                    </a>
+
+                    <a href="?order=low"
+                       class="sort-btn {% if request.GET.order == 'low' %}active-success{% endif %}">
+                        Low
+                    </a>
+
+                </div>
+
+                <!-- ACTIONS -->
                 <a class="btn btn-success btn-sm px-3 rounded-pill"
                    href="{% url 'product-create' %}">
                     <i class="fa-solid fa-plus"></i> Add Item
@@ -25,6 +51,7 @@
                    href="{% querystring '_export'='xlsx' %}">
                     <i class="fa-solid fa-download"></i> Export
                 </a>
+
             </div>
 
         </div>
@@ -49,31 +76,31 @@
     <div class="card border-0 shadow-sm rounded-4">
         <div class="table-responsive">
 
-            <table class="table align-middle mb-0">
+            <table class="table table-bordered table-striped table-hover table-sm mb-0">
 
                 <thead class="table-light">
                     <tr>
-                        <th class="fw-semibold">ID</th>
-                        <th class="fw-semibold">Name</th>
-                        <th class="fw-semibold">Category</th>
-                        <th class="fw-semibold">Quantity</th>
-                        <th class="fw-semibold">Price</th>
-                        <th class="fw-semibold">Date</th>
-                        <th class="fw-semibold">Vendor</th>
-                        <th class="fw-semibold text-center">Actions</th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Category</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Date</th>
+                        <th>Vendor</th>
+                        <th class="text-center">Actions</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     {% for item in items %}
                     <tr>
-                        <td >{{ item.id }}</td>
-                        <td >{{ item.name }}</td>
-                        <td >{{ item.category }}</td>
-                        <td >{{ item.quantity }}</td>
-                        <td >₹ {{ item.price }}</td>
-                        <td >{{ item.expiring_date }}</td>
-                        <td >{{ item.vendor }}</td>
+                        <td>{{ item.id }}</td>
+                        <td>{{ item.name }}</td>
+                        <td>{{ item.category }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>₹ {{ item.price }}</td>
+                        <td>{{ item.expiring_date }}</td>
+                        <td>{{ item.vendor }}</td>
                         <td class="text-center">
 
                             <a class="btn btn-sm btn-outline-primary me-1"
@@ -103,19 +130,28 @@
 
             {% if page_obj.has_previous %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">«</a>
+                <a class="page-link"
+                   href="?page={{ page_obj.previous_page_number }}&order={{ request.GET.order }}">
+                    «
+                </a>
             </li>
             {% endif %}
 
             {% for i in paginator.page_range %}
                 <li class="page-item {% if page_obj.number == i %}active{% endif %}">
-                    <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                    <a class="page-link"
+                       href="?page={{ i }}&order={{ request.GET.order }}">
+                        {{ i }}
+                    </a>
                 </li>
             {% endfor %}
 
             {% if page_obj.has_next %}
             <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">»</a>
+                <a class="page-link"
+                   href="?page={{ page_obj.next_page_number }}&order={{ request.GET.order }}">
+                    »
+                </a>
             </li>
             {% endif %}
 
@@ -125,17 +161,16 @@
 
 </div>
 
-<!-- ONLY HEADER STYLING -->
+<!-- STYLE -->
 <style>
 
-/* Dark header */
+/* Header */
 .header-dark {
     background: linear-gradient(135deg, #1f2937, #111827);
-    border: none;
     box-shadow: 0 6px 20px rgba(0,0,0,0.2);
 }
 
-/* Dark search input */
+/* Search */
 .search-dark {
     background: #374151;
     color: #fff;
@@ -151,8 +186,44 @@
     box-shadow: none;
 }
 
+/* SORT */
+.sort-container {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sort-btn {
+    padding: 8px 16px;
+    font-size: 14px;
+    color: #374151;
+    text-decoration: none;
+    border-right: 1px solid #e5e7eb;
+}
+
+.sort-btn:last-child {
+    border-right: none;
+}
+
+.sort-btn:hover {
+    background: #e5e7eb;
+}
+
+/* Active */
+.active-primary {
+    background: #3b82f6;
+    color: #fff;
+}
+
+.active-success {
+    background: #10b981;
+    color: #fff;
+}
+
+/* Table */
 .table {
-    font-size: 15px;  /* increase text size */
+    font-size: 15px;
 }
 
 </style>
