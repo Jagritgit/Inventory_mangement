@@ -24,6 +24,9 @@
                 <div class="{% if field.name == 'address' or field.name == 'description' or field.name == 'payment_details' %}full{% endif %}">
                     <label>{{ field.label }}</label>
                     {{ field }}
+                    {% if field.name == 'vendor' %}
+                        <small class="autofill-hint">Pick an existing vendor to auto-fill phone, email &amp; address, or type a new vendor below.</small>
+                    {% endif %}
                     {% if field.errors %}<small style="color:#dc2626;">{{ field.errors|striptags }}</small>{% endif %}
                 </div>
             {% endfor %}
@@ -56,6 +59,9 @@
     </form>
 </div>
 
-<script>window.__priceMode = 'cost_price';</script>
+<script>
+    window.__priceMode = 'cost_price';
+    window.__partyMode = 'vendor';
+</script>
 {% include "invoice/_pricing_js.html" %}
 {% endblock %}

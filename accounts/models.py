@@ -103,8 +103,11 @@ class Vendor(models.Model):
     phone_number = models.BigIntegerField(
         blank=True, null=True, verbose_name='Phone Number'
     )
+    email = models.EmailField(
+        blank=True, null=True, verbose_name='Email'
+    )
     address = models.CharField(
-        max_length=50, blank=True, null=True, verbose_name='Address'
+        max_length=255, blank=True, null=True, verbose_name='Address'
     )
 
     def __str__(self):

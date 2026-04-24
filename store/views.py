@@ -46,6 +46,43 @@ from .tables import ItemTable
 
 
 @login_required
+def vendor_detail_json(request, pk):
+    """Return Vendor contact details as JSON for the bill form auto-fill."""
+    try:
+        v = Vendor.objects.only(
+            "id", "name", "phone_number", "email", "address"
+        ).get(pk=pk)
+    except Vendor.DoesNotExist:
+        return JsonResponse({"error": "not found"}, status=404)
+    return JsonResponse({
+        "id": v.id,
+        "name": v.name,
+        "phone_number": v.phone_number or "",
+        "email": v.email or "",
+        "address": v.address or "",
+    })
+
+
+@login_required
+def customer_detail_json(request, pk):
+    """Return Customer contact details as JSON for the invoice form auto-fill."""
+    from accounts.models import Customer
+    try:
+        c = Customer.objects.only(
+            "id", "first_name", "last_name", "email", "phone", "address"
+        ).get(pk=pk)
+    except Customer.DoesNotExist:
+        return JsonResponse({"error": "not found"}, status=404)
+    return JsonResponse({
+        "id": c.id,
+        "name": c.get_full_name(),
+        "email": c.email or "",
+        "phone": c.phone or "",
+        "address": c.address or "",
+    })
+
+
+@login_required
 def item_pricing_view(request, pk):
     """
     Lightweight JSON endpoint returning an Item's selling + cost prices and

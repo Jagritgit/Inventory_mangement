@@ -108,6 +108,10 @@ urlpatterns = [
         name='item_pricing'
     ),
 
+    # Vendor / Customer auto-fill JSON endpoints
+    path('get-vendor/<int:pk>/', views.vendor_detail_json, name='get_vendor'),
+    path('get-customer/<int:pk>/', views.customer_detail_json, name='get_customer'),
+
     # Category URLs
     path(
         'categories/',

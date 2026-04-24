@@ -136,6 +136,46 @@ class InvoiceModelTests(TestCase):
         self.assertIn("cost_price", data)
         self.assertIn("quantity_in_stock", data)
 
+    def test_customer_autofill_endpoint(self):
+        from accounts.models import Customer
+        cust = Customer.objects.create(
+            first_name="Ramesh", last_name="Iyer",
+            email="r@x.com", phone="9876543210", address="MG Road",
+        )
+        User.objects.create_user("a", password="pw12345!")
+        self.client.login(username="a", password="pw12345!")
+        resp = self.client.get(f"/get-customer/{cust.id}/")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["name"], "Ramesh Iyer")
+        self.assertEqual(data["phone"], "9876543210")
+        self.assertEqual(data["email"], "r@x.com")
+        self.assertEqual(data["address"], "MG Road")
+
+    def test_vendor_autofill_endpoint(self):
+        v = Vendor.objects.create(
+            name="Acme Supplies", phone_number=9988776655,
+            email="acme@x.com", address="Pune",
+        )
+        User.objects.create_user("b", password="pw12345!")
+        self.client.login(username="b", password="pw12345!")
+        resp = self.client.get(f"/get-vendor/{v.id}/")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["name"], "Acme Supplies")
+        self.assertEqual(data["phone_number"], 9988776655)
+        self.assertEqual(data["email"], "acme@x.com")
+        self.assertEqual(data["address"], "Pune")
+
+    def test_autofill_endpoints_require_login(self):
+        from accounts.models import Customer
+        cust = Customer.objects.create(first_name="X")
+        v = Vendor.objects.create(name="Y")
+        # Logged out from previous tests
+        self.client.logout()
+        self.assertEqual(self.client.get(f"/get-customer/{cust.id}/").status_code, 302)
+        self.assertEqual(self.client.get(f"/get-vendor/{v.id}/").status_code, 302)
+
     def test_invoice_default_status_pending(self):
         inv = Invoice.objects.create(
             customer_name="S", contact_number="1",

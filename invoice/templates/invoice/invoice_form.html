@@ -24,6 +24,9 @@
                 <div class="{% if field.name == 'customer_name' or field.name == 'description' %}full{% endif %}">
                     <label>{{ field.label }}</label>
                     {{ field }}
+                    {% if field.name == 'customer' %}
+                        <small class="autofill-hint">Pick an existing customer to auto-fill name &amp; contact, or leave blank and type below.</small>
+                    {% endif %}
                     {% if field.errors %}<small style="color:#dc2626;">{{ field.errors|striptags }}</small>{% endif %}
                 </div>
             {% endfor %}
@@ -53,6 +56,9 @@
     </form>
 </div>
 
-<script>window.__priceMode = 'price';</script>
+<script>
+    window.__priceMode = 'price';
+    window.__partyMode = 'customer';
+</script>
 {% include "invoice/_pricing_js.html" %}
 {% endblock %}

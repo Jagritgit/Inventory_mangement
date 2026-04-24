@@ -12,9 +12,9 @@ class InvoiceForm(forms.ModelForm):
             "item", "price_per_item", "quantity", "shipping", "status",
         ]
         widgets = {
-            "customer":        forms.Select(attrs={"class": "form-control", "id": "id_item_or_customer_select"}),
-            "customer_name":   forms.TextInput(attrs={"class": "form-control"}),
-            "contact_number":  forms.TextInput(attrs={"class": "form-control"}),
+            "customer":        forms.Select(attrs={"class": "form-control", "id": "id_customer"}),
+            "customer_name":   forms.TextInput(attrs={"class": "form-control", "id": "id_customer_name"}),
+            "contact_number":  forms.TextInput(attrs={"class": "form-control", "id": "id_contact_number"}),
             "due_date":        forms.DateInput(attrs={"class": "form-control", "type": "date"}),
             "item":            forms.Select(attrs={"class": "form-control", "id": "id_item"}),
             "price_per_item":  forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "id": "id_price_per_item"}),

@@ -14,11 +14,11 @@ class BillForm(forms.ModelForm):
             "amount", "status",
         ]
         widgets = {
-            "vendor":           forms.Select(attrs={"class": "form-control"}),
-            "institution_name": forms.TextInput(attrs={"class": "form-control"}),
-            "phone_number":     forms.NumberInput(attrs={"class": "form-control"}),
-            "email":            forms.EmailInput(attrs={"class": "form-control"}),
-            "address":          forms.TextInput(attrs={"class": "form-control"}),
+            "vendor":           forms.Select(attrs={"class": "form-control", "id": "id_vendor"}),
+            "institution_name": forms.TextInput(attrs={"class": "form-control", "id": "id_institution_name"}),
+            "phone_number":     forms.NumberInput(attrs={"class": "form-control", "id": "id_phone_number"}),
+            "email":            forms.EmailInput(attrs={"class": "form-control", "id": "id_email"}),
+            "address":          forms.TextInput(attrs={"class": "form-control", "id": "id_address"}),
             "description":      forms.TextInput(attrs={"class": "form-control"}),
             "payment_details":  forms.TextInput(attrs={"class": "form-control"}),
             "item":             forms.Select(attrs={"class": "form-control", "id": "id_item"}),
