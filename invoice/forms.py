@@ -8,19 +8,22 @@ class InvoiceForm(forms.ModelForm):
     class Meta:
         model = Invoice
         fields = [
-            "customer", "customer_name", "contact_number", "due_date",
+            "customer", "customer_name", "contact_number", "customer_email",
+            "shipping_address", "due_date",
             "item", "price_per_item", "quantity", "shipping", "status",
         ]
         widgets = {
-            "customer":        forms.Select(attrs={"class": "form-control", "id": "id_customer"}),
-            "customer_name":   forms.TextInput(attrs={"class": "form-control", "id": "id_customer_name"}),
-            "contact_number":  forms.TextInput(attrs={"class": "form-control", "id": "id_contact_number"}),
-            "due_date":        forms.DateInput(attrs={"class": "form-control", "type": "date"}),
-            "item":            forms.Select(attrs={"class": "form-control", "id": "id_item"}),
-            "price_per_item":  forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "id": "id_price_per_item"}),
-            "quantity":        forms.NumberInput(attrs={"class": "form-control", "step": "1", "min": "1", "id": "id_quantity"}),
-            "shipping":        forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "0", "id": "id_shipping"}),
-            "status":          forms.Select(attrs={"class": "form-control"}),
+            "customer":         forms.Select(attrs={"class": "form-control", "id": "id_customer"}),
+            "customer_name":    forms.TextInput(attrs={"class": "form-control", "id": "id_customer_name"}),
+            "contact_number":   forms.TextInput(attrs={"class": "form-control", "id": "id_contact_number"}),
+            "customer_email":   forms.EmailInput(attrs={"class": "form-control", "id": "id_customer_email"}),
+            "shipping_address": forms.TextInput(attrs={"class": "form-control", "id": "id_shipping_address"}),
+            "due_date":         forms.DateInput(attrs={"class": "form-control", "type": "date"}),
+            "item":             forms.Select(attrs={"class": "form-control", "id": "id_item"}),
+            "price_per_item":   forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "id": "id_price_per_item"}),
+            "quantity":         forms.NumberInput(attrs={"class": "form-control", "step": "1", "min": "1", "id": "id_quantity"}),
+            "shipping":         forms.NumberInput(attrs={"class": "form-control", "step": "0.01", "min": "0", "id": "id_shipping"}),
+            "status":           forms.Select(attrs={"class": "form-control"}),
         }
 
     def clean_quantity(self):

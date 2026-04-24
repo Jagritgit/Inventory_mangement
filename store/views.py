@@ -64,6 +64,49 @@ def vendor_detail_json(request, pk):
 
 
 @login_required
+def invoice_detail_json(request, pk):
+    """
+    Return Invoice + linked Customer details for delivery form auto-fill.
+    """
+    from invoice.models import Invoice
+    try:
+        inv = (
+            Invoice.objects.select_related("customer", "item")
+            .only(
+                "id", "invoice_number", "customer_name", "contact_number",
+                "customer_email", "shipping_address",
+                "customer__first_name", "customer__last_name",
+                "customer__email", "customer__phone", "customer__address",
+                "item__id", "item__name",
+            )
+            .get(pk=pk)
+        )
+    except Invoice.DoesNotExist:
+        return JsonResponse({"error": "not found"}, status=404)
+
+    cust = inv.customer
+    return JsonResponse({
+        "id": inv.id,
+        "invoice_number": inv.invoice_number,
+        "customer_id": cust.id if cust else None,
+        "customer_name": (
+            cust.get_full_name() if cust else (inv.customer_name or "")
+        ),
+        "email": (cust.email if cust else "") or inv.customer_email or "",
+        "phone": (
+            (cust.phone if cust else "") or inv.contact_number or ""
+        ),
+        "address": (
+            inv.shipping_address
+            or (cust.address if cust else "")
+            or ""
+        ),
+        "item_id": inv.item_id,
+        "item_name": inv.item.name if inv.item_id else "",
+    })
+
+
+@login_required
 def customer_detail_json(request, pk):
     """Return Customer contact details as JSON for the invoice form auto-fill."""
     from accounts.models import Customer

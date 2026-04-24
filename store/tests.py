@@ -217,3 +217,52 @@ class DeliveryModelTests(TestCase):
         )
         self.assertFalse(d.is_delivered)
         self.assertIn("Joe", str(d))
+
+
+class DeliveryFormAutofillTests(TestCase):
+    """DeliveryForm now exposes invoice + customer + email fields for autofill."""
+
+    def test_form_includes_autofill_fields(self):
+        from store.forms import DeliveryForm
+        f = DeliveryForm()
+        for fname in ("invoice", "customer", "email", "item",
+                      "customer_name", "phone_number", "location",
+                      "date", "is_delivered"):
+            self.assertIn(fname, f.fields, f"missing field {fname}")
+
+    def test_form_persists_invoice_customer_links_and_email(self):
+        from django.utils import timezone
+        from store.forms import DeliveryForm
+        from accounts.models import Customer
+        from invoice.models import Invoice
+        cat = Category.objects.create(name="C")
+        vendor = Vendor.objects.create(name="V")
+        item = Item.objects.create(
+            name="I", description="x", category=cat, vendor=vendor,
+            price=10, quantity=10,
+        )
+        cust = Customer.objects.create(
+            first_name="Sita", last_name="Devi",
+            email="sita@x.com", phone="9000000000", address="Kanpur",
+        )
+        inv = Invoice.objects.create(
+            customer=cust, customer_name="Sita Devi",
+            contact_number="9000000000", item=item,
+            price_per_item=10, quantity=1, shipping=0,
+        )
+        form = DeliveryForm(data={
+            "invoice": inv.id,
+            "customer": cust.id,
+            "item": item.id,
+            "customer_name": "Sita Devi",
+            "email": "sita@x.com",
+            "phone_number": "+919000000000",
+            "location": "Kanpur",
+            "date": timezone.now().strftime("%Y-%m-%dT%H:%M"),
+            "is_delivered": False,
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        d = form.save()
+        self.assertEqual(d.invoice_id, inv.id)
+        self.assertEqual(d.customer_id, cust.id)
+        self.assertEqual(d.email, "sita@x.com")

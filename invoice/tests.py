@@ -176,6 +176,76 @@ class InvoiceModelTests(TestCase):
         self.assertEqual(self.client.get(f"/get-customer/{cust.id}/").status_code, 302)
         self.assertEqual(self.client.get(f"/get-vendor/{v.id}/").status_code, 302)
 
+    def test_invoice_autofill_endpoint_with_linked_customer(self):
+        """`/get-invoice/<id>/` returns customer details from FK + invoice fallback."""
+        from accounts.models import Customer
+        cust = Customer.objects.create(
+            first_name="Anjali", last_name="Sharma",
+            email="anjali@x.com", phone="9000011111", address="42 Brigade Rd",
+        )
+        inv = Invoice.objects.create(
+            customer=cust,
+            customer_name="Anjali Sharma", contact_number="9000011111",
+            shipping_address="42 Brigade Rd, Bangalore",
+            item=self.item, price_per_item=10.0, quantity=2, shipping=5,
+        )
+        User.objects.create_user("inv1", password="pw12345!")
+        self.client.login(username="inv1", password="pw12345!")
+        resp = self.client.get(f"/get-invoice/{inv.id}/")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["customer_id"], cust.id)
+        self.assertEqual(data["customer_name"], "Anjali Sharma")
+        self.assertEqual(data["email"], "anjali@x.com")
+        self.assertEqual(data["phone"], "9000011111")
+        # shipping_address takes precedence over customer.address
+        self.assertEqual(data["address"], "42 Brigade Rd, Bangalore")
+        self.assertEqual(data["item_id"], self.item.id)
+
+    def test_invoice_autofill_endpoint_without_customer_fk(self):
+        """Falls back to invoice's own customer_name/contact when no FK set."""
+        inv = Invoice.objects.create(
+            customer_name="Walk In", contact_number="9123456789",
+            customer_email="walkin@x.com",
+            item=self.item, price_per_item=1.0, quantity=1, shipping=0,
+        )
+        User.objects.create_user("inv2", password="pw12345!")
+        self.client.login(username="inv2", password="pw12345!")
+        data = self.client.get(f"/get-invoice/{inv.id}/").json()
+        self.assertIsNone(data["customer_id"])
+        self.assertEqual(data["customer_name"], "Walk In")
+        self.assertEqual(data["email"], "walkin@x.com")
+        self.assertEqual(data["phone"], "9123456789")
+
+    def test_invoice_autofill_endpoint_requires_login(self):
+        inv = Invoice.objects.create(
+            customer_name="X", contact_number="1",
+            item=self.item, price_per_item=1.0, quantity=1, shipping=0,
+        )
+        self.client.logout()
+        self.assertEqual(
+            self.client.get(f"/get-invoice/{inv.id}/").status_code, 302
+        )
+
+    def test_invoice_form_accepts_email_and_shipping_address(self):
+        """InvoiceForm persists the new customer_email and shipping_address fields."""
+        from invoice.forms import InvoiceForm
+        form = InvoiceForm(data={
+            "customer_name": "Ravi Kumar",
+            "contact_number": "9999999999",
+            "customer_email": "ravi@x.com",
+            "shipping_address": "Plot 7, Sector 21",
+            "item": self.item.id,
+            "price_per_item": 10.0,
+            "quantity": 1,
+            "shipping": 0,
+            "status": "PENDING",
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        inv = form.save()
+        self.assertEqual(inv.customer_email, "ravi@x.com")
+        self.assertEqual(inv.shipping_address, "Plot 7, Sector 21")
+
     def test_invoice_default_status_pending(self):
         inv = Invoice.objects.create(
             customer_name="S", contact_number="1",

@@ -1,6 +1,6 @@
-{# Shared auto-pricing + party autofill JS for invoice & bill forms.
+{# Shared auto-pricing + party autofill JS for invoice / bill / delivery forms.
    window.__priceMode = 'price' (invoice) | 'cost_price' (bill)
-   window.__partyMode = 'customer' (invoice) | 'vendor' (bill) #}
+   window.__partyMode = 'customer' (invoice) | 'vendor' (bill) | 'delivery' (delivery) #}
 <script>
 (function () {
     var itemSel  = document.getElementById('id_item');
@@ -15,10 +15,12 @@
     var mode     = window.__priceMode || 'price';
 
     function fmt(n) { return (Number(n) || 0).toFixed(2); }
+    function setForce(el, val) { if (el) el.value = (val == null ? '' : val); }
 
     function recompute() {
-        var qty   = parseFloat((qtyEl && qtyEl.value) || 0) || 0;
-        var price = parseFloat((priceEl && priceEl.value) || 0) || 0;
+        if (!priceEl || !qtyEl) return;
+        var qty   = parseFloat(qtyEl.value || 0) || 0;
+        var price = parseFloat(priceEl.value || 0) || 0;
         var ship  = parseFloat((shipEl && shipEl.value) || 0) || 0;
         var tax   = parseFloat((taxEl && taxEl.value) || 0) || 0;
         var subtotal = qty * price;
@@ -28,7 +30,7 @@
         if (amountEl) amountEl.value = fmt(total);
     }
 
-    if (itemSel) {
+    if (itemSel && priceEl) {
         itemSel.addEventListener('change', function () {
             var pk = itemSel.value;
             if (!pk) return;
@@ -41,8 +43,7 @@
                     }
                     if (stockBox) stockBox.textContent = data.quantity_in_stock + ' in stock';
                     recompute();
-                })
-                .catch(function () {});
+                });
         });
     }
     [priceEl, qtyEl, shipEl, taxEl].forEach(function (el) {
@@ -51,59 +52,101 @@
     recompute();
 
     // -------------------------------------------------------------------
-    // Party (Customer / Vendor) autofill
+    // Party autofill
     // -------------------------------------------------------------------
     var partyMode = window.__partyMode;
-    if (!partyMode) return;
-
-    function setIfEmpty(el, val) {
-        if (!el) return;
-        if (!el.value || el.value.trim() === '') el.value = val;
-    }
-    function setForce(el, val) {
-        if (el) el.value = val;
-    }
 
     if (partyMode === 'customer') {
         var customerSel = document.getElementById('id_customer');
-        var nameEl   = document.getElementById('id_customer_name');
-        var phoneEl  = document.getElementById('id_contact_number');
-        if (!customerSel) return;
-
-        customerSel.addEventListener('change', function () {
-            var pk = customerSel.value;
-            if (!pk) return;
-            fetch('/get-customer/' + pk + '/', { credentials: 'same-origin' })
-                .then(function (r) { return r.ok ? r.json() : null; })
-                .then(function (data) {
-                    if (!data) return;
-                    setForce(nameEl, data.name);
-                    setForce(phoneEl, data.phone);
-                });
-        });
+        var nameEl     = document.getElementById('id_customer_name');
+        var phoneEl    = document.getElementById('id_contact_number');
+        var emailEl    = document.getElementById('id_customer_email');
+        var addrEl     = document.getElementById('id_shipping_address');
+        if (customerSel) {
+            customerSel.addEventListener('change', function () {
+                var pk = customerSel.value;
+                if (!pk) return;
+                fetch('/get-customer/' + pk + '/', { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data) return;
+                        setForce(nameEl, data.name);
+                        setForce(phoneEl, data.phone);
+                        setForce(emailEl, data.email);
+                        setForce(addrEl, data.address);
+                    });
+            });
+        }
     }
 
     if (partyMode === 'vendor') {
         var vendorSel = document.getElementById('id_vendor');
-        var instEl   = document.getElementById('id_institution_name');
-        var phoneEl  = document.getElementById('id_phone_number');
-        var emailEl  = document.getElementById('id_email');
-        var addrEl   = document.getElementById('id_address');
-        if (!vendorSel) return;
+        var instEl    = document.getElementById('id_institution_name');
+        var phoneElV  = document.getElementById('id_phone_number');
+        var emailElV  = document.getElementById('id_email');
+        var addrElV   = document.getElementById('id_address');
+        if (vendorSel) {
+            vendorSel.addEventListener('change', function () {
+                var pk = vendorSel.value;
+                if (!pk) return;
+                fetch('/get-vendor/' + pk + '/', { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data) return;
+                        setForce(instEl, data.name);
+                        setForce(phoneElV, data.phone_number);
+                        setForce(emailElV, data.email);
+                        setForce(addrElV, data.address);
+                    });
+            });
+        }
+    }
 
-        vendorSel.addEventListener('change', function () {
-            var pk = vendorSel.value;
-            if (!pk) return;
-            fetch('/get-vendor/' + pk + '/', { credentials: 'same-origin' })
-                .then(function (r) { return r.ok ? r.json() : null; })
-                .then(function (data) {
-                    if (!data) return;
-                    setForce(instEl, data.name);
-                    setForce(phoneEl, data.phone_number);
-                    setForce(emailEl, data.email);
-                    setForce(addrEl, data.address);
-                });
-        });
+    if (partyMode === 'delivery') {
+        // Delivery form has BOTH an invoice select and a customer select.
+        // Either one populates name / phone / email / address (and item if invoice).
+        var invoiceSel  = document.getElementById('id_invoice');
+        var customerSel = document.getElementById('id_customer');
+        var itemSelD    = document.getElementById('id_item');
+        var nameElD     = document.getElementById('id_customer_name');
+        var emailElD    = document.getElementById('id_email');
+        var phoneElD    = document.getElementById('id_phone_number');
+        var locElD      = document.getElementById('id_location');
+
+        if (invoiceSel) {
+            invoiceSel.addEventListener('change', function () {
+                var pk = invoiceSel.value;
+                if (!pk) return;
+                fetch('/get-invoice/' + pk + '/', { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data) return;
+                        setForce(nameElD, data.customer_name);
+                        setForce(emailElD, data.email);
+                        setForce(phoneElD, data.phone);
+                        setForce(locElD, data.address);
+                        if (itemSelD && data.item_id) itemSelD.value = data.item_id;
+                        if (customerSel && data.customer_id) {
+                            customerSel.value = data.customer_id;
+                        }
+                    });
+            });
+        }
+        if (customerSel) {
+            customerSel.addEventListener('change', function () {
+                var pk = customerSel.value;
+                if (!pk) return;
+                fetch('/get-customer/' + pk + '/', { credentials: 'same-origin' })
+                    .then(function (r) { return r.ok ? r.json() : null; })
+                    .then(function (data) {
+                        if (!data) return;
+                        setForce(nameElD, data.name);
+                        setForce(emailElD, data.email);
+                        setForce(phoneElD, data.phone);
+                        setForce(locElD, data.address);
+                    });
+            });
+        }
     }
 })();
 </script>

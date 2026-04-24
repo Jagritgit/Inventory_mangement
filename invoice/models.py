@@ -35,6 +35,11 @@ class Invoice(models.Model):
     )
     customer_name = models.CharField(max_length=60)
     contact_number = models.CharField(max_length=20)
+    customer_email = models.EmailField(max_length=120, blank=True, null=True)
+    shipping_address = models.CharField(
+        max_length=255, blank=True, null=True,
+        verbose_name="Shipping Address"
+    )
 
     item = models.ForeignKey(Item, on_delete=models.PROTECT)
     price_per_item = models.FloatField(verbose_name='Price Per Item (₹)')

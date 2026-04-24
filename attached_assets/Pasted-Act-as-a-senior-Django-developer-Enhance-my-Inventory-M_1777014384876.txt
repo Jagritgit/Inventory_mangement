@@ -1,0 +1,194 @@
+Act as a senior Django developer.
+
+Enhance my Inventory Management System by improving Customer, Invoice, and Delivery workflows with automatic data filling and proper data flow, without changing existing UI design (colors, tables, layouts).
+
+---
+
+# 🧾 1. CUSTOMER MODEL IMPROVEMENT
+
+## REQUIREMENT:
+
+Ensure Customer model includes:
+
+* First name
+* Last name
+* Address (important)
+* Email
+* Phone
+* Loyalty points
+
+---
+
+## PURPOSE:
+
+* Address will be used for:
+
+  * Invoice shipping address
+  * Delivery records
+
+---
+
+# 🧾 2. INVOICE (AUTO CUSTOMER + SHIPPING ADDRESS)
+
+## REQUIREMENT:
+
+When creating an Invoice:
+
+### Add:
+
+* Customer selection (dropdown)
+* Shipping address field
+
+---
+
+## BEHAVIOR:
+
+### When selecting a customer:
+
+Automatically fill:
+
+* Customer name
+* Email
+* Phone
+* Shipping address (from customer address)
+
+---
+
+## FLEXIBILITY:
+
+* Allow user to manually edit:
+
+  * Shipping address
+  * Contact details
+
+---
+
+## IMPORTANT:
+
+* If customer is not in database:
+
+  * Allow manual entry of:
+
+    * Name
+    * Phone
+    * Address
+
+---
+
+# 🚚 3. DELIVERY SYSTEM AUTO-FILL
+
+## REQUIREMENT:
+
+When creating a Delivery record:
+
+### Automatically fill:
+
+* Customer name
+* Email
+* Phone
+* Address
+
+---
+
+## SOURCE:
+
+* From selected Invoice OR Customer
+
+---
+
+## BEHAVIOR:
+
+### Option 1:
+
+* Select Invoice → auto-fill all delivery details
+
+### Option 2:
+
+* Select Customer → auto-fill details
+
+---
+
+## FLEXIBILITY:
+
+* Allow manual editing if needed
+* Allow manual entry if no data exists
+
+---
+
+# 🔧 4. IMPLEMENTATION APPROACH
+
+## Backend:
+
+* Use ForeignKey relationships:
+
+  * Invoice → Customer
+  * Delivery → Invoice / Customer
+
+---
+
+## Frontend (IMPORTANT):
+
+Use JavaScript or AJAX:
+
+* On selecting customer:
+  → fetch and fill customer details
+
+* On selecting invoice:
+  → fetch and fill delivery details
+
+---
+
+## Suggested endpoints:
+
+* /get-customer/<id>/
+* /get-invoice/<id>/
+
+---
+
+# 🔒 5. DATA HANDLING RULES
+
+* Always store linked objects (ForeignKey)
+* Also store copied values (name, address, etc.) for history
+* Prevent data loss if customer data changes later
+
+---
+
+# 🎨 6. UI RULE (IMPORTANT)
+
+* Do NOT change:
+
+  * Colors
+  * Table design
+  * Layout of delivery templates
+
+* Only improve:
+
+  * Functionality
+  * Data flow
+  * Autofill behavior
+
+---
+
+# 📋 7. OUTPUT REQUIREMENTS
+
+Provide complete working code:
+
+* models.py (if needed)
+* forms.py
+* views.py
+* urls.py (AJAX endpoints)
+* templates (only modify forms where needed)
+* JavaScript for autofill
+
+---
+
+# ⚠️ RULES
+
+* Do NOT remove manual input options
+* Do NOT break existing UI
+* Ensure no errors
+* Keep logic clean and reusable
+
+---
+
+Start with Customer → Invoice autofill, then implement Delivery autofill.

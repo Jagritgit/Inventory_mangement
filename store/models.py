@@ -90,9 +90,21 @@ class Delivery(models.Model):
     item = models.ForeignKey(
         Item, blank=True, null=True, on_delete=models.SET_NULL
     )
-    customer_name = models.CharField(max_length=30, blank=True, null=True)
+    # Optional source links so a delivery can be auto-populated from either
+    # an existing invoice or a customer record. Both are nullable so legacy
+    # rows and ad-hoc deliveries continue to work.
+    invoice = models.ForeignKey(
+        'invoice.Invoice', blank=True, null=True,
+        on_delete=models.SET_NULL, related_name='deliveries'
+    )
+    customer = models.ForeignKey(
+        'accounts.Customer', blank=True, null=True,
+        on_delete=models.SET_NULL, related_name='deliveries'
+    )
+    customer_name = models.CharField(max_length=60, blank=True, null=True)
+    email = models.EmailField(max_length=120, blank=True, null=True)
     phone_number = PhoneNumberField(blank=True, null=True)
-    location = models.CharField(max_length=20, blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateTimeField()
     is_delivered = models.BooleanField(
         default=False, verbose_name='Is Delivered'

@@ -66,29 +66,47 @@ class DeliveryForm(forms.ModelForm):
     class Meta:
         model = Delivery
         fields = [
+            'invoice',
+            'customer',
             'item',
             'customer_name',
+            'email',
             'phone_number',
             'location',
             'date',
             'is_delivered'
         ]
         widgets = {
+            'invoice': forms.Select(attrs={
+                'class': 'form-control', 'id': 'id_invoice',
+            }),
+            'customer': forms.Select(attrs={
+                'class': 'form-control', 'id': 'id_customer',
+            }),
             'item': forms.Select(attrs={
                 'class': 'form-control',
                 'placeholder': 'Select item',
+                'id': 'id_item',
             }),
             'customer_name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter customer name',
+                'id': 'id_customer_name',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'customer@example.com',
+                'id': 'id_email',
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter phone number',
+                'id': 'id_phone_number',
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter delivery location',
+                'id': 'id_location',
             }),
             'date': forms.DateTimeInput(attrs={
                 'class': 'form-control',
