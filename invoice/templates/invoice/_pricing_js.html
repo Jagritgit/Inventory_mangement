@@ -1,0 +1,85 @@
+{# Shared auto-pricing JS for invoice & bill forms. Set window.__priceMode = 'price' for invoices, 'cost_price' for bills. #}
+<script>
+(function () {
+    var itemSel  = document.getElementById('id_item');
+    var priceEl  = document.getElementById('id_price_per_item') || document.getElementById('id_cost_price');
+    var qtyEl    = document.getElementById('id_quantity');
+    var shipEl   = document.getElementById('id_shipping');     // invoice
+    var taxEl    = document.getElementById('id_tax');          // bill
+    var amountEl = document.getElementById('id_amount');       // bill
+    var totalBox = document.getElementById('live_total');      // common display
+    var subBox   = document.getElementById('live_subtotal');   // common display
+    var stockBox = document.getElementById('live_stock');      // optional
+    var mode     = window.__priceMode || 'price';              // 'price' | 'cost_price'
+
+    if (!itemSel) return;
+
+    function fmt(n) {
+        n = Number(n) || 0;
+        return n.toFixed(2);
+    }
+
+    function recompute() {
+        var qty   = parseFloat((qtyEl && qtyEl.value) || 0) || 0;
+        var price = parseFloat((priceEl && priceEl.value) || 0) || 0;
+        var ship  = parseFloat((shipEl && shipEl.value) || 0) || 0;
+        var tax   = parseFloat((taxEl && taxEl.value) || 0) || 0;
+
+        var subtotal = qty * price;
+        var total    = subtotal + ship + tax;
+
+        if (subBox)   subBox.textContent   = '₹ ' + fmt(subtotal);
+        if (totalBox) totalBox.textContent = '₹ ' + fmt(total);
+
+        // For bills, write authoritative server-validated total back to the
+        // amount field so the user sees what's about to be saved. Backend will
+        // recompute regardless.
+        if (amountEl) amountEl.value = fmt(total);
+    }
+
+    function fillFromItem() {
+        var pk = itemSel.value;
+        if (!pk) return;
+        fetch('/api/item/' + pk + '/pricing/', { credentials: 'same-origin' })
+            .then(function (r) { return r.ok ? r.json() : null; })
+            .then(function (data) {
+                if (!data) return;
+                if (priceEl && (!priceEl.value || parseFloat(priceEl.value) === 0)) {
+                    priceEl.value = fmt(data[mode]);
+                }
+                if (stockBox) {
+                    stockBox.textContent = data.quantity_in_stock + ' in stock';
+                }
+                recompute();
+            })
+            .catch(function () {});
+    }
+
+    itemSel.addEventListener('change', fillFromItem);
+    [priceEl, qtyEl, shipEl, taxEl].forEach(function (el) {
+        if (el) el.addEventListener('input', recompute);
+    });
+
+    // Run once on load (e.g., for edit pages with pre-filled values)
+    recompute();
+})();
+</script>
+
+<style>
+.live-totals {
+    margin-top: 18px; padding: 14px 16px; background: #f8fafc;
+    border-radius: 10px; border: 1px solid #e5e7eb;
+}
+.live-totals .row {
+    display: flex; justify-content: space-between; padding: 4px 0;
+    font-size: 14px; color: #374151;
+}
+.live-totals .row.grand {
+    border-top: 1px solid #d1d5db; margin-top: 6px; padding-top: 10px;
+    font-size: 18px; font-weight: 800; color: #111827;
+}
+.live-totals .stock-pill {
+    display: inline-block; padding: 2px 10px; border-radius: 999px;
+    background: #dbeafe; color: #1e40af; font-size: 12px; font-weight: 700;
+}
+</style>

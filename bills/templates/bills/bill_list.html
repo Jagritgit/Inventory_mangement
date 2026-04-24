@@ -43,6 +43,7 @@
             <tr>
                 <th>Bill #</th>
                 <th>Vendor</th>
+                <th>Products</th>
                 <th class="num">Amount (₹)</th>
                 <th>Date</th>
                 <th>Status</th>
@@ -54,6 +55,10 @@
             <tr>
                 <td><strong>{{ bill.bill_number|default:bill.slug }}</strong></td>
                 <td>{{ bill.vendor.name|default:bill.institution_name }}</td>
+                <td>
+                    <span style="color:#374151;">{{ bill.item.name|default:bill.description|default:"—" }}</span>
+                    {% if bill.quantity > 1 %}<small style="color:#6b7280;"> × {{ bill.quantity }}</small>{% endif %}
+                </td>
                 <td class="num">₹ {{ bill.amount|floatformat:2 }}</td>
                 <td>{{ bill.date|date:"d M Y" }}</td>
                 <td><span class="status-badge {{ bill.status_color }}">{{ bill.get_status_display }}</span></td>
@@ -62,7 +67,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" style="text-align:center;padding:32px;color:#6b7280;">No bills found.</td></tr>
+            <tr><td colspan="7" style="text-align:center;padding:32px;color:#6b7280;">No bills found.</td></tr>
             {% endfor %}
         </tbody>
     </table>

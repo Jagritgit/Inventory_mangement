@@ -46,6 +46,29 @@ from .tables import ItemTable
 
 
 @login_required
+def item_pricing_view(request, pk):
+    """
+    Lightweight JSON endpoint returning an Item's selling + cost prices and
+    available stock. Used by the invoice/bill forms to auto-fill price on
+    product selection.
+    """
+    try:
+        item = Item.objects.only(
+            "id", "name", "price", "cost_price", "quantity"
+        ).get(pk=pk)
+    except Item.DoesNotExist:
+        return JsonResponse({"error": "not found"}, status=404)
+
+    return JsonResponse({
+        "id": item.id,
+        "name": item.name,
+        "price": float(item.price or 0),
+        "cost_price": float(item.cost_price or 0),
+        "quantity_in_stock": int(item.quantity or 0),
+    })
+
+
+@login_required
 def revenue_view(request):
     """
     Revenue page with daily/weekly/monthly grouping.

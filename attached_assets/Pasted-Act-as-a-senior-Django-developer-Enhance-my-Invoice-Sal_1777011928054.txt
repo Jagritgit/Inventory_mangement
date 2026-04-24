@@ -1,0 +1,150 @@
+Act as a senior Django developer.
+
+Enhance my Invoice (Sales) and Bill (Purchase) system with automatic price handling, calculations, and improved list display.
+
+---
+
+# 🧾 1. INVOICE (SALES) – PRICE HANDLING
+
+## REQUIREMENT:
+
+* Each product has a default selling price stored in Product model
+
+---
+
+## BEHAVIOR:
+
+### On selecting a product:
+
+* Automatically fill "price per item" with product's default selling price
+
+---
+
+### Allow manual override:
+
+* User can increase/decrease price per item manually
+
+---
+
+### TOTAL CALCULATION:
+
+* Subtotal = Quantity × Price
+* Invoice total = sum of all subtotals
+
+---
+
+## VALIDATION:
+
+* Quantity must be > 0
+* Price must be ≥ 0
+
+---
+
+# 🧾 2. BILL (PURCHASE) – AUTO CALCULATION
+
+## FIELDS:
+
+* Item
+* Quantity
+* Cost Price
+* Tax
+* Total Amount Owing (₹)
+
+---
+
+## BEHAVIOR:
+
+### On selecting item:
+
+* Automatically set cost price from product's default cost price
+
+---
+
+### On changing quantity:
+
+* Subtotal = Quantity × Cost Price
+
+---
+
+### On adding tax:
+
+* Total Amount = Subtotal + Tax
+
+---
+
+## IMPORTANT:
+
+* All calculations should update dynamically (JavaScript)
+* Also validate on backend (Django)
+
+---
+
+# 📋 3. LIST PAGE IMPROVEMENT
+
+Update Invoice and Bill list pages:
+
+## ADD COLUMN:
+
+* Product Names (short summary)
+
+Example:
+
+* "Laptop, Mouse"
+* If many items → "Laptop +2 more"
+
+---
+
+## Keep list clean:
+
+* Do NOT show full product table
+* Only short readable summary
+
+---
+
+# 🎨 4. FRONTEND BEHAVIOR
+
+Use JavaScript to:
+
+* Auto-fill price on product selection
+* Recalculate subtotal instantly
+* Recalculate total instantly when:
+
+  * Quantity changes
+  * Price changes
+  * Tax changes
+
+---
+
+# 🔧 5. BACKEND SAFETY (VERY IMPORTANT)
+
+* Never rely only on frontend
+* Recalculate totals in Django views/forms
+* Ensure:
+
+  * Correct totals saved
+  * No manipulation possible
+
+---
+
+# 📋 6. OUTPUT REQUIREMENTS
+
+Provide complete working code:
+
+* models.py (if needed)
+* forms.py
+* views.py
+* templates (invoice & bill forms)
+* JavaScript for calculations
+
+---
+
+# ⚠️ RULES
+
+* Do NOT remove manual price editing
+* Do NOT trust frontend only
+* Keep UI simple and clean
+* Ensure no calculation errors
+
+---
+
+Start with Invoice price logic, then implement Bill calculations, then update list page.

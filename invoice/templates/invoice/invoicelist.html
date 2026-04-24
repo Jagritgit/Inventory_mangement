@@ -44,6 +44,7 @@
             <tr>
                 <th>Invoice #</th>
                 <th>Customer</th>
+                <th>Products</th>
                 <th class="num">Total (₹)</th>
                 <th>Date</th>
                 <th>Status</th>
@@ -55,13 +56,19 @@
             <tr>
                 <td><strong>{{ invoice.invoice_number|default:invoice.slug }}</strong></td>
                 <td>{{ invoice.customer.get_full_name|default:invoice.customer_name }}</td>
+                <td>
+                    <span style="color:#374151;">{{ invoice.item.name|default:"—" }}</span>
+                    {% if invoice.quantity > 1 %}
+                        <small style="color:#6b7280;">× {{ invoice.quantity }}</small>
+                    {% endif %}
+                </td>
                 <td class="num">₹ {{ invoice.grand_total|floatformat:2 }}</td>
                 <td>{{ invoice.date|date:"d M Y" }}</td>
                 <td><span class="status-badge {{ invoice.status_color }}">{{ invoice.get_status_display }}</span></td>
                 <td><a class="view-btn" href="{% url 'invoice-detail' invoice.slug %}">View</a></td>
             </tr>
             {% empty %}
-            <tr><td colspan="6" style="text-align:center; padding:32px; color:#6b7280;">No invoices found.</td></tr>
+            <tr><td colspan="7" style="text-align:center; padding:32px; color:#6b7280;">No invoices found.</td></tr>
             {% endfor %}
         </tbody>
     </table>

@@ -90,6 +90,52 @@ class InvoiceModelTests(TestCase):
         self.item.refresh_from_db()
         self.assertEqual(self.item.quantity, start - 5)
 
+    def test_form_recomputes_total_on_save(self):
+        """Backend must compute total = qty * price + shipping regardless of any
+        client-side hint."""
+        from invoice.forms import InvoiceForm
+        f = InvoiceForm(data={
+            "customer_name": "Z", "contact_number": "1",
+            "item": self.item.id,
+            "price_per_item": "10.00", "quantity": 2, "shipping": "1.50",
+            "status": "PENDING",
+        })
+        self.assertTrue(f.is_valid(), f.errors)
+        inv = f.save()
+        self.assertEqual(inv.total, 20.0)
+        self.assertEqual(inv.grand_total, 21.5)
+
+    def test_form_rejects_zero_quantity(self):
+        from invoice.forms import InvoiceForm
+        f = InvoiceForm(data={
+            "customer_name": "Z", "contact_number": "1",
+            "item": self.item.id,
+            "price_per_item": "10.00", "quantity": 0, "shipping": "0",
+            "status": "PENDING",
+        })
+        self.assertFalse(f.is_valid())
+        self.assertIn("quantity", f.errors)
+
+    def test_form_rejects_negative_price(self):
+        from invoice.forms import InvoiceForm
+        f = InvoiceForm(data={
+            "customer_name": "Z", "contact_number": "1",
+            "item": self.item.id,
+            "price_per_item": "-1.00", "quantity": 1, "shipping": "0",
+            "status": "PENDING",
+        })
+        self.assertFalse(f.is_valid())
+
+    def test_pricing_endpoint(self):
+        u = User.objects.create_user("api", password="pw12345!")
+        self.client.login(username="api", password="pw12345!")
+        resp = self.client.get(f"/api/item/{self.item.id}/pricing/")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["price"], 5.0)
+        self.assertIn("cost_price", data)
+        self.assertIn("quantity_in_stock", data)
+
     def test_invoice_default_status_pending(self):
         inv = Invoice.objects.create(
             customer_name="S", contact_number="1",

@@ -28,6 +28,22 @@
                 </div>
             {% endfor %}
         </div>
+
+        <div class="live-totals">
+            <div class="row">
+                <span>Stock available</span>
+                <span class="stock-pill" id="live_stock">—</span>
+            </div>
+            <div class="row">
+                <span>Subtotal (Qty × Price)</span>
+                <span id="live_subtotal">₹ 0.00</span>
+            </div>
+            <div class="row grand">
+                <span>Grand Total</span>
+                <span id="live_total">₹ 0.00</span>
+            </div>
+        </div>
+
         <div style="margin-top:18px;text-align:right;">
             <a href="{% url 'invoicelist' %}" class="btn btn-secondary">Cancel</a>
             <button type="submit" class="btn btn-primary" style="background:#2563eb;color:#fff;border:none;padding:8px 22px;border-radius:8px;font-weight:600;">
@@ -36,4 +52,7 @@
         </div>
     </form>
 </div>
+
+<script>window.__priceMode = 'price';</script>
+{% include "invoice/_pricing_js.html" %}
 {% endblock %}

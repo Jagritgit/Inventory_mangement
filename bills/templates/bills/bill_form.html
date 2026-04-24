@@ -28,6 +28,25 @@
                 </div>
             {% endfor %}
         </div>
+
+        <div class="live-totals">
+            <div class="row">
+                <span>Current stock</span>
+                <span class="stock-pill" id="live_stock" style="background:#fef3c7;color:#92400e;">—</span>
+            </div>
+            <div class="row">
+                <span>Subtotal (Qty × Cost)</span>
+                <span id="live_subtotal">₹ 0.00</span>
+            </div>
+            <div class="row grand">
+                <span>Grand Total (Subtotal + Tax)</span>
+                <span id="live_total">₹ 0.00</span>
+            </div>
+            <div class="row" style="font-size:11px;color:#6b7280;margin-top:6px;">
+                <em>Total Amount Owing is recalculated on save — backend math is authoritative.</em>
+            </div>
+        </div>
+
         <div style="margin-top:18px;text-align:right;">
             <a href="{% url 'bill_list' %}">Cancel</a>
             <button type="submit" style="background:#b45309;color:#fff;border:none;padding:8px 22px;border-radius:8px;font-weight:600;margin-left:10px;">
@@ -36,4 +55,7 @@
         </div>
     </form>
 </div>
+
+<script>window.__priceMode = 'cost_price';</script>
+{% include "invoice/_pricing_js.html" %}
 {% endblock %}

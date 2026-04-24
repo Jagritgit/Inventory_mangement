@@ -101,6 +101,13 @@ urlpatterns = [
         name='get_items'
     ),
 
+    # Item pricing JSON endpoint (used by invoice/bill forms)
+    path(
+        'api/item/<int:pk>/pricing/',
+        views.item_pricing_view,
+        name='item_pricing'
+    ),
+
     # Category URLs
     path(
         'categories/',
