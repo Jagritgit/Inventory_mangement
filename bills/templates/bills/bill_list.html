@@ -8,7 +8,7 @@
     <div class="module-header" style="background: linear-gradient(135deg, #7c2d12 0%, #b45309 100%);">
         <div>
             <h2>Bills</h2>
-            <small>Money to pay vendors / suppliers (Purchases)</small>
+            <small>{{ paginator.count|default:bills|length }} record(s)</small>
         </div>
         <div class="module-actions">
             <a class="btn-action primary" href="{% url 'bill_create' %}" style="color:#7c2d12;">+ New Bill</a>
@@ -16,7 +16,7 @@
     </div>
 
     <form method="get" class="filter-bar">
-        <input type="text" name="q" value="{{ q }}" placeholder="Search bill # or vendor">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by bill # or vendor name">
         <select name="status">
             <option value="">All statuses</option>
             <option value="PAID"    {% if status == 'PAID' %}selected{% endif %}>Paid</option>
@@ -28,7 +28,14 @@
             <option value="week"  {% if date == 'week' %}selected{% endif %}>Last 7 days</option>
             <option value="month" {% if date == 'month' %}selected{% endif %}>Last 30 days</option>
         </select>
-        <button type="submit">Apply</button>
+        <select name="sort">
+            <option value="date_desc"   {% if sort == 'date_desc' %}selected{% endif %}>Date: latest first</option>
+            <option value="date_asc"    {% if sort == 'date_asc' %}selected{% endif %}>Date: oldest first</option>
+            <option value="amount_desc" {% if sort == 'amount_desc' %}selected{% endif %}>Amount: high to low</option>
+            <option value="amount_asc"  {% if sort == 'amount_asc' %}selected{% endif %}>Amount: low to high</option>
+        </select>
+        <button type="submit" style="background:#b45309;">Apply</button>
+        <a class="clear" href="{% url 'bill_list' %}">Reset</a>
     </form>
 
     <table class="data-table">
@@ -36,11 +43,9 @@
             <tr>
                 <th>Bill #</th>
                 <th>Vendor</th>
-                <th>Item</th>
-                <th class="num">Qty</th>
                 <th class="num">Amount (₹)</th>
-                <th>Status</th>
                 <th>Date</th>
+                <th>Status</th>
                 <th></th>
             </tr>
         </thead>
@@ -49,21 +54,30 @@
             <tr>
                 <td><strong>{{ bill.bill_number|default:bill.slug }}</strong></td>
                 <td>{{ bill.vendor.name|default:bill.institution_name }}</td>
-                <td>{{ bill.item.name|default:"—" }}</td>
-                <td class="num">{{ bill.quantity }}</td>
                 <td class="num">₹ {{ bill.amount|floatformat:2 }}</td>
-                <td><span class="status-badge {{ bill.status_color }}">{{ bill.get_status_display }}</span></td>
                 <td>{{ bill.date|date:"d M Y" }}</td>
+                <td><span class="status-badge {{ bill.status_color }}">{{ bill.get_status_display }}</span></td>
                 <td>
-                    <a href="{% url 'bill_detail' bill.slug %}">View</a>
-                    &middot;
-                    <a href="{% url 'bill_update' bill.slug %}">Edit</a>
+                    <a class="view-btn" href="{% url 'bill_detail' bill.slug %}" style="background:#b45309;">View</a>
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="8" style="text-align:center;padding:24px;color:#6b7280;">No bills found.</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:32px;color:#6b7280;">No bills found.</td></tr>
             {% endfor %}
         </tbody>
     </table>
+
+    {% if is_paginated %}
+    <div class="pagination-bar">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&date={{ date }}&sort={{ sort }}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&date={{ date }}&sort={{ sort }}">Next ›</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
 </div>
 {% endblock %}

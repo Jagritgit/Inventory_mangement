@@ -1,0 +1,206 @@
+Act as a senior Django developer and UI/UX designer.
+
+Upgrade and refactor my Inventory Management System to implement a professional Invoice (Sales) and Bill (Purchase) system with:
+
+* Minimal list view (fast & clean)
+* Detailed document-style view (structured & readable)
+* Print functionality
+* Search, sorting, and filtering
+
+---
+
+# 🧾 1. LIST PAGE (MINIMAL & FAST)
+
+Design both Invoice and Bill list pages to show only essential information.
+
+## Columns:
+
+* Invoice/Bill Number
+* Customer (Invoice) / Vendor (Bill)
+* Total Amount (₹)
+* Date
+* Status (colored)
+* "View" button
+
+---
+
+## UI REQUIREMENTS:
+
+* Clean table layout
+* Proper spacing and alignment
+* Borders and hover effects
+* High text visibility (no faded text)
+
+---
+
+## STATUS COLORS:
+
+* Paid → green
+* Pending → yellow
+* Cancelled → red (invoice only)
+
+---
+
+## 🔍 SEARCH & FILTERS:
+
+### Search:
+
+* Invoice:
+
+  * Invoice number
+  * Customer name
+* Bill:
+
+  * Bill number
+  * Vendor name
+
+---
+
+### Sorting:
+
+* Date:
+
+  * Latest first (default)
+  * Oldest first
+* Amount:
+
+  * High to low
+  * Low to high
+* Status:
+
+  * Paid / Pending / Cancelled
+
+---
+
+## EXTRA:
+
+* Pagination
+* Fast loading (avoid heavy data)
+
+---
+
+# 📄 2. DETAIL PAGE (FULL DOCUMENT VIEW)
+
+When clicking "View", open a structured, document-style page.
+
+---
+
+## 🧾 INVOICE DETAIL:
+
+### Top Section:
+
+* Invoice Number
+* Date
+* Due Date
+
+### Customer Section:
+
+* Name
+* Contact
+
+### Product Table:
+
+* Product
+* Quantity
+* Price
+* Subtotal
+
+### Bottom Section:
+
+* Total amount (₹, 2 decimal places)
+* Status badge
+
+---
+
+## 🧾 BILL DETAIL:
+
+### Top Section:
+
+* Bill Number
+* Date
+
+### Vendor Section:
+
+* Name
+* Contact
+
+### Product Table:
+
+* Product
+* Quantity
+* Cost price
+* Subtotal
+
+### Bottom Section:
+
+* Total cost
+* Status
+
+---
+
+# 🖨️ 3. PRINT FUNCTIONALITY
+
+Add a "Print" button on both detail pages.
+
+## Requirements:
+
+* Use JavaScript: window.print()
+* Add print-specific CSS:
+
+  * Hide navbar, sidebar, buttons
+  * Show only invoice/bill content
+  * Clean black & white layout
+  * Proper alignment and spacing
+
+---
+
+# 🎨 4. UI/UX PRINCIPLES
+
+* List page → minimal, fast, scannable
+* Detail page → structured, readable, document-like
+* Avoid clutter
+* Use consistent spacing and fonts
+* Ensure mobile responsiveness (basic level)
+
+---
+
+# 🔧 5. BACKEND REQUIREMENTS
+
+* Ensure correct data is passed to templates
+* Format currency to 2 decimal places
+* Use Django ORM for:
+
+  * Filtering
+  * Searching
+  * Sorting
+* Optimize queries
+
+---
+
+# 📋 6. OUTPUT REQUIREMENTS
+
+Provide COMPLETE working code:
+
+* views.py
+* urls.py
+* templates:
+
+  * invoice_list.html
+  * invoice_detail.html
+  * bill_list.html
+  * bill_detail.html
+* CSS (including print styles)
+* JavaScript (for print)
+
+---
+
+# ⚠️ RULES
+
+* Do NOT rewrite entire project
+* Extend existing system cleanly
+* Ensure no errors
+* Focus on usability and real-world behavior
+
+---
+
+Start with list pages → then detail pages → then print functionality.

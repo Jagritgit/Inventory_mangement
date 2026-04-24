@@ -8,7 +8,7 @@
     <div class="module-header">
         <div>
             <h2>Invoices</h2>
-            <small>Money to receive from customers (Sales)</small>
+            <small>{{ paginator.count|default:invoices|length }} record(s)</small>
         </div>
         <div class="module-actions">
             <a class="btn-action primary" href="{% url 'invoice-create' %}">+ New Invoice</a>
@@ -16,7 +16,7 @@
     </div>
 
     <form method="get" class="filter-bar">
-        <input type="text" name="q" value="{{ q }}" placeholder="Search invoice # or customer">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by invoice # or customer name">
         <select name="status">
             <option value="">All statuses</option>
             <option value="PAID"      {% if status == 'PAID' %}selected{% endif %}>Paid</option>
@@ -29,7 +29,14 @@
             <option value="week"  {% if date == 'week' %}selected{% endif %}>Last 7 days</option>
             <option value="month" {% if date == 'month' %}selected{% endif %}>Last 30 days</option>
         </select>
+        <select name="sort">
+            <option value="date_desc"   {% if sort == 'date_desc' %}selected{% endif %}>Date: latest first</option>
+            <option value="date_asc"    {% if sort == 'date_asc' %}selected{% endif %}>Date: oldest first</option>
+            <option value="amount_desc" {% if sort == 'amount_desc' %}selected{% endif %}>Amount: high to low</option>
+            <option value="amount_asc"  {% if sort == 'amount_asc' %}selected{% endif %}>Amount: low to high</option>
+        </select>
         <button type="submit">Apply</button>
+        <a class="clear" href="{% url 'invoicelist' %}">Reset</a>
     </form>
 
     <table class="data-table">
@@ -37,11 +44,9 @@
             <tr>
                 <th>Invoice #</th>
                 <th>Customer</th>
-                <th>Item</th>
-                <th class="num">Qty</th>
                 <th class="num">Total (₹)</th>
-                <th>Status</th>
                 <th>Date</th>
+                <th>Status</th>
                 <th></th>
             </tr>
         </thead>
@@ -50,22 +55,28 @@
             <tr>
                 <td><strong>{{ invoice.invoice_number|default:invoice.slug }}</strong></td>
                 <td>{{ invoice.customer.get_full_name|default:invoice.customer_name }}</td>
-                <td>{{ invoice.item.name }}</td>
-                <td class="num">{{ invoice.quantity|floatformat:0 }}</td>
                 <td class="num">₹ {{ invoice.grand_total|floatformat:2 }}</td>
-                <td><span class="status-badge {{ invoice.status_color }}">{{ invoice.get_status_display }}</span></td>
                 <td>{{ invoice.date|date:"d M Y" }}</td>
-                <td>
-                    <a href="{% url 'invoice-detail' invoice.slug %}">View</a>
-                    &middot;
-                    <a href="{% url 'invoice-update' invoice.slug %}">Edit</a>
-                </td>
+                <td><span class="status-badge {{ invoice.status_color }}">{{ invoice.get_status_display }}</span></td>
+                <td><a class="view-btn" href="{% url 'invoice-detail' invoice.slug %}">View</a></td>
             </tr>
             {% empty %}
-            <tr><td colspan="8" style="text-align:center; padding:24px; color:#6b7280;">No invoices found.</td></tr>
+            <tr><td colspan="6" style="text-align:center; padding:32px; color:#6b7280;">No invoices found.</td></tr>
             {% endfor %}
         </tbody>
     </table>
+
+    {% if is_paginated %}
+    <div class="pagination-bar">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}&date={{ date }}&sort={{ sort }}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}&date={{ date }}&sort={{ sort }}">Next ›</a>
+        {% endif %}
+    </div>
+    {% endif %}
 
 </div>
 {% endblock %}

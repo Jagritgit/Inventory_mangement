@@ -1,0 +1,82 @@
+<style>
+@media print {
+    /* Hide everything except the document */
+    body * { visibility: hidden !important; }
+    .print-area, .print-area * { visibility: visible !important; }
+    .print-area {
+        position: absolute !important;
+        left: 0; top: 0; width: 100%;
+        padding: 24px !important; margin: 0 !important;
+        background: #fff !important; color: #000 !important;
+        box-shadow: none !important;
+    }
+    .no-print { display: none !important; }
+    a { text-decoration: none !important; color: #000 !important; }
+    .doc-card { box-shadow: none !important; border: 1px solid #000 !important; }
+    .status-badge {
+        border: 1px solid #000 !important; background: #fff !important;
+        color: #000 !important;
+    }
+    .doc-table th, .doc-table td {
+        border: 1px solid #000 !important;
+    }
+    @page { margin: 1.5cm; }
+}
+
+/* Document layout (used on detail page, screen + print) */
+.doc-card {
+    background: #fff; max-width: 880px; margin: 0 auto;
+    border-radius: 12px; padding: 36px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.06); color: #111827;
+}
+.doc-head {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    border-bottom: 2px solid #111827; padding-bottom: 18px; margin-bottom: 22px;
+}
+.doc-head .brand h1 { font-size: 26px; margin: 0 0 4px; font-weight: 800; }
+.doc-head .brand .tag { font-size: 12px; color: #6b7280; letter-spacing: .04em; }
+.doc-head .meta { text-align: right; }
+.doc-head .meta .num { font-size: 22px; font-weight: 800; }
+.doc-head .meta .label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; }
+.doc-head .meta .row { margin: 4px 0; }
+.doc-head .meta .row strong { font-weight: 600; color: #111827; }
+
+.doc-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 22px; }
+.doc-parties .block { padding: 14px 16px; background: #f8fafc; border-radius: 8px; border-left: 3px solid #2563eb; }
+.doc-parties .block .label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+    color: #6b7280; font-weight: 700; margin-bottom: 6px;
+}
+.doc-parties .block .name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+.doc-parties .block .line { font-size: 13px; color: #374151; }
+
+.doc-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
+.doc-table th {
+    background: #111827; color: #fff; padding: 10px 14px;
+    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+    text-align: left;
+}
+.doc-table th.num { text-align: right; }
+.doc-table td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
+.doc-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+.doc-totals { display: flex; justify-content: flex-end; }
+.doc-totals .box { min-width: 320px; }
+.doc-totals .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+.doc-totals .row.grand {
+    border-top: 2px solid #111827; margin-top: 8px; padding-top: 12px;
+    font-size: 18px; font-weight: 800;
+}
+
+.doc-foot {
+    margin-top: 28px; padding-top: 18px; border-top: 1px dashed #d1d5db;
+    text-align: center; font-size: 12px; color: #6b7280;
+}
+
+@media (max-width: 640px) {
+    .doc-card { padding: 18px; }
+    .doc-head { flex-direction: column; gap: 10px; }
+    .doc-head .meta { text-align: left; }
+    .doc-parties { grid-template-columns: 1fr; }
+}
+</style>

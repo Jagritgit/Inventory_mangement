@@ -15,6 +15,13 @@ class BillListView(LoginRequiredMixin, ListView):
     context_object_name = "bills"
     paginate_by = 15
 
+    SORT_MAP = {
+        "date_desc":   "-date",
+        "date_asc":    "date",
+        "amount_desc": "-amount",
+        "amount_asc":  "amount",
+    }
+
     def get_queryset(self):
         qs = super().get_queryset().select_related("vendor", "item")
 
@@ -39,6 +46,9 @@ class BillListView(LoginRequiredMixin, ListView):
         elif date_filter == "month":
             qs = qs.filter(date__gte=now - timedelta(days=30))
 
+        sort = self.request.GET.get("sort", "date_desc")
+        qs = qs.order_by(self.SORT_MAP.get(sort, "-date"))
+
         return qs
 
     def get_context_data(self, **kwargs):
@@ -46,6 +56,7 @@ class BillListView(LoginRequiredMixin, ListView):
         ctx["q"] = self.request.GET.get("q", "")
         ctx["status"] = self.request.GET.get("status", "")
         ctx["date"] = self.request.GET.get("date", "")
+        ctx["sort"] = self.request.GET.get("sort", "date_desc")
         return ctx
 
 
