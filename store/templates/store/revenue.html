@@ -2,47 +2,156 @@
 {% block content %}
 
 <style>
-.rev-wrapper { padding: 16px; color: #1f2937; }
+.rev-wrapper {
+    padding: 18px;
+    color: #111827;
+}
+
+/* HEADER */
 .rev-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 18px; flex-wrap: wrap; gap: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
 }
-.rev-title { font-size: 22px; font-weight: 800; color: #111827; }
+
+.rev-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: #111827;
+}
+
+/* SUMMARY */
 .rev-summary {
-    background: #fff; border-radius: 14px; padding: 18px 22px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06); display: flex; gap: 28px;
-    margin-bottom: 18px; flex-wrap: wrap;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 20px 24px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    display: flex;
+    gap: 32px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
 }
-.rev-summary .stat .label {
-    font-size: 12px; text-transform: uppercase; letter-spacing: .04em;
-    color: #6b7280; font-weight: 700;
+
+.rev-summary .label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #6b7280;
+    font-weight: 700;
 }
-.rev-summary .stat .val {
-    font-size: 26px; font-weight: 800; color: #111827;
+
+.rev-summary .val {
+    font-size: 28px;
+    font-weight: 900;
+    color: #111827;
 }
-.filters { display: flex; gap: 6px; }
+
+/* FILTERS */
+.filters {
+    display: flex;
+    gap: 8px;
+}
+
 .filters a {
-    padding: 8px 16px; border-radius: 8px; text-decoration: none;
-    font-weight: 600; font-size: 14px; color: #374151;
-    background: #f3f4f6; border: 1px solid #e5e7eb;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 14px;
+    color: #374151;
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
 }
-.filters a.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+
+.filters a:hover {
+    background: #e5e7eb;
+}
+
+.filters a.active {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+/* TABLE */
 .rev-table {
-    width: 100%; background: #fff; border-radius: 14px; overflow: hidden;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06); border-collapse: collapse;
+    width: 100%;
+    table-layout: fixed;
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+    border-collapse: collapse;
 }
-.rev-table th, .rev-table td {
-    padding: 12px 16px; text-align: left; border-bottom: 1px solid #f1f5f9;
-    color: #1f2937; font-size: 14px;
-}
+
+/* COLUMN WIDTHS */
+.rev-table th:nth-child(1),
+.rev-table td:nth-child(1) { width: 40%; }
+
+.rev-table th:nth-child(2),
+.rev-table td:nth-child(2) { width: 15%; }
+
+.rev-table th:nth-child(3),
+.rev-table td:nth-child(3) { width: 15%; }
+
+.rev-table th:nth-child(4),
+.rev-table td:nth-child(4) { width: 30%; } /* empty space */
+
+/* HEADERS */
 .rev-table th {
-    background: #f8fafc; font-weight: 700; color: #374151;
-    text-transform: uppercase; font-size: 12px; letter-spacing: .04em;
+    background: #f9fafb;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    color: #374151;
+    padding: 14px 16px;
+    border-bottom: 2px solid #e5e7eb;
 }
-.rev-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
-.rev-table tr:last-child td { border-bottom: none; }
+
+/* CELLS */
+.rev-table td {
+    padding: 14px 16px;
+    font-size: 15px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #111827;
+    white-space: nowrap;
+}
+
+/* DATE */
+.rev-table td:first-child {
+    font-weight: 600;
+}
+
+/* NUMBERS */
+.rev-table td.num,
+.rev-table th.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+}
+
+/* REVENUE highlight */
+.rev-table td.revenue {
+    color: #059669;
+    font-weight: 800;
+}
+
+/* ROW HOVER */
+.rev-table tbody tr:hover {
+    background: #f9fafb;
+}
+
+/* EMPTY */
 .empty {
-    text-align: center; padding: 32px; color: #6b7280; font-style: italic;
+    text-align: center;
+    padding: 40px;
+    color: #6b7280;
+    font-style: italic;
 }
 </style>
 
@@ -50,6 +159,7 @@
 
     <div class="rev-header">
         <div class="rev-title">Revenue</div>
+
         <div class="filters">
             <a href="?period=daily"   class="{% if period == 'daily' %}active{% endif %}">Daily</a>
             <a href="?period=weekly"  class="{% if period == 'weekly' %}active{% endif %}">Weekly</a>
@@ -58,11 +168,11 @@
     </div>
 
     <div class="rev-summary">
-        <div class="stat">
+        <div>
             <div class="label">Total Revenue ({{ period|title }})</div>
             <div class="val">₹ {{ total_revenue }}</div>
         </div>
-        <div class="stat">
+        <div>
             <div class="label">Periods</div>
             <div class="val">{{ rows|length }}</div>
         </div>
@@ -71,23 +181,41 @@
     <table class="rev-table">
         <thead>
             <tr>
-                <th>{% if period == 'monthly' %}Month{% elif period == 'weekly' %}Week starting{% else %}Date{% endif %}</th>
+                <th>
+                    {% if period == 'monthly' %}
+                        Month
+                    {% elif period == 'weekly' %}
+                        Week starting
+                    {% else %}
+                        Date
+                    {% endif %}
+                </th>
                 <th class="num">Sales</th>
                 <th class="num">Revenue (₹)</th>
+                <th></th>
             </tr>
         </thead>
+
         <tbody>
             {% for r in rows %}
             <tr>
                 <td>
-                    {% if period == 'monthly' %}{{ r.bucket|date:"F Y" }}
-                    {% else %}{{ r.bucket|date:"D, d M Y" }}{% endif %}
+                    {% if period == 'monthly' %}
+                        {{ r.bucket|date:"F Y" }}
+                    {% else %}
+                        {{ r.bucket|date:"D, d M Y" }}
+                    {% endif %}
                 </td>
                 <td class="num">{{ r.sales_count }}</td>
-                <td class="num">₹ {{ r.revenue }}</td>
+                <td class="num revenue">₹ {{ r.revenue }}</td>
+                <td></td>
             </tr>
             {% empty %}
-            <tr><td colspan="3" class="empty">No sales recorded yet.</td></tr>
+            <tr>
+                <td colspan="4" class="empty">
+                    No sales recorded yet.
+                </td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>

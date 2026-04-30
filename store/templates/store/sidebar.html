@@ -153,13 +153,14 @@
                 </a>
             </li>
 
-            <!-- Purchase Orders -->
+            <!-- Purchase Orders
             <li class="nav-item mb-1">
                 <a class="nav-link {% if request.resolver_match.url_name == 'purchaseslist' %}active{% endif %}"
                    href="{% url 'purchaseslist' %}">
                     <i class="fa fa-shopping-cart me-2"></i> Purchase Orders
                 </a>
             </li>
+            -->
 
             <!-- Package -->
             <li class="nav-item mb-1">
@@ -173,7 +174,7 @@
             <li class="nav-item mb-1">
                 <a class="nav-link {% if request.resolver_match.url_name == 'bill_list' %}active{% endif %}"
                    href="{% url 'bill_list' %}">
-                    <i class="fa-solid fa-receipt me-2"></i> Invoices
+                    <i class="fa-solid fa-receipt me-2"></i>Bills
                 </a>
             </li>
 
@@ -181,7 +182,7 @@
             <li class="nav-item mb-1">
                 <a class="nav-link {% if request.resolver_match.url_name == 'invoicelist' %}active{% endif %}"
                    href="{% url 'invoicelist' %}">
-                    <i class="fa-solid fa-file-invoice me-2"></i> Bills
+                    <i class="fa-solid fa-file-invoice me-2"></i>Invoices
                 </a>
             </li>
 
