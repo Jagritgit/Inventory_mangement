@@ -1,84 +1,12 @@
 {% extends "store/base.html" %}
 {% block title %}{% if form.instance.pk %}Edit{% else %}New{% endif %} Bill{% endblock %}
-
 {% block content %}
 {% include "invoice/_styles.html" %}
-
-<style>
-/* ===== GRID LAYOUT ===== */
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-}
-
-/* Full width fields */
-.form-grid .full {
-    grid-column: span 3;
-}
-
-/* Inputs compact */
-.form-card input,
-.form-card select,
-.form-card textarea {
-    width: 100%;
-    padding: 6px 8px;
-    font-size: 13px;
-    border-radius: 6px;
-    border: 1px solid #d1d5db;
-    box-sizing: border-box;
-}
-
-/* Labels */
-.form-card label {
-    font-size: 12px;
-    margin-bottom: 3px;
-    display: block;
-    color: #374151;
-}
-
-/* Totals compact */
-.live-totals {
-    margin-top: 16px;
-    padding: 12px 14px;
-    background: #f8fafc;
-    border-radius: 10px;
-    border: 1px solid #e5e7eb;
-}
-
-.live-totals .row {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    padding: 3px 0;
-}
-
-.live-totals .row.grand {
-    font-size: 16px;
-    font-weight: 700;
-    border-top: 1px solid #d1d5db;
-    margin-top: 6px;
-    padding-top: 8px;
-}
-
-/* Responsive */
-@media (max-width: 900px) {
-    .form-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-</style>
 
 <div class="module-wrap">
     <div class="module-header" style="background: linear-gradient(135deg, #7c2d12 0%, #b45309 100%);">
         <div>
-            <h2>
-                {% if form.instance.pk %}
-                    Edit Bill {{ form.instance.bill_number }}
-                {% else %}
-                    New Bill
-                {% endif %}
-            </h2>
+            <h2>{% if form.instance.pk %}Edit Bill {{ form.instance.bill_number }}{% else %}New Bill{% endif %}</h2>
             <small>Purchase from a vendor — stock will be added automatically.</small>
         </div>
         <a class="btn-action ghost" href="{% url 'bill_list' %}">← Back</a>
@@ -86,76 +14,54 @@
 
     <form method="post" class="form-card">
         {% csrf_token %}
-
         {% if form.non_field_errors %}
             <div style="background:#fee2e2;color:#991b1b;padding:10px;border-radius:8px;margin-bottom:12px;">
                 {{ form.non_field_errors }}
             </div>
         {% endif %}
-
-        <!-- ===== FORM GRID ===== -->
         <div class="form-grid">
             {% for field in form %}
                 <div class="{% if field.name == 'address' or field.name == 'description' or field.name == 'payment_details' %}full{% endif %}">
-                    
                     <label>{{ field.label }}</label>
                     {{ field }}
-
                     {% if field.name == 'vendor' %}
-                        <small class="autofill-hint">
-                            Pick vendor to auto-fill details or enter manually.
-                        </small>
+                        <small class="autofill-hint">Pick an existing vendor to auto-fill phone, email &amp; address, or type a new vendor below.</small>
                     {% endif %}
-
-                    {% if field.errors %}
-                        <small style="color:#dc2626;">
-                            {{ field.errors|striptags }}
-                        </small>
-                    {% endif %}
+                    {% if field.errors %}<small style="color:#dc2626;">{{ field.errors|striptags }}</small>{% endif %}
                 </div>
             {% endfor %}
         </div>
 
-        <!-- ===== LIVE TOTALS ===== -->
         <div class="live-totals">
             <div class="row">
                 <span>Current stock</span>
-                <span id="live_stock">—</span>
+                <span class="stock-pill" id="live_stock" style="background:#fef3c7;color:#92400e;">—</span>
             </div>
             <div class="row">
-                <span>Subtotal</span>
+                <span>Subtotal (Qty × Cost)</span>
                 <span id="live_subtotal">₹ 0.00</span>
             </div>
             <div class="row grand">
-                <span>Grand Total</span>
+                <span>Grand Total (Subtotal + Tax)</span>
                 <span id="live_total">₹ 0.00</span>
+            </div>
+            <div class="row" style="font-size:11px;color:#6b7280;margin-top:6px;">
+                <em>Total Amount Owing is recalculated on save — backend math is authoritative.</em>
             </div>
         </div>
 
-        <!-- ===== ACTIONS ===== -->
-        <div style="margin-top:16px;text-align:right;">
+        <div style="margin-top:18px;text-align:right;">
             <a href="{% url 'bill_list' %}">Cancel</a>
-            <button type="submit" style="
-                background:#b45309;
-                color:#fff;
-                border:none;
-                padding:8px 20px;
-                border-radius:8px;
-                font-weight:600;
-                margin-left:10px;
-            ">
+            <button type="submit" style="background:#b45309;color:#fff;border:none;padding:8px 22px;border-radius:8px;font-weight:600;margin-left:10px;">
                 Save Bill
             </button>
         </div>
     </form>
 </div>
 
-<!-- ===== CONFIG ===== -->
 <script>
     window.__priceMode = 'cost_price';
     window.__partyMode = 'vendor';
 </script>
-
 {% include "invoice/_pricing_js.html" %}
-
 {% endblock %}
