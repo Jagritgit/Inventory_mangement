@@ -1,82 +1,273 @@
 <style>
+/* ═══════════════════════════════════════════════════════
+   PRINT MEDIA — show only the document
+═══════════════════════════════════════════════════════ */
 @media print {
-    /* Hide everything except the document */
     body * { visibility: hidden !important; }
     .print-area, .print-area * { visibility: visible !important; }
     .print-area {
         position: absolute !important;
         left: 0; top: 0; width: 100%;
-        padding: 24px !important; margin: 0 !important;
+        padding: 0 !important; margin: 0 !important;
         background: #fff !important; color: #000 !important;
         box-shadow: none !important;
     }
     .no-print { display: none !important; }
     a { text-decoration: none !important; color: #000 !important; }
-    .doc-card { box-shadow: none !important; border: 1px solid #000 !important; }
-    .status-badge {
-        border: 1px solid #000 !important; background: #fff !important;
-        color: #000 !important;
-    }
-    .doc-table th, .doc-table td {
-        border: 1px solid #000 !important;
-    }
-    @page { margin: 1.5cm; }
+    .inv-wrap { box-shadow: none !important; border: none !important; }
+    .inv-table th { background: #333 !important; -webkit-print-color-adjust: exact; }
+    @page { margin: 1.5cm; size: A4 portrait; }
 }
 
-/* Document layout (used on detail page, screen + print) */
-.doc-card {
-    background: #fff; max-width: 880px; margin: 0 auto;
-    border-radius: 12px; padding: 36px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.06); color: #111827;
-}
-.doc-head {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    border-bottom: 2px solid #111827; padding-bottom: 18px; margin-bottom: 22px;
-}
-.doc-head .brand h1 { font-size: 26px; margin: 0 0 4px; font-weight: 800; }
-.doc-head .brand .tag { font-size: 12px; color: #6b7280; letter-spacing: .04em; }
-.doc-head .meta { text-align: right; }
-.doc-head .meta .num { font-size: 22px; font-weight: 800; }
-.doc-head .meta .label { font-size: 11px; color: #6b7280; text-transform: uppercase; letter-spacing: .05em; }
-.doc-head .meta .row { margin: 4px 0; }
-.doc-head .meta .row strong { font-weight: 600; color: #111827; }
+/* ═══════════════════════════════════════════════════════
+   INVOICE DOCUMENT LAYOUT
+═══════════════════════════════════════════════════════ */
 
-.doc-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 22px; }
-.doc-parties .block { padding: 14px 16px; background: #f8fafc; border-radius: 8px; border-left: 3px solid #2563eb; }
-.doc-parties .block .label {
-    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
-    color: #6b7280; font-weight: 700; margin-bottom: 6px;
+/* Outer wrapper */
+.inv-wrap {
+    background: #fff;
+    max-width: 860px;
+    margin: 0 auto 24px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 13px;
+    color: #111;
+    padding: 40px 44px;
 }
-.doc-parties .block .name { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
-.doc-parties .block .line { font-size: 13px; color: #374151; }
 
-.doc-table { width: 100%; border-collapse: collapse; margin-bottom: 18px; }
-.doc-table th {
-    background: #111827; color: #fff; padding: 10px 14px;
-    font-size: 11px; text-transform: uppercase; letter-spacing: .04em;
+/* ── 1. Header ─────────────────────────────────────── */
+.inv-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    margin-bottom: 20px;
+}
+.inv-company-name {
+    font-size: 20px;
+    font-weight: 800;
+    color: #111;
+    letter-spacing: -.3px;
+    margin-bottom: 4px;
+}
+.inv-company-line {
+    font-size: 12px;
+    color: #555;
+    line-height: 1.7;
+}
+.inv-title-block {
+    text-align: right;
+}
+.inv-label {
+    font-size: 22px;
+    font-weight: 900;
+    color: #111;
+    letter-spacing: .06em;
+    margin-bottom: 10px;
+}
+.inv-meta-table {
+    border-collapse: collapse;
+    margin-left: auto;
+}
+.inv-meta-table td {
+    padding: 2px 0;
+    font-size: 12.5px;
+}
+.inv-meta-key {
+    color: #666;
+    padding-right: 14px;
+    white-space: nowrap;
+}
+.inv-meta-val {
+    font-weight: 700;
+    color: #111;
+    text-align: right;
+}
+
+/* ── Divider ───────────────────────────────────────── */
+.inv-divider {
+    border: none;
+    border-top: 2px solid #111;
+    margin: 18px 0;
+}
+
+/* ── 2. Parties ────────────────────────────────────── */
+.inv-parties {
+    display: flex;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 24px;
+}
+.inv-party {
+    flex: 1;
+}
+.inv-party-right {
+    text-align: right;
+}
+.inv-party-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #888;
+    margin-bottom: 5px;
+}
+.inv-party-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #111;
+    margin-bottom: 4px;
+}
+.inv-party-line {
+    font-size: 12px;
+    color: #444;
+    line-height: 1.8;
+}
+
+/* ── 3. Items table ────────────────────────────────── */
+.inv-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 0;
+}
+.inv-table thead tr {
+    background: #111;
+}
+.inv-table th {
+    padding: 9px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: #fff;
     text-align: left;
 }
-.doc-table th.num { text-align: right; }
-.doc-table td { padding: 12px 14px; border-bottom: 1px solid #e5e7eb; font-size: 14px; }
-.doc-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.inv-th-sr  { width: 36px; }
+.inv-th-r   { text-align: right !important; }
+.inv-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e5e7eb;
+    vertical-align: top;
+    color: #111;
+    font-size: 13px;
+}
+.inv-td-sr  { color: #888; font-size: 12px; text-align: center; }
+.inv-td-r   { text-align: right; font-variant-numeric: tabular-nums; }
+.inv-td-bold { font-weight: 700; }
+.inv-prod-name { font-weight: 600; }
+.inv-prod-sku  { font-size: 11px; color: #888; }
+.inv-empty  { text-align: center; color: #888; padding: 18px; }
 
-.doc-totals { display: flex; justify-content: flex-end; }
-.doc-totals .box { min-width: 320px; }
-.doc-totals .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
-.doc-totals .row.grand {
-    border-top: 2px solid #111827; margin-top: 8px; padding-top: 12px;
-    font-size: 18px; font-weight: 800;
+/* ── 4. Bottom (status + totals) ───────────────────── */
+.inv-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 24px;
+    padding: 18px 0 4px;
 }
 
-.doc-foot {
-    margin-top: 28px; padding-top: 18px; border-top: 1px dashed #d1d5db;
-    text-align: center; font-size: 12px; color: #6b7280;
+/* Payment status */
+.inv-payment { flex: 1; }
+.inv-section-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .07em;
+    color: #888;
+    margin-bottom: 8px;
+}
+.inv-status-pill {
+    display: inline-block;
+    padding: 5px 18px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    margin-bottom: 6px;
+}
+.inv-status-paid      { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.inv-status-pending   { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.inv-status-cancelled { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.inv-paid-note        { font-size: 12px; color: #555; margin-top: 4px; }
+.inv-paid-warn        { color: #b45309; }
+
+/* Totals */
+.inv-totals { min-width: 290px; }
+.inv-total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+    font-size: 13px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #374151;
+}
+.inv-total-row:last-child { border-bottom: none; }
+.inv-total-grand {
+    border-top: 2px solid #111 !important;
+    border-bottom: none !important;
+    margin-top: 8px;
+    padding-top: 10px !important;
+    font-size: 16px;
+    font-weight: 800;
+    color: #111;
 }
 
+/* ── 5. Delivery section ───────────────────────────── */
+.inv-delivery { margin-bottom: 20px; }
+.inv-delivery-table {
+    border-collapse: collapse;
+    margin-top: 6px;
+    width: auto;
+}
+.inv-delivery-table td {
+    padding: 5px 10px 5px 0;
+    font-size: 13px;
+    vertical-align: top;
+}
+.inv-dl-key {
+    font-weight: 700;
+    color: #555;
+    padding-right: 24px !important;
+    white-space: nowrap;
+    width: 130px;
+}
+.inv-dl-status {
+    display: inline-block;
+    padding: 2px 12px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+.inv-dl-pending   { background: #fef3c7; color: #92400e; }
+.inv-dl-shipped   { background: #dbeafe; color: #1e40af; }
+.inv-dl-delivered { background: #d1fae5; color: #065f46; }
+.inv-no-delivery  { font-size: 13px; color: #888; margin: 6px 0 0; }
+
+/* ── 6. Footer ─────────────────────────────────────── */
+.inv-footer {
+    border-top: 1px dashed #d1d5db;
+    padding-top: 14px;
+    margin-top: 10px;
+    font-size: 11px;
+    color: #888;
+    text-align: center;
+    line-height: 1.8;
+}
+
+/* ── Responsive ────────────────────────────────────── */
 @media (max-width: 640px) {
-    .doc-card { padding: 18px; }
-    .doc-head { flex-direction: column; gap: 10px; }
-    .doc-head .meta { text-align: left; }
-    .doc-parties { grid-template-columns: 1fr; }
+    .inv-wrap   { padding: 20px 16px; }
+    .inv-header { flex-direction: column; }
+    .inv-title-block { text-align: left; }
+    .inv-meta-table  { margin-left: 0; }
+    .inv-parties     { flex-direction: column; }
+    .inv-party-right { text-align: left; }
+    .inv-bottom      { flex-direction: column; }
+    .inv-totals      { min-width: unset; width: 100%; }
 }
 </style>

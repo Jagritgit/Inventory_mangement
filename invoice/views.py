@@ -75,6 +75,11 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     def get_queryset(self):
         return super().get_queryset().prefetch_related("items__product").select_related("sale")
 
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["delivery"] = self.object.get_delivery()
+        return ctx
+
 
 def _parse_items(post):
     """
@@ -240,6 +245,15 @@ def create_invoice_from_sale(request, sale_id):
     try:
         with transaction.atomic():
             customer = sale.customer
+            # Derive payment status from the Sale.
+            # Sale has no explicit status field; if amount_paid >= grand_total
+            # the transaction was settled at the point of sale → PAID.
+            invoice_status = (
+                "PAID"
+                if sale.amount_paid >= sale.grand_total
+                else "PENDING"
+            )
+
             invoice = Invoice.objects.create(
                 sale=sale,
                 customer=customer,
@@ -248,7 +262,7 @@ def create_invoice_from_sale(request, sale_id):
                 customer_email=customer.email or "",
                 shipping_address=customer.address or "",
                 shipping=0.0,
-                status="PENDING",
+                status=invoice_status,
             )
 
             for detail in sale.saledetail_set.select_related("item").all():

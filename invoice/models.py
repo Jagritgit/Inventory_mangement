@@ -101,6 +101,13 @@ class Invoice(models.Model):
             self.status, "secondary"
         )
 
+    def get_delivery(self):
+        """Return the Delivery linked to this invoice's Sale, or None."""
+        from store.models import Delivery
+        if self.sale_id:
+            return Delivery.objects.filter(sale=self.sale).first()
+        return None
+
     def __str__(self):
         return self.invoice_number or self.slug
 

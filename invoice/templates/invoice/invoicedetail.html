@@ -4,6 +4,7 @@
 {% include "invoice/_styles.html" %}
 {% include "invoice/_print_styles.html" %}
 
+<!-- ── Screen-only toolbar ─────────────────────────────── -->
 <div class="module-wrap no-print">
     <div class="module-header">
         <div>
@@ -13,94 +14,201 @@
         <div class="module-actions">
             <a class="btn-action ghost" href="{% url 'invoicelist' %}">← Back</a>
             <a class="btn-action ghost" href="{% url 'invoice-update' invoice.slug %}">Edit</a>
-            <button type="button" class="btn-action primary" onclick="window.print()">🖨 Print</button>
+            <button type="button" class="btn-action primary" onclick="window.print()">🖨 Print / PDF</button>
         </div>
     </div>
 </div>
 
+<!-- ── Printable document ──────────────────────────────── -->
 <div class="print-area">
-    <div class="doc-card">
-        <div class="doc-head">
-            <div class="brand">
-                <h1>InventoryMS</h1>
-                <div class="tag">Invoice</div>
-            </div>
-            <div class="meta">
-                <div class="num">{{ invoice.invoice_number }}</div>
-                <div class="row"><span class="label">Date:</span> <strong>{{ invoice.date|date:"d M Y" }}</strong></div>
-                <div class="row"><span class="label">Due:</span> <strong>{{ invoice.due_date|date:"d M Y"|default:"—" }}</strong></div>
-                <div class="row" style="margin-top:6px;">
-                    <span class="status-badge {{ invoice.status_color }}">{{ invoice.get_status_display }}</span>
-                </div>
-            </div>
-        </div>
+<div class="inv-wrap">
 
-        <div class="doc-parties">
-            <div class="block">
-                <div class="label">Billed To</div>
-                <div class="name">{{ invoice.customer.get_full_name|default:invoice.customer_name }}</div>
-                <div class="line">{{ invoice.contact_number|default:"" }}</div>
-                {% if invoice.customer %}
-                    <div class="line">{{ invoice.customer.address|default:"" }}</div>
-                    <div class="line">{{ invoice.customer.email|default:"" }}</div>
-                {% endif %}
-                {% if invoice.shipping_address %}
-                    <div class="line" style="margin-top:4px;color:#6b7280;font-size:12px;">
-                        Ship to: {{ invoice.shipping_address }}
-                    </div>
-                {% endif %}
-            </div>
-            <div class="block" style="border-left-color:#16a34a;">
-                <div class="label">From</div>
-                <div class="name">InventoryMS Pvt. Ltd.</div>
-                <div class="line">India</div>
-                <div class="line">GST: 27AAACI1234A1Z5</div>
-            </div>
+    <!-- ══ 1. HEADER ══════════════════════════════════════ -->
+    <div class="inv-header">
+        <div class="inv-company">
+            <div class="inv-company-name">InventoryMS Pvt. Ltd.</div>
+            <div class="inv-company-line">Mumbai, Maharashtra, India</div>
+            <div class="inv-company-line">Phone: +91 98765 43210</div>
+            <div class="inv-company-line">GSTIN: 27AAACI1234A1Z5</div>
         </div>
-
-        <table class="doc-table">
-            <thead>
+        <div class="inv-title-block">
+            <div class="inv-label">TAX INVOICE</div>
+            <table class="inv-meta-table">
                 <tr>
-                    <th>Product</th>
-                    <th class="num">Qty</th>
-                    <th class="num">Price (₹)</th>
-                    <th class="num">Subtotal (₹)</th>
+                    <td class="inv-meta-key">Invoice No.</td>
+                    <td class="inv-meta-val">{{ invoice.invoice_number }}</td>
                 </tr>
-            </thead>
-            <tbody>
-                {% for line in invoice.items.all %}
                 <tr>
-                    <td>
-                        <strong>{{ line.product.name }}</strong>
-                        {% if line.product.sku %}<br><small style="color:#6b7280;">SKU: {{ line.product.sku }}</small>{% endif %}
-                    </td>
-                    <td class="num">{{ line.quantity }}</td>
-                    <td class="num">{{ line.price|floatformat:2 }}</td>
-                    <td class="num">{{ line.line_total|floatformat:2 }}</td>
+                    <td class="inv-meta-key">Date</td>
+                    <td class="inv-meta-val">{{ invoice.date|date:"d M Y" }}</td>
                 </tr>
-                {% empty %}
-                <tr><td colspan="4" style="text-align:center;color:#6b7280;">No items.</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div class="doc-totals">
-            <div class="box">
-                <div class="row"><span>Subtotal</span><span>₹ {{ invoice.subtotal|floatformat:2 }}</span></div>
-                <div class="row"><span>Shipping</span><span>₹ {{ invoice.shipping|floatformat:2 }}</span></div>
-                <div class="row grand"><span>Total</span><span>₹ {{ invoice.grand_total|floatformat:2 }}</span></div>
-            </div>
-        </div>
-
-        <div class="doc-foot">
-            Thank you for your business. This is a system-generated invoice.
+                {% if invoice.due_date %}
+                <tr>
+                    <td class="inv-meta-key">Due Date</td>
+                    <td class="inv-meta-val">{{ invoice.due_date|date:"d M Y" }}</td>
+                </tr>
+                {% endif %}
+                {% if invoice.sale_id %}
+                <tr>
+                    <td class="inv-meta-key">Sale Ref.</td>
+                    <td class="inv-meta-val">#{{ invoice.sale_id }}</td>
+                </tr>
+                {% endif %}
+            </table>
         </div>
     </div>
-</div>
+
+    <div class="inv-divider"></div>
+
+    <!-- ══ 2. PARTIES ════════════════════════════════════ -->
+    <div class="inv-parties">
+        <div class="inv-party">
+            <div class="inv-party-label">Bill To</div>
+            <div class="inv-party-name">
+                {{ invoice.customer.get_full_name|default:invoice.customer_name }}
+            </div>
+            {% if invoice.contact_number %}
+            <div class="inv-party-line">📞 {{ invoice.contact_number }}</div>
+            {% endif %}
+            {% if invoice.customer.email or invoice.customer_email %}
+            <div class="inv-party-line">✉ {{ invoice.customer.email|default:invoice.customer_email }}</div>
+            {% endif %}
+            {% if invoice.shipping_address %}
+            <div class="inv-party-line">📍 {{ invoice.shipping_address }}</div>
+            {% elif invoice.customer.address %}
+            <div class="inv-party-line">📍 {{ invoice.customer.address }}</div>
+            {% endif %}
+        </div>
+        <div class="inv-party inv-party-right">
+            <div class="inv-party-label">Sold By</div>
+            <div class="inv-party-name">InventoryMS Pvt. Ltd.</div>
+            <div class="inv-party-line">Mumbai, Maharashtra, India</div>
+            <div class="inv-party-line">GSTIN: 27AAACI1234A1Z5</div>
+            <div class="inv-party-line">CIN: U51900MH2020PTC123456</div>
+        </div>
+    </div>
+
+    <!-- ══ 3. ITEMS TABLE ════════════════════════════════ -->
+    <table class="inv-table">
+        <thead>
+            <tr>
+                <th class="inv-th-sr">#</th>
+                <th>Product / Description</th>
+                <th class="inv-th-r">Qty</th>
+                <th class="inv-th-r">Unit Price (₹)</th>
+                <th class="inv-th-r">Amount (₹)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in invoice.items.all %}
+            <tr>
+                <td class="inv-td-sr">{{ forloop.counter }}</td>
+                <td>
+                    <span class="inv-prod-name">{{ line.product.name }}</span>
+                    {% if line.product.sku %}
+                    <br><span class="inv-prod-sku">SKU: {{ line.product.sku }}</span>
+                    {% endif %}
+                </td>
+                <td class="inv-td-r">{{ line.quantity }}</td>
+                <td class="inv-td-r">{{ line.price|floatformat:2 }}</td>
+                <td class="inv-td-r inv-td-bold">{{ line.line_total|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="inv-empty">No items recorded.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- ══ 4. TOTALS + STATUS ════════════════════════════ -->
+    <div class="inv-bottom">
+
+        <!-- Payment status (left) -->
+        <div class="inv-payment">
+            <div class="inv-section-label">Payment Status</div>
+            <div class="inv-status-pill inv-status-{{ invoice.status|lower }}">
+                {{ invoice.get_status_display }}
+            </div>
+            {% if invoice.status == "PAID" %}
+            <div class="inv-paid-note">Amount fully received. Thank you!</div>
+            {% elif invoice.status == "PENDING" %}
+            <div class="inv-paid-note inv-paid-warn">Payment is awaited.</div>
+            {% endif %}
+        </div>
+
+        <!-- Totals (right) -->
+        <div class="inv-totals">
+            <div class="inv-total-row">
+                <span>Subtotal</span>
+                <span>₹ {{ invoice.subtotal|floatformat:2 }}</span>
+            </div>
+            <div class="inv-total-row">
+                <span>Shipping &amp; Handling</span>
+                <span>₹ {{ invoice.shipping|floatformat:2 }}</span>
+            </div>
+            <div class="inv-total-row inv-total-grand">
+                <span>Total Amount</span>
+                <span>₹ {{ invoice.grand_total|floatformat:2 }}</span>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ══ 5. DELIVERY SECTION ═══════════════════════════ -->
+    <div class="inv-divider"></div>
+    <div class="inv-delivery">
+        <div class="inv-section-label">Delivery Information</div>
+        {% if delivery %}
+        <table class="inv-delivery-table">
+            <tr>
+                <td class="inv-dl-key">Status</td>
+                <td>
+                    <span class="inv-dl-status inv-dl-{{ delivery.status|lower }}">
+                        {{ delivery.get_status_display }}
+                    </span>
+                </td>
+            </tr>
+            <tr>
+                <td class="inv-dl-key">Shipped On</td>
+                <td>{{ delivery.shipped_date|date:"d M Y, H:i"|default:"—" }}</td>
+            </tr>
+            <tr>
+                <td class="inv-dl-key">Delivered On</td>
+                <td>{{ delivery.delivered_date|date:"d M Y, H:i"|default:"—" }}</td>
+            </tr>
+            {% if delivery.location %}
+            <tr>
+                <td class="inv-dl-key">Address</td>
+                <td>{{ delivery.location }}</td>
+            </tr>
+            {% endif %}
+            {% if delivery.phone_number %}
+            <tr>
+                <td class="inv-dl-key">Contact</td>
+                <td>{{ delivery.phone_number }}</td>
+            </tr>
+            {% endif %}
+        </table>
+        {% else %}
+        <p class="inv-no-delivery">No delivery created yet for this invoice.</p>
+        {% endif %}
+    </div>
+
+    <!-- ══ 6. FOOTER ════════════════════════════════════ -->
+    <div class="inv-footer">
+        <div>This is a computer-generated invoice and does not require a physical signature.</div>
+        <div>For queries contact: support@inventoryms.in &nbsp;|&nbsp; +91 98765 43210</div>
+    </div>
+
+</div><!-- /inv-wrap -->
+</div><!-- /print-area -->
 
 {% if user.is_superuser %}
-<div class="module-wrap no-print" style="text-align:right;">
-    <a href="{% url 'invoice-delete' invoice.id %}" style="color:#dc2626;font-size:13px;">Delete invoice</a>
+<div class="module-wrap no-print" style="text-align:right;margin-top:4px;">
+    <a href="{% url 'invoice-delete' invoice.id %}" style="color:#dc2626;font-size:13px;">
+        Delete invoice
+    </a>
 </div>
 {% endif %}
 {% endblock %}

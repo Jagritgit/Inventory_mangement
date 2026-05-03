@@ -1,0 +1,159 @@
+ROLE:
+Act as a senior Django backend + frontend developer. Fix Invoice logic, integrate Delivery data, and design a realistic invoice layout.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Models:
+
+  * Sale (contains status like "paid")
+  * Delivery (linked to Sale)
+  * Invoice (linked to Sale)
+
+RELATION:
+
+* Sale → Invoice
+* Sale → Delivery
+* Invoice must NOT directly link to Delivery
+
+---
+
+## CURRENT PROBLEMS
+
+1. Invoice status shows "pending" even when Sale is "paid"
+2. Invoice does not display Delivery information
+3. Invoice UI looks unrealistic (not like real-world invoice)
+
+---
+
+## REQUIREMENTS
+
+### 1. FIX INVOICE STATUS
+
+* When creating Invoice from Sale:
+  Invoice.status = Sale.status
+
+* Remove default "pending" override if present
+
+---
+
+### 2. FETCH DELIVERY DATA
+
+* In invoice detail view:
+  delivery = Delivery.objects.filter(sale=invoice.sale).first()
+
+* Pass delivery to template
+
+---
+
+### 3. DISPLAY DELIVERY INFORMATION
+
+In invoice template, show:
+
+* Delivery Status
+* Shipped Date
+* Delivered Date
+
+If no delivery:
+
+* Show "No delivery created yet"
+
+---
+
+### 4. OPTIONAL CLEAN METHOD
+
+Add method in Invoice model:
+
+def get_delivery(self):
+return Delivery.objects.filter(sale=self.sale).first()
+
+---
+
+### 5. REAL-WORLD INVOICE DESIGN (IMPORTANT)
+
+Design invoice to match real-life printed invoices:
+
+Structure:
+
+1. Header:
+
+   * Company Name
+   * Address
+   * Phone / GST (if available)
+
+2. Invoice Info:
+
+   * Invoice Number
+   * Date
+
+3. Customer Details:
+
+   * Name
+   * Phone
+   * Address
+
+4. Product Table:
+   Columns:
+
+   * Product Name
+   * Quantity
+   * Price
+   * Total
+
+5. Summary Section:
+
+   * Subtotal
+   * Tax (optional)
+   * Total Amount
+
+6. Payment Status:
+
+   * Paid / Pending
+
+7. Delivery Section:
+
+   * Delivery Status
+   * Delivered Date
+
+---
+
+### 6. DESIGN RULES
+
+* Clean and minimal (no fancy UI)
+* Black/gray colors only
+* Proper spacing and alignment
+* Use table for product list
+* Must be printable (A4 friendly)
+* No animations or unnecessary styling
+
+---
+
+### 7. DO NOT DO
+
+* DO NOT link Invoice directly to Delivery
+* DO NOT duplicate delivery data in database
+* DO NOT modify revenue logic
+* DO NOT add fancy UI elements
+
+---
+
+### 8. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (if updated)
+2. views.py (invoice detail + creation fix)
+3. invoice.html (clean real-world design)
+4. CSS (minimal styling)
+5. Short explanation
+
+---
+
+## EXPECTED RESULT
+
+* Invoice status matches Sale status
+* Invoice displays Delivery information correctly
+* Invoice layout looks like a real printed invoice
+* Clean, professional, and readable UI
