@@ -1,0 +1,131 @@
+ROLE:
+Act as a senior Django backend developer. Refactor the Purchase Order system to correctly include product items with quantity and price, and remove unnecessary fields.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Existing PurchaseOrder model is incomplete:
+
+  * Missing product and quantity fields
+  * Contains unnecessary fields like expected_date and delivery info
+
+---
+
+## CORE REQUIREMENT
+
+Fix Purchase Order so it behaves like a real system:
+
+* Track products, quantity, and pricing properly
+* Remove unnecessary fields
+
+---
+
+## 1. UPDATE PURCHASE ORDER MODEL
+
+PurchaseOrder:
+
+* id
+* po_number (unique)
+* vendor (ForeignKey)
+* order_date
+* status:
+
+  * pending
+  * received
+* total_amount (calculated)
+
+REMOVE:
+
+* expected_date
+* delivery-related fields (not needed here)
+
+---
+
+## 2. CREATE PURCHASE ORDER ITEM MODEL
+
+PurchaseOrderItem:
+
+Fields:
+
+* id
+* purchase_order (ForeignKey → PurchaseOrder)
+* product (ForeignKey → Product)
+* quantity (IntegerField)
+* price_per_item (DecimalField)
+* total_price (quantity × price_per_item)
+
+---
+
+## 3. FORM BEHAVIOR
+
+Purchase Order Form must allow:
+
+* Select vendor
+* Add multiple product rows dynamically
+
+Each row:
+
+* product dropdown
+* quantity input
+* price per item
+
+---
+
+## 4. CALCULATIONS
+
+* total_price = quantity × price_per_item
+* total_amount = sum of all item totals
+
+---
+
+## 5. UI REQUIREMENTS
+
+Purchase Order Form:
+
+* Dynamic rows (Add Product button)
+
+Purchase Order List:
+Display:
+
+* PO Number
+* Vendor
+* Total Amount
+* Status
+
+---
+
+## 6. IMPORTANT RULE
+
+* DO NOT store multiple products in one field
+* ALWAYS use PurchaseOrderItem model
+
+---
+
+## 7. CONSTRAINTS
+
+* Keep models normalized
+* Do NOT mix delivery logic into Purchase Order
+* Keep system clean and simple
+
+---
+
+## 8. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (PurchaseOrder, PurchaseOrderItem)
+2. forms.py
+3. views.py
+4. template (dynamic item rows)
+5. short explanation
+
+---
+
+## EXPECTED RESULT
+
+* Purchase Orders contain products and quantities
+* Clean structure with separate item model
+* No unnecessary fields like expected date
+* System behaves like real purchasing workflow

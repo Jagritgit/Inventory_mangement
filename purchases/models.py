@@ -7,32 +7,29 @@ from store.models import Item
 
 PO_STATUS = [
     ('PENDING',  'Pending'),
-    ('ORDERED',  'Ordered'),
-    ('PARTIAL',  'Partially Received'),
     ('RECEIVED', 'Received'),
 ]
 
 
 class PurchaseOrder(models.Model):
-    order_number  = models.CharField(max_length=20, unique=True, blank=True)
-    slug          = AutoSlugField(unique=True, populate_from='order_number')
-    vendor        = models.ForeignKey(
+    order_number = models.CharField(max_length=20, unique=True, blank=True)
+    slug         = AutoSlugField(unique=True, populate_from='order_number')
+    vendor       = models.ForeignKey(
         Vendor, on_delete=models.SET_NULL, null=True, blank=True,
         related_name='purchase_orders'
     )
-    order_date    = models.DateTimeField(auto_now_add=True)
-    expected_date = models.DateField(null=True, blank=True, verbose_name='Expected Delivery')
-    status        = models.CharField(max_length=10, choices=PO_STATUS, default='PENDING')
-    notes         = models.TextField(blank=True, null=True, max_length=500)
-    total_amount  = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    order_date   = models.DateTimeField(auto_now_add=True)
+    status       = models.CharField(max_length=10, choices=PO_STATUS, default='PENDING')
+    notes        = models.TextField(blank=True, null=True, max_length=500)
+    total_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     stock_updated = models.BooleanField(
         default=False,
         help_text='True after stock has been incremented on marking as Received.'
     )
 
     class Meta:
-        ordering        = ['-order_date']
-        verbose_name    = 'Purchase Order'
+        ordering            = ['-order_date']
+        verbose_name        = 'Purchase Order'
         verbose_name_plural = 'Purchase Orders'
 
     @staticmethod
@@ -68,8 +65,6 @@ class PurchaseOrder(models.Model):
     def status_color(self):
         return {
             'PENDING':  'warning',
-            'ORDERED':  'secondary',
-            'PARTIAL':  'warning',
             'RECEIVED': 'success',
         }.get(self.status, 'secondary')
 
@@ -78,14 +73,16 @@ class PurchaseOrder(models.Model):
 
 
 class PurchaseOrderItem(models.Model):
-    order    = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items')
-    product  = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='po_items')
-    quantity = models.PositiveIntegerField(default=1)
-    price    = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Unit Cost (₹)')
+    order          = models.ForeignKey(PurchaseOrder, on_delete=models.CASCADE, related_name='items')
+    product        = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='po_items')
+    quantity       = models.PositiveIntegerField(default=1)
+    price_per_item = models.DecimalField(
+        max_digits=10, decimal_places=2, verbose_name='Price Per Item (₹)'
+    )
 
     @property
     def line_total(self):
-        return self.price * self.quantity
+        return self.price_per_item * self.quantity
 
     def __str__(self):
         return f"{self.product.name} × {self.quantity}"
@@ -101,8 +98,8 @@ PBILL_STATUS = [
 
 class PurchaseBill(models.Model):
     """
-    A vendor invoice. Can be created automatically from a PurchaseOrder
-    (purchase_order is set) or manually from scratch (purchase_order=None).
+    A vendor invoice created from a PurchaseOrder.
+    purchase_order=None only for legacy/manual entries.
     """
     bill_number    = models.CharField(max_length=25, unique=True, blank=True)
     slug           = AutoSlugField(unique=True, populate_from='bill_number')
@@ -120,8 +117,8 @@ class PurchaseBill(models.Model):
     notes          = models.TextField(blank=True, null=True, max_length=500)
 
     class Meta:
-        ordering        = ['-bill_date']
-        verbose_name    = 'Purchase Bill'
+        ordering            = ['-bill_date']
+        verbose_name        = 'Purchase Bill'
         verbose_name_plural = 'Purchase Bills'
 
     @staticmethod

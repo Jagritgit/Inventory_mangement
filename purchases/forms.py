@@ -7,23 +7,23 @@ from .models import PurchaseOrder, PurchaseOrderItem, PurchaseBill, PurchaseBill
 class PurchaseOrderForm(forms.ModelForm):
     class Meta:
         model  = PurchaseOrder
-        fields = ['vendor', 'expected_date', 'status', 'notes']
+        fields = ['vendor', 'status', 'notes']
         widgets = {
-            'vendor':        forms.Select(attrs={'class': 'form-control'}),
-            'expected_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'status':        forms.Select(attrs={'class': 'form-control'}),
-            'notes':         forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
+            'vendor': forms.Select(attrs={'class': 'form-control'}),
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'notes':  forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
         }
 
 
 class PurchaseOrderItemForm(forms.ModelForm):
     class Meta:
         model  = PurchaseOrderItem
-        fields = ['product', 'quantity', 'price']
+        fields = ['product', 'quantity', 'price_per_item']
         widgets = {
-            'product':  forms.Select(attrs={'class': 'form-control item-product'}),
-            'quantity': forms.NumberInput(attrs={'class': 'form-control item-qty', 'min': 1}),
-            'price':    forms.NumberInput(attrs={'class': 'form-control item-price', 'step': '0.01', 'min': 0}),
+            'product':        forms.Select(attrs={'class': 'form-control item-product'}),
+            'quantity':       forms.NumberInput(attrs={'class': 'form-control item-qty', 'min': 1}),
+            'price_per_item': forms.NumberInput(attrs={'class': 'form-control item-price',
+                                                        'step': '0.01', 'min': 0}),
         }
 
 
@@ -38,7 +38,7 @@ PurchaseOrderItemFormSet = inlineformset_factory(
 )
 
 
-# ── Purchase Bill (manual creation) ──────────────────────────────────────────
+# ── Purchase Bill ─────────────────────────────────────────────────────────────
 
 class PurchaseBillForm(forms.ModelForm):
     class Meta:

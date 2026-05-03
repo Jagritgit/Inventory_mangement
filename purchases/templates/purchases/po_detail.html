@@ -69,8 +69,7 @@
     display: inline-flex; align-items: center; gap: 7px;
     padding: 8px 16px; border-radius: 9px;
     background: #ede9fe; color: #4338ca;
-    font-size: 13px; font-weight: 700;
-    text-decoration: none;
+    font-size: 13px; font-weight: 700; text-decoration: none;
 }
 .bill-exists-note:hover { background: #ddd6fe; color: #3730a3; }
 </style>
@@ -93,7 +92,7 @@
             {% endif %}
             {% if user.is_superuser and not order.stock_updated %}
             <a class="btn-action primary" href="{% url 'purchase-order-update' order.slug %}">Edit</a>
-            <a class="btn-action danger" href="{% url 'purchase-order-delete' order.pk %}">Delete</a>
+            <a class="btn-action danger"  href="{% url 'purchase-order-delete' order.pk %}">Delete</a>
             {% endif %}
         </div>
     </div>
@@ -116,6 +115,11 @@
             <div class="po-meta">
 
                 <div class="po-meta-item">
+                    <label>PO Number</label>
+                    <span style="font-family:monospace;">{{ order.order_number }}</span>
+                </div>
+
+                <div class="po-meta-item">
                     <label>Vendor</label>
                     <span>{{ order.vendor.company_name|default:order.vendor.name|default:"—" }}</span>
                 </div>
@@ -132,11 +136,6 @@
                 <div class="po-meta-item">
                     <label>Order Date</label>
                     <span>{{ order.order_date|date:"d M Y" }}</span>
-                </div>
-
-                <div class="po-meta-item">
-                    <label>Expected Delivery</label>
-                    <span>{{ order.expected_date|date:"d M Y"|default:"Not set" }}</span>
                 </div>
 
                 <div class="po-meta-item">
@@ -157,7 +156,6 @@
             <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;
                         display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
 
-                <!-- Mark as Received -->
                 {% if order.stock_updated %}
                 <span class="received-note">
                     <i class="fa-solid fa-circle-check"></i> Stock received &amp; updated
@@ -173,7 +171,6 @@
                 </form>
                 {% endif %}
 
-                <!-- Create Bill / View Bill -->
                 {% if existing_bill %}
                 <a class="bill-exists-note" href="{% url 'purchase-bill-detail' existing_bill.slug %}">
                     <i class="fa-solid fa-file-invoice"></i>
@@ -204,9 +201,9 @@
                         <th>#</th>
                         <th>Product</th>
                         <th>SKU</th>
-                        <th class="num">Unit Cost</th>
+                        <th class="num">Price Per Item (₹)</th>
                         <th class="num">Qty Ordered</th>
-                        <th class="num">Line Total</th>
+                        <th class="num">Line Total (₹)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -217,7 +214,7 @@
                         <td style="font-size:12px;color:#6b7280;font-family:monospace;">
                             {{ item.product.sku|default:"—" }}
                         </td>
-                        <td class="num">₹ {{ item.price|floatformat:2 }}</td>
+                        <td class="num">₹ {{ item.price_per_item|floatformat:2 }}</td>
                         <td class="num">{{ item.quantity }}</td>
                         <td class="num"><strong>₹ {{ item.line_total|floatformat:2 }}</strong></td>
                     </tr>

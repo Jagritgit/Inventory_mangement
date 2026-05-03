@@ -237,10 +237,10 @@ class CreatePurchaseBillView(LoginRequiredMixin, View):
                     bill=bill,
                     product=line.product,
                     quantity=line.quantity,
-                    cost_price=line.price,
+                    cost_price=line.price_per_item,
                 )
                 if line.product_id:
-                    Item.objects.filter(pk=line.product_id).update(cost_price=line.price)
+                    Item.objects.filter(pk=line.product_id).update(cost_price=line.price_per_item)
 
         messages.success(
             request,
