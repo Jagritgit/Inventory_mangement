@@ -1,0 +1,166 @@
+ROLE:
+Act as a senior Django full-stack developer. Refactor the Bill system to remove standalone navigation and create Bills strictly from Purchase Orders using PO number.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Existing modules:
+
+  * Vendor
+  * Product
+  * PurchaseOrder (has unique po_number)
+  * PurchaseOrderItem
+  * Bill, BillItem
+
+---
+
+## CORE REQUIREMENT
+
+* REMOVE "Bills" from sidebar navigation
+* Bills must ONLY be created from Purchase Orders using PO number
+* No direct navigation or independent bill creation page
+
+---
+
+## 1. REMOVE BILL FROM SIDEBAR
+
+* Delete sidebar link:
+  "Bills"
+
+* Bills should only be accessible via:
+  Purchase Order detail page
+
+---
+
+## 2. USE PO NUMBER AS PRIMARY REFERENCE
+
+Ensure PurchaseOrder model has:
+
+* po_number (unique identifier)
+
+Example:
+PO-001, PO-002
+
+---
+
+## 3. CREATE BILL FROM PURCHASE ORDER (USING PO NUMBER)
+
+### UI:
+
+On Purchase Order Detail Page:
+
+* Show:
+  PO Number
+  Vendor
+  Items
+  Status
+
+* Add button:
+  "Create Bill"
+
+---
+
+## 4. BILL CREATION LOGIC
+
+When user clicks "Create Bill":
+
+Function:
+create_bill_from_po(request, po_number)
+
+Steps:
+
+1. Fetch PurchaseOrder:
+   purchase_order = PurchaseOrder.objects.get(po_number=po_number)
+
+2. Create Bill:
+
+   * vendor = purchase_order.vendor
+   * purchase_order = purchase_order
+   * bill_date = current date
+   * total_amount = calculated
+
+3. Loop through PurchaseOrderItems:
+   → Create BillItems:
+   - product
+   - quantity
+   - cost_price = price_per_item
+   - total_price
+
+---
+
+## 5. PREVENT DUPLICATE BILL
+
+* Check:
+  if Bill already exists for this PurchaseOrder
+
+* If exists:
+  → show message:
+  "Bill already created for this Purchase Order"
+
+---
+
+## 6. REDIRECT FLOW
+
+After bill creation:
+
+* Redirect to Bill Detail Page
+
+URL example:
+/bills/<id>/
+
+---
+
+## 7. BILL ACCESS (NO SIDEBAR)
+
+Bills are accessible only via:
+
+* Purchase Order detail page
+* Direct link after creation
+
+---
+
+## 8. OPTIONAL (SMART UX)
+
+On Purchase Order page:
+
+* If bill exists:
+  Show button:
+  "View Bill"
+
+* Else:
+  Show:
+  "Create Bill"
+
+---
+
+## 9. CONSTRAINTS
+
+* DO NOT allow manual bill creation from sidebar
+* DO NOT create bill without PurchaseOrder
+* DO NOT duplicate data incorrectly
+* Keep relationship strict:
+  PurchaseOrder → Bill → BillItems
+
+---
+
+## 10. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (ensure po_number exists)
+2. views.py (create_bill_from_po using po_number)
+3. urls.py (route using po_number)
+4. template (Purchase Order detail with button)
+5. short explanation
+
+---
+
+## EXPECTED RESULT
+
+* Bills are NOT shown in sidebar
+* Bills are created only from Purchase Orders
+* PO number is used to fetch data
+* Bill is auto-filled with vendor and product details
+* Clean, controlled workflow like real systems

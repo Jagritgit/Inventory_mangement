@@ -8,14 +8,11 @@
     <div class="module-header" style="background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 100%);">
         <div>
             <h2><i class="fa-solid fa-file-invoice me-2"></i>Purchase Bills</h2>
-            <small>Auto-generated from Purchase Orders or created manually</small>
+            <small>Created from Purchase Orders — open a PO and click "Create Bill"</small>
         </div>
         <div class="module-actions">
             <a class="btn-action ghost" href="{% url 'purchase-order-list' %}">
-                <i class="fa-solid fa-file-lines me-1"></i> Orders
-            </a>
-            <a class="btn-action primary" href="{% url 'purchase-bill-manual-create' %}">
-                + Create Bill
+                <i class="fa-solid fa-file-lines me-1"></i> View Orders
             </a>
         </div>
     </div>
