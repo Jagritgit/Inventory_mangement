@@ -148,11 +148,19 @@ class SaleListView(LoginRequiredMixin, ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         from invoice.models import Invoice
+        from store.models import Delivery
         invoiced_sale_ids = set(
             Invoice.objects.filter(sale__isnull=False)
             .values_list('sale_id', flat=True)
         )
         ctx['invoiced_sale_ids'] = invoiced_sale_ids
+
+        delivery_map = {
+            d['sale_id']: d
+            for d in Delivery.objects.filter(sale__isnull=False)
+            .values('sale_id', 'id', 'status')
+        }
+        ctx['delivery_map'] = delivery_map
         return ctx
 
 

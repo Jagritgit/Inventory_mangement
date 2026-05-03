@@ -15,7 +15,7 @@ import operator
 from functools import reduce
 
 # Django core imports
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
@@ -496,80 +496,58 @@ class DeliveryListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
     paginate_by = 10
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related(
+            "sale__customer", "customer", "item"
+        )
 
-        # SEARCH
         query = self.request.GET.get("q")
         if query:
-            queryset = queryset.filter(customer_name__icontains=query)
+            queryset = queryset.filter(
+                Q(customer_name__icontains=query)
+                | Q(sale__customer__first_name__icontains=query)
+                | Q(sale__customer__last_name__icontains=query)
+            )
 
-        # FILTER / SORT
-        order = self.request.GET.get("order", "old")
+        order = self.request.GET.get("order", "new")
 
-        if order == "new":
-            queryset = queryset.order_by("-id")
-
-        elif order == "delivered":
-            queryset = queryset.filter(is_delivered=True).order_by("-id")
-
+        if order == "delivered":
+            queryset = queryset.filter(status="DELIVERED").order_by("-id")
+        elif order == "shipped":
+            queryset = queryset.filter(status="SHIPPED").order_by("-id")
         elif order == "pending":
-            queryset = queryset.filter(is_delivered=False).order_by("-id")
-
+            queryset = queryset.filter(status="PENDING").order_by("-id")
         else:
-            queryset = queryset.order_by("id")
+            queryset = queryset.order_by("-id")
 
         return queryset
 
 
 class DeliverySearchListView(DeliveryListView):
-    """
-    View class to search and display a filtered list of deliveries.
-
-    Attributes:
-    - paginate_by: Number of items per page for pagination.
-    """
-
     paginate_by = 10
 
     def get_queryset(self):
-        result = super(DeliverySearchListView, self).get_queryset()
-
+        result = super().get_queryset()
         query = self.request.GET.get("q")
         if query:
             query_list = query.split()
             result = result.filter(
-                reduce(
-                    operator.
-                    and_, (Q(customer_name__icontains=q) for q in query_list)
-                )
+                reduce(operator.and_, (Q(customer_name__icontains=q) for q in query_list))
             )
         return result
 
 
 class DeliveryDetailView(LoginRequiredMixin, DetailView):
-    """
-    View class to display detailed information about a delivery.
-
-    Attributes:
-    - model: The model associated with the view.
-    - template_name: The HTML template used for rendering the view.
-    """
-
     model = Delivery
     template_name = "store/deliverydetail.html"
+    pk_url_kwarg = "pk"
+
+    def get_queryset(self):
+        return super().get_queryset().select_related(
+            "sale__customer", "sale__invoice", "customer", "item"
+        ).prefetch_related("sale__saledetail_set__item")
 
 
 class DeliveryCreateView(LoginRequiredMixin, CreateView):
-    """
-    View class to create a new delivery.
-
-    Attributes:
-    - model: The model associated with the view.
-    - fields: The fields to be included in the form.
-    - template_name: The HTML template used for rendering the view.
-    - success_url: The URL to redirect to upon successful form submission.
-    """
-
     model = Delivery
     form_class = DeliveryForm
     template_name = "store/delivery_form.html"
@@ -577,16 +555,6 @@ class DeliveryCreateView(LoginRequiredMixin, CreateView):
 
 
 class DeliveryUpdateView(LoginRequiredMixin, UpdateView):
-    """
-    View class to update delivery information.
-
-    Attributes:
-    - model: The model associated with the view.
-    - fields: The fields to be updated.
-    - template_name: The HTML template used for rendering the view.
-    - success_url: The URL to redirect to upon successful form submission.
-    """
-
     model = Delivery
     form_class = DeliveryForm
     template_name = "store/delivery_form.html"
@@ -594,24 +562,37 @@ class DeliveryUpdateView(LoginRequiredMixin, UpdateView):
 
 
 class DeliveryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """
-    View class to delete a delivery.
-
-    Attributes:
-    - model: The model associated with the view.
-    - template_name: The HTML template used for rendering the view.
-    - success_url: The URL to redirect to upon successful deletion.
-    """
-
     model = Delivery
     template_name = "store/deliverydelete.html"
     success_url = "/deliveries"
 
     def test_func(self):
-        if self.request.user.is_superuser:
-            return True
-        else:
-            return False
+        return self.request.user.is_superuser
+
+
+@login_required
+def mark_as_shipped(request, pk):
+    """Set delivery status → SHIPPED and record shipped_date."""
+    from django.utils import timezone as tz
+    delivery = get_object_or_404(Delivery, pk=pk)
+    if delivery.status == 'PENDING':
+        delivery.status = 'SHIPPED'
+        delivery.shipped_date = tz.now()
+        delivery.save(update_fields=['status', 'shipped_date'])
+    return redirect('delivery-detail', pk=pk)
+
+
+@login_required
+def mark_as_delivered(request, pk):
+    """Set delivery status → DELIVERED and record delivered_date."""
+    from django.utils import timezone as tz
+    delivery = get_object_or_404(Delivery, pk=pk)
+    if delivery.status in ('PENDING', 'SHIPPED'):
+        delivery.status = 'DELIVERED'
+        delivery.is_delivered = True
+        delivery.delivered_date = tz.now()
+        delivery.save(update_fields=['status', 'is_delivered', 'delivered_date'])
+    return redirect('delivery-detail', pk=pk)
 
 
 class CategoryListView(LoginRequiredMixin, ListView):

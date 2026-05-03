@@ -68,6 +68,7 @@
                 <th>Paid</th>
                 <th>Change</th>
                 <th>Status</th>
+                <th>Delivery</th>
                 <th class="text-center">Actions</th>
             </tr>
         </thead>
@@ -99,6 +100,22 @@
                     {% else %}
                         <span class="badge bg-danger">Unpaid</span>
                     {% endif %}
+                </td>
+
+                <!-- DELIVERY STATUS -->
+                <td>
+                    {% for key, dinfo in delivery_map.items %}{% if key == sale.id %}
+                        {% if dinfo.status == 'DELIVERED' %}
+                            <a href="{% url 'delivery-detail' dinfo.id %}"
+                               class="badge bg-success text-decoration-none">Delivered</a>
+                        {% elif dinfo.status == 'SHIPPED' %}
+                            <a href="{% url 'delivery-detail' dinfo.id %}"
+                               class="badge bg-primary text-decoration-none">Shipped</a>
+                        {% else %}
+                            <a href="{% url 'delivery-detail' dinfo.id %}"
+                               class="badge bg-warning text-dark text-decoration-none">Pending</a>
+                        {% endif %}
+                    {% endif %}{% endfor %}
                 </td>
 
                 <td class="text-center">

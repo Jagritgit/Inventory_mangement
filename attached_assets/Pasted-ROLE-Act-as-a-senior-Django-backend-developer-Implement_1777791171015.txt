@@ -1,0 +1,165 @@
+ROLE:
+Act as a senior Django backend developer. Implement a Delivery system with automatic creation from Sale and proper delivery lifecycle tracking.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Sale model exists (with id, customer, total_amount)
+* Delivery must be created ONLY from Sale
+* Invoice is NOT involved in delivery logic
+* Revenue logic must NOT be modified
+
+---
+
+CORE REQUIREMENTS:
+
+## 1. DELIVERY MODEL
+
+Create Delivery model with lifecycle tracking:
+
+Fields:
+
+* id (primary key)
+* sale (ForeignKey to Sale, CASCADE, required)
+* status (choices):
+
+  * pending
+  * shipped
+  * delivered
+* created_at (DateTimeField, auto_now_add=True)
+* shipped_date (DateTimeField, null=True, blank=True)
+* delivered_date (DateTimeField, null=True, blank=True)
+
+RELATION:
+
+* One Sale → One Delivery (default)
+* Prevent duplicate delivery for same Sale
+
+---
+
+## 2. AUTOMATIC DELIVERY CREATION
+
+* When a Sale is created:
+
+  * Automatically create a Delivery
+  * Set:
+    status = "pending"
+    shipped_date = NULL
+    delivered_date = NULL
+
+* Use Django post_save signal on Sale
+
+* Ensure:
+
+  * Delivery is created ONLY if it does not already exist
+
+---
+
+## 3. DELIVERY STATUS LOGIC
+
+Implement controlled status updates:
+
+### When status = "pending"
+
+* No dates should be set
+
+### When status changes to "shipped"
+
+* Set:
+  shipped_date = current timestamp
+
+### When status changes to "delivered"
+
+* Set:
+  delivered_date = current timestamp
+
+---
+
+## 4. VALIDATION RULES
+
+* Delivery must always be linked to a Sale
+* Prevent:
+
+  * delivered_date without "delivered" status
+  * shipped_date without "shipped" or later status
+* Prevent duplicate Delivery for same Sale
+
+---
+
+## 5. BACKEND FUNCTIONS
+
+Implement:
+
+Function: auto_create_delivery(sale)
+
+* Triggered on Sale creation
+* Creates Delivery (status = pending)
+
+Function: mark_as_shipped(delivery_id)
+
+* Update status → shipped
+* Set shipped_date
+
+Function: mark_as_delivered(delivery_id)
+
+* Update status → delivered
+* Set delivered_date
+
+---
+
+## 6. UI REQUIREMENTS
+
+Sales Page:
+
+* Show Delivery status
+* Optional: button to view delivery
+
+Delivery Page:
+
+* Show:
+
+  * Sale ID
+  * Status
+  * Created date
+  * Shipped date
+  * Delivered date
+
+* Buttons:
+
+  * "Mark as Shipped"
+  * "Mark as Delivered"
+
+---
+
+## 7. CONSTRAINTS
+
+* DO NOT involve Invoice in delivery
+* DO NOT modify revenue logic
+* DO NOT allow multiple deliveries for same Sale
+* Use clean Django ORM and signals
+
+---
+
+## 8. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (Delivery model with validation)
+2. signals.py (auto creation)
+3. views.py (status update functions)
+4. urls.py updates
+5. basic template example
+6. short explanation
+
+---
+
+EXPECTED RESULT:
+
+* Delivery is automatically created when Sale is created
+* Delivery lifecycle is tracked properly:
+  pending → shipped → delivered
+* Dates are recorded correctly:
+  created_at, shipped_date, delivered_date
+* System reflects real-world delivery workflow
