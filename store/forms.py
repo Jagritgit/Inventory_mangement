@@ -6,15 +6,20 @@ class ItemForm(forms.ModelForm):
     class Meta:
         model = Item
         fields = [
-            'name', 'description', 'category', 'quantity',
-            'price', 'expiring_date', 'vendor'
+            'name', 'sku', 'description', 'category', 'quantity',
+            'price', 'cost_price', 'low_stock_threshold',
+            'image', 'expiring_date', 'vendor',
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
+            'sku': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g. SKU-001'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
             'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'cost_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'low_stock_threshold': forms.NumberInput(attrs={'class': 'form-control'}),
+            'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'expiring_date': forms.DateTimeInput(
                 attrs={'class': 'form-control', 'type': 'datetime-local'}
             ),

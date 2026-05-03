@@ -1,0 +1,188 @@
+ROLE:
+Act as a Django full-stack developer. Implement a Product listing system with two view modes (List and Grid), including image upload with default fallback and update capability.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Product model exists or needs to be created
+* Products should support image display, upload, and update
+
+---
+
+## 1. PRODUCT MODEL
+
+Create or update Product model:
+
+Fields:
+
+* id
+* name
+* sku
+* price
+* quantity (stock)
+* status (active/inactive)
+* image (ImageField, upload_to='products/', null=True, blank=True)
+
+---
+
+## 2. DEFAULT IMAGE (IMPORTANT)
+
+* If no image is uploaded:
+
+  * Show a default placeholder image
+
+Implementation:
+
+* Store default image in static folder
+* In template:
+  If product.image exists → show it
+  Else → show default image
+
+---
+
+## 3. IMAGE UPLOAD & UPDATE
+
+* While creating product:
+
+  * Allow image upload (optional)
+
+* While editing product:
+
+  * Allow user to update/change image
+  * Keep existing image if not replaced
+
+---
+
+## 4. VIEW MODES (MAIN FEATURE)
+
+Implement two product display modes:
+
+### A. LIST VIEW (DEFAULT)
+
+* Table layout
+* Columns:
+
+  * Image (small thumbnail ~40px)
+  * Product Name
+  * SKU
+  * Price
+  * Quantity
+  * Status
+  * Actions (Edit / Delete / More)
+
+---
+
+### B. GRID / CARD VIEW
+
+* Each product shown as a card
+* Card includes:
+
+  * Larger product image
+  * Name
+  * Price
+  * Quantity
+  * Status
+  * Action buttons
+
+---
+
+## 5. TOGGLE BETWEEN VIEWS
+
+Add UI control (top-right):
+
+Buttons:
+
+* "List View"
+* "Grid View"
+
+Behavior:
+
+* Default → List View
+* Clicking Grid:
+  hide list-view
+  show grid-view
+* Clicking List:
+  show list-view
+  hide grid-view
+
+---
+
+## 6. HTML STRUCTURE
+
+Use two sections:
+
+* <div id="list-view"> (table layout)
+* <div id="grid-view"> (card layout, hidden by default)
+
+---
+
+## 7. JAVASCRIPT LOGIC
+
+Implement:
+
+function showList()
+function showGrid()
+
+These toggle visibility of both sections
+
+---
+
+## 8. IMAGE DISPLAY
+
+List View:
+
+* Small thumbnail (30–50px)
+
+Grid View:
+
+* Larger image (150–200px)
+* Maintain aspect ratio
+
+---
+
+## 9. FORM REQUIREMENTS
+
+Product Form:
+
+* name
+* sku
+* price
+* quantity
+* status
+* image (file input)
+
+---
+
+## 10. CONSTRAINTS
+
+* Do NOT duplicate product data
+* Do NOT create separate pages for list and grid
+* Keep UI clean and minimal (no fancy design)
+* Ensure responsive layout
+
+---
+
+## 11. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (Product model)
+2. forms.py
+3. views.py
+4. urls.py
+5. template (list + grid + toggle)
+6. CSS (minimal styling)
+7. JavaScript (view toggle)
+8. Short explanation
+
+---
+
+## EXPECTED RESULT
+
+* Products displayed in list view by default
+* User can switch to grid (card) view
+* Each product shows image (or default image)
+* User can upload and update product image
+* Clean, professional UI similar to real systems

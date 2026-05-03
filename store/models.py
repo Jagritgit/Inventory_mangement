@@ -37,6 +37,11 @@ class Item(models.Model):
     price = models.FloatField(default=0)
     cost_price = models.FloatField(default=0)
 
+    image = models.ImageField(
+        upload_to='products/', null=True, blank=True,
+        help_text="Product image (optional). JPG / PNG / WebP."
+    )
+
     expiring_date = models.DateTimeField(null=True, blank=True)
     vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True)
 
