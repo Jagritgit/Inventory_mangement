@@ -3,50 +3,26 @@ from .models import Item, Category, Delivery
 
 
 class ItemForm(forms.ModelForm):
-    """
-    A form for creating or updating an Item in the inventory.
-    """
     class Meta:
         model = Item
         fields = [
-            'name',
-            'description',
-            'category',
-            'quantity',
-            'price',
-            'expiring_date',
-            'vendor'
+            'name', 'description', 'category', 'quantity',
+            'price', 'expiring_date', 'vendor'
         ]
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
-            'description': forms.Textarea(
-                attrs={
-                    'class': 'form-control',
-                    'rows': 2
-                }
-            ),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
-            'price': forms.NumberInput(
-                attrs={
-                    'class': 'form-control',
-                    'step': '0.01'
-                }
-            ),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
             'expiring_date': forms.DateTimeInput(
-                attrs={
-                    'class': 'form-control',
-                    'type': 'datetime-local'
-                }
+                attrs={'class': 'form-control', 'type': 'datetime-local'}
             ),
             'vendor': forms.Select(attrs={'class': 'form-control'}),
         }
 
 
 class CategoryForm(forms.ModelForm):
-    """
-    A form for creating or updating category.
-    """
     class Meta:
         model = Category
         fields = ['name']
@@ -54,67 +30,73 @@ class CategoryForm(forms.ModelForm):
             'name': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Enter category name',
-                'aria-label': 'Category Name'
             }),
         }
-        labels = {
-            'name': 'Category Name',
-        }
+        labels = {'name': 'Category Name'}
 
 
-class DeliveryForm(forms.ModelForm):
+class DeliveryCreateForm(forms.ModelForm):
+    """
+    Form for manually creating a delivery from a Sale.
+    Only the sale selector, shipping address, and phone are editable.
+    Customer / total / items are shown via AJAX as read-only info.
+    """
     class Meta:
         model = Delivery
-        fields = [
-            'invoice',
-            'customer',
-            'item',
-            'customer_name',
-            'email',
-            'phone_number',
-            'location',
-            'date',
-            'is_delivered'
-        ]
+        fields = ['sale', 'phone_number', 'location']
         widgets = {
-            'invoice': forms.Select(attrs={
-                'class': 'form-control', 'id': 'id_invoice',
-            }),
-            'customer': forms.Select(attrs={
-                'class': 'form-control', 'id': 'id_customer',
-            }),
-            'item': forms.Select(attrs={
+            'sale': forms.Select(attrs={
                 'class': 'form-control',
-                'placeholder': 'Select item',
-                'id': 'id_item',
-            }),
-            'customer_name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter customer name',
-                'id': 'id_customer_name',
-            }),
-            'email': forms.EmailInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'customer@example.com',
-                'id': 'id_email',
+                'id': 'id_sale',
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter phone number',
+                'placeholder': 'e.g. +254712345678',
                 'id': 'id_phone_number',
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter delivery location',
+                'placeholder': 'Shipping / delivery address',
                 'id': 'id_location',
             }),
-            'date': forms.DateTimeInput(attrs={
+        }
+        labels = {
+            'sale': 'Sale',
+            'phone_number': 'Contact Phone',
+            'location': 'Delivery Address',
+        }
+
+
+class DeliveryUpdateForm(forms.ModelForm):
+    """
+    Form for updating delivery contact info and status.
+    The sale link is intentionally excluded — it cannot be changed after creation.
+    """
+    class Meta:
+        model = Delivery
+        fields = ['status', 'phone_number', 'location', 'email']
+        widgets = {
+            'status': forms.Select(attrs={'class': 'form-control'}),
+            'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Select delivery date and time',
-                'type': 'datetime-local'
+                'placeholder': 'e.g. +254712345678',
             }),
-            'is_delivered': forms.CheckboxInput(attrs={
-                'class': 'form-check-input',
-                'label': 'Mark as delivered',
+            'location': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Delivery address',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'customer@example.com',
             }),
         }
+        labels = {
+            'status': 'Delivery Status',
+            'phone_number': 'Contact Phone',
+            'location': 'Delivery Address',
+            'email': 'Contact Email',
+        }
+
+
+# Legacy form kept for any existing code that imports DeliveryForm
+DeliveryForm = DeliveryUpdateForm

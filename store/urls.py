@@ -54,6 +54,9 @@ urlpatterns = [
     path('delivery/<int:pk>/ship/', views.mark_as_shipped, name='delivery-ship'),
     path('delivery/<int:pk>/deliver/', views.mark_as_delivered, name='delivery-deliver'),
 
+    # Sale details AJAX for delivery form auto-fill
+    path('api/sale/<int:pk>/details/', views.sale_details_json, name='sale_details'),
+
     # AJAX view
     path('get-items/', get_items_ajax_view, name='get_items'),
 

@@ -1,104 +1,114 @@
 {% extends "store/base.html" %}
 {% load static %}
-{% load crispy_forms_tags %}
 
-{% block title %}Update Delivery{% endblock %}
+{% block title %}Update Delivery #{{ object.id }}{% endblock %}
 
 {% block content %}
+<div class="container py-4" style="max-width:620px;">
 
-<div class="container py-5">
-
-    <!-- Header -->
-    <div class="text-center mb-4">
-        <h3 class="fw-bold text-dark">Update Delivery</h3>
-        <p class="text-muted small">Modify delivery details below</p>
+    <!-- HEADER -->
+    <div class="card header-dark rounded-4 p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h4 class="text-white mb-1">
+                    <i class="fa-solid fa-pen me-2"></i> Update Delivery #{{ object.id }}
+                </h4>
+                {% if object.sale %}
+                <small class="text-light opacity-75">Linked to Sale #{{ object.sale.id }}</small>
+                {% endif %}
+            </div>
+            <a href="{% url 'delivery-detail' object.pk %}" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
     </div>
 
-    <!-- Form Card -->
-    <div class="row justify-content-center">
-        <div class="col-md-9 col-lg-6">
+    <!-- FORM CARD -->
+    <div class="card shadow-sm rounded-4">
+        <div class="card-body p-4">
 
-            <div class="card form-card p-4">
-
-                <form method="POST" enctype="multipart/form-data">
-                    {% csrf_token %}
-
-                    {{ form.media }}
-
-                    <!-- Form Fields -->
-                    <div class="custom-form">
-                        {{ form|crispy }}
+            {% if object.sale %}
+            <!-- Sale context (read-only) -->
+            <div class="alert alert-light border rounded-3 mb-4">
+                <div class="row text-sm">
+                    <div class="col-6">
+                        <span class="text-muted small">Customer</span>
+                        <div class="fw-semibold">{{ object.sale.customer }}</div>
                     </div>
-
-                    <!-- Button -->
-                    <div class="mt-4 text-center">
-                        <button class="btn save-btn">
-                            <i class="fa-solid fa-truck me-1"></i> Update Delivery
-                        </button>
+                    <div class="col-6">
+                        <span class="text-muted small">Grand Total</span>
+                        <div class="fw-semibold text-success">₹ {{ object.sale.grand_total }}</div>
                     </div>
-
-                </form>
-
+                </div>
             </div>
+            {% endif %}
+
+            <form method="post">
+                {% csrf_token %}
+
+                <!-- Status -->
+                <div class="mb-3">
+                    <label class="form-label fw-medium">
+                        {{ form.status.label }}
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                    <div class="text-danger small mt-1">{{ form.status.errors.0 }}</div>
+                    {% endif %}
+                    <div class="text-muted mt-1" style="font-size:11px;">
+                        Changing status here does <strong>not</strong> stamp timestamps — use the
+                        <a href="{% url 'delivery-detail' object.pk %}">detail page</a> buttons for that.
+                    </div>
+                </div>
+
+                <!-- Phone -->
+                <div class="mb-3">
+                    <label class="form-label fw-medium">{{ form.phone_number.label }}</label>
+                    {{ form.phone_number }}
+                    {% if form.phone_number.errors %}
+                    <div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Address -->
+                <div class="mb-3">
+                    <label class="form-label fw-medium">{{ form.location.label }}</label>
+                    {{ form.location }}
+                    {% if form.location.errors %}
+                    <div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Email -->
+                <div class="mb-4">
+                    <label class="form-label fw-medium">{{ form.email.label }}</label>
+                    {{ form.email }}
+                    {% if form.email.errors %}
+                    <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn save-btn">
+                        <i class="fa-solid fa-floppy-disk me-2"></i> Save Changes
+                    </button>
+                </div>
+
+            </form>
 
         </div>
     </div>
 
 </div>
 
-<!-- STYLE -->
 <style>
-
-/* Card */
-.form-card {
-    border: none;
-    border-radius: 16px;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.08);
-    background: #ffffff;
-}
-
-/* Form improvements */
-.custom-form input,
-.custom-form select,
-.custom-form textarea {
-    border-radius: 8px !important;
-    border: 1px solid #d1d5db !important;
-    padding: 10px !important;
-    font-size: 14px;
-    transition: 0.2s;
-}
-
-/* Focus effect */
-.custom-form input:focus,
-.custom-form select:focus,
-.custom-form textarea:focus {
-    border-color: #2563eb !important;
-    box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
-}
-
-/* Labels */
-.custom-form label {
-    font-weight: 500;
-    margin-bottom: 4px;
-}
-
-/* Button */
+.header-dark { background: linear-gradient(135deg, #0f172a, #1e293b); }
 .save-btn {
-    background: #2563eb;
-    color: #fff;
-    padding: 12px 28px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 500;
-    transition: 0.2s;
+    background: #2563eb; color: #fff;
+    padding: 12px; border-radius: 10px; border: none;
+    font-weight: 600; transition: .2s;
 }
-
-.save-btn:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
-    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.3);
-}
-
+.save-btn:hover { background: #1d4ed8; }
 </style>
 
 {% endblock %}

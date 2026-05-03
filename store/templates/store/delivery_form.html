@@ -1,185 +1,257 @@
 {% extends "store/base.html" %}
+{% load static %}
+
+{% block title %}Create Delivery{% endblock %}
 
 {% block content %}
+<div class="container py-4" style="max-width:860px;">
 
-<div class="container py-5">
+    <!-- HEADER -->
+    <div class="card header-dark rounded-4 p-4 mb-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h4 class="text-white mb-1">
+                    <i class="fa-solid fa-truck me-2"></i> Create Delivery
+                </h4>
+                <small class="text-light opacity-75">Select a sale — customer details will auto-fill.</small>
+            </div>
+            <a href="{% url 'deliveries' %}" class="btn btn-outline-light btn-sm rounded-pill">
+                <i class="fa-solid fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
+    </div>
 
-    <!-- 🔥 Header (MATCHED WIDTH) -->
-    <div class="row justify-content-center mb-4">
-        <div class="col-md-10 col-lg-8">
+    <!-- MESSAGES -->
+    {% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show rounded-3" role="alert">
+        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
 
-            <div class="header-card">
-                <div class="d-flex justify-content-between align-items-center">
+    <form method="post" id="deliveryForm">
+        {% csrf_token %}
 
-                    <div>
-                        <h4 class="mb-1 text-white">
-                            {% if form.instance.pk %}Update Delivery{% else %}Create Delivery{% endif %}
-                        </h4>
-                        
+        <div class="row g-4">
+
+            <!-- LEFT — Sale selector -->
+            <div class="col-md-5">
+                <div class="card shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom fw-semibold">
+                        <i class="fa-solid fa-receipt me-2 text-primary"></i> Select Sale
                     </div>
+                    <div class="card-body">
 
-                    <div class="header-icon">
-                        <i class="fa-solid fa-truck"></i>
+                        <!-- Sale dropdown -->
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Sale <span class="text-danger">*</span></label>
+                            {{ form.sale }}
+                            {% if form.sale.errors %}
+                            <div class="text-danger small mt-1">{{ form.sale.errors.0 }}</div>
+                            {% endif %}
+                            <div class="text-muted" style="font-size:11px; margin-top:4px;">
+                                Only sales without an existing delivery are shown.
+                            </div>
+                        </div>
+
+                        <!-- Duplicate warning (hidden by default) -->
+                        <div id="duplicateWarning" class="alert alert-warning py-2 small d-none">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            This sale already has a delivery.
+                        </div>
+
+                        <!-- Loading spinner -->
+                        <div id="loadingSpinner" class="text-center py-3 d-none">
+                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <span class="ms-2 text-muted small">Fetching sale data…</span>
+                        </div>
+
+                        <!-- Sale summary card (hidden until sale selected) -->
+                        <div id="saleSummary" class="d-none">
+                            <div class="border rounded-3 p-3 bg-light">
+                                <div class="mb-2">
+                                    <span class="text-muted small">Sale ID</span>
+                                    <div class="fw-semibold" id="sumSaleId">—</div>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small">Customer</span>
+                                    <div class="fw-semibold" id="sumCustomer">—</div>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small">Email</span>
+                                    <div id="sumEmail" class="small">—</div>
+                                </div>
+                                <div class="mb-2">
+                                    <span class="text-muted small">Date</span>
+                                    <div id="sumDate" class="small">—</div>
+                                </div>
+                                <div>
+                                    <span class="text-muted small">Grand Total</span>
+                                    <div class="fw-bold text-success fs-5" id="sumTotal">—</div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-
                 </div>
             </div>
 
-        </div>
-    </div>
+            <!-- RIGHT — Address + items -->
+            <div class="col-md-7">
 
-    <!-- Form -->
-    <div class="row justify-content-center">
-        <div class="col-md-10 col-lg-8">
-
-            <div class="card form-card p-4">
-
-                <form method="post"
-                      action="{% if form.instance.pk %}{% url 'delivery-update' form.instance.pk %}{% else %}{% url 'delivery-create' %}{% endif %}">
-                    
-                    {% csrf_token %}
-
-                    <!-- Auto-fill source row (new) -->
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">From Invoice</label>
-                            {{ form.invoice }}
-                            <small class="text-muted" style="font-size:11px;">Pick an invoice to auto-fill customer &amp; address.</small>
-                            <div class="text-danger small">{{ form.invoice.errors }}</div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">From Customer</label>
-                            {{ form.customer }}
-                            <small class="text-muted" style="font-size:11px;">Or pick a customer directly.</small>
-                            <div class="text-danger small">{{ form.customer.errors }}</div>
-                        </div>
+                <!-- Items table (hidden until sale selected) -->
+                <div id="itemsCard" class="card shadow-sm rounded-4 mb-4 d-none">
+                    <div class="card-header bg-white border-bottom fw-semibold">
+                        <i class="fa-solid fa-box me-2 text-primary"></i> Items in this Sale
                     </div>
-
-                    <!-- Your form rows unchanged -->
-
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            <label class="form-label">{{ form.item.label }}</label>
-                            {{ form.item }}
-                            <div class="text-danger small">{{ form.item.errors }}</div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label class="form-label">{{ form.customer_name.label }}</label>
-                            {{ form.customer_name }}
-                            <div class="text-danger small">{{ form.customer_name.errors }}</div>
-                        </div>
+                    <div class="card-body p-0">
+                        <table class="table table-sm table-striped mb-0" id="itemsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Item</th>
+                                    <th class="text-center">Qty</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="itemsBody"></tbody>
+                        </table>
                     </div>
+                </div>
 
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            <label class="form-label">{{ form.phone_number.label }}</label>
+                <!-- Delivery address card -->
+                <div class="card shadow-sm rounded-4">
+                    <div class="card-header bg-white border-bottom fw-semibold">
+                        <i class="fa-solid fa-location-dot me-2 text-primary"></i> Shipping Details
+                    </div>
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Contact Phone</label>
                             {{ form.phone_number }}
-                            <div class="text-danger small">{{ form.phone_number.errors }}</div>
+                            {% if form.phone_number.errors %}
+                            <div class="text-danger small mt-1">{{ form.phone_number.errors.0 }}</div>
+                            {% endif %}
                         </div>
 
-                        <div class="col-md-6">
-                            <label class="form-label">Email</label>
-                            {{ form.email }}
-                            <div class="text-danger small">{{ form.email.errors }}</div>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            <label class="form-label">{{ form.location.label }}</label>
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">Delivery Address</label>
                             {{ form.location }}
-                            <div class="text-danger small">{{ form.location.errors }}</div>
-                        </div>
-                    </div>
-
-                    <div class="row g-3 mt-1">
-                        <div class="col-md-6">
-                            <label class="form-label">{{ form.date.label }}</label>
-                            {{ form.date }}
-                            <div class="text-danger small">{{ form.date.errors }}</div>
+                            {% if form.location.errors %}
+                            <div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>
+                            {% endif %}
                         </div>
 
-                        <div class="col-md-6 d-flex align-items-center mt-4">
-                            <div class="form-check">
-                                {{ form.is_delivered }}
-                                <label class="form-check-label ms-2">
-                                    Delivered
-                                </label>
-                            </div>
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn submit-btn" id="submitBtn" disabled>
+                                <i class="fa-solid fa-truck me-2"></i> Create Delivery
+                            </button>
                         </div>
-                    </div>
 
-                    <!-- Button -->
-                    <div class="text-center mt-4">
-                        <button type="submit" class="btn submit-btn">
-                            <i class="fa fa-save me-1"></i>
-                            {% if form.instance.pk %}Update{% else %}Create{% endif %}
-                        </button>
-                    </div>
+                        <p class="text-muted text-center mt-2 mb-0" style="font-size:11px;">
+                            Delivery will be created with status <strong>Pending</strong>.
+                        </p>
 
-                </form>
+                    </div>
+                </div>
 
             </div>
-
         </div>
-    </div>
+
+    </form>
 
 </div>
 
-<!-- STYLE -->
 <style>
-
-/* Header */
-.header-card {
-    background: linear-gradient(135deg, #1f2937, #111827);
-    border-radius: 14px;
-    padding: 16px 20px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
-
-/* Icon */
-.header-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 10px;
-    background: rgba(255,255,255,0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-}
-
-/* Form */
-.form-card {
-    border: none;
-    border-radius: 16px;
-    box-shadow: 0 10px 35px rgba(0,0,0,0.08);
-}
-
-/* Inputs */
-.form-card input,
-.form-card select {
-    width: 100%;
-    padding: 10px;
-    border-radius: 8px;
-    border: 1px solid #d1d5db;
-}
-
-/* Button */
+.header-dark { background: linear-gradient(135deg, #0f172a, #1e293b); }
 .submit-btn {
-    background: #2563eb;
-    color: #fff;
-    padding: 10px 26px;
-    border-radius: 10px;
-    border: none;
+    background: #2563eb; color: #fff;
+    padding: 12px; border-radius: 10px; border: none;
+    font-weight: 600; transition: .2s;
 }
-
+.submit-btn:hover:not(:disabled) { background: #1d4ed8; }
+.submit-btn:disabled { background: #94a3b8; cursor: not-allowed; }
 </style>
 
 <script>
-    window.__partyMode = 'delivery';
+const SALE_DETAILS_URL = "{% url 'sale_details' 0 %}".replace('/0/', '/');
+
+const saleSelect   = document.getElementById('id_sale');
+const spinner      = document.getElementById('loadingSpinner');
+const summary      = document.getElementById('saleSummary');
+const itemsCard    = document.getElementById('itemsCard');
+const itemsBody    = document.getElementById('itemsBody');
+const submitBtn    = document.getElementById('submitBtn');
+const dupWarning   = document.getElementById('duplicateWarning');
+const phoneInput   = document.getElementById('id_phone_number');
+const locationInput = document.getElementById('id_location');
+
+function clearPanel() {
+    summary.classList.add('d-none');
+    itemsCard.classList.add('d-none');
+    dupWarning.classList.add('d-none');
+    submitBtn.disabled = true;
+}
+
+async function fetchSaleDetails(saleId) {
+    clearPanel();
+    if (!saleId) return;
+
+    spinner.classList.remove('d-none');
+    try {
+        const resp = await fetch(`${SALE_DETAILS_URL}${saleId}/details/`);
+        if (!resp.ok) { spinner.classList.add('d-none'); return; }
+        const data = await resp.json();
+        spinner.classList.add('d-none');
+
+        if (data.already_has_delivery) {
+            dupWarning.classList.remove('d-none');
+            return;
+        }
+
+        // Populate summary
+        document.getElementById('sumSaleId').textContent  = '#' + data.sale_id;
+        document.getElementById('sumCustomer').textContent = data.customer_name || '—';
+        document.getElementById('sumEmail').textContent    = data.customer_email || '—';
+        document.getElementById('sumDate').textContent     = data.date;
+        document.getElementById('sumTotal').textContent    = '₹ ' + data.grand_total;
+        summary.classList.remove('d-none');
+
+        // Auto-fill phone + address if empty
+        if (!phoneInput.value && data.customer_phone)
+            phoneInput.value = data.customer_phone;
+        if (!locationInput.value && data.customer_address)
+            locationInput.value = data.customer_address;
+
+        // Populate items table
+        if (data.items && data.items.length > 0) {
+            itemsBody.innerHTML = data.items.map(item => `
+                <tr>
+                    <td>${item.name}</td>
+                    <td class="text-center">${item.quantity}</td>
+                    <td class="text-end">₹ ${item.price}</td>
+                    <td class="text-end">₹ ${item.total}</td>
+                </tr>
+            `).join('');
+            itemsCard.classList.remove('d-none');
+        }
+
+        submitBtn.disabled = false;
+
+    } catch(e) {
+        spinner.classList.add('d-none');
+    }
+}
+
+saleSelect.addEventListener('change', function() {
+    phoneInput.value    = '';
+    locationInput.value = '';
+    fetchSaleDetails(this.value);
+});
+
+// If a sale is pre-selected (e.g. form re-render on error), load its details
+if (saleSelect.value) fetchSaleDetails(saleSelect.value);
 </script>
-{% include "invoice/_pricing_js.html" %}
+
 {% endblock %}

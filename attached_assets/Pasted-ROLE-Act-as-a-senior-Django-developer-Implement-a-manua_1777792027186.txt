@@ -1,0 +1,142 @@
+ROLE:
+Act as a senior Django developer. Implement a manual Delivery creation system with auto-fill from Sale.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Sale model exists with:
+
+  * id
+  * customer
+  * total_amount
+  * related SaleItems (products, quantities)
+* Delivery must always be linked to a Sale
+* Invoice is NOT involved in delivery
+
+---
+
+FEATURE REQUIREMENT:
+
+Create a Delivery form where:
+
+* User selects a Sale ID
+* System automatically fetches and fills related data
+* User can review and confirm creation
+
+---
+
+## 1. DELIVERY MODEL
+
+Delivery:
+
+* id
+* sale (ForeignKey to Sale, required)
+* status (pending, shipped, delivered)
+* created_at (auto timestamp)
+* shipped_date (nullable)
+* delivered_date (nullable)
+
+---
+
+## 2. FORM BEHAVIOR
+
+* Provide dropdown or input for Sale ID
+* When Sale is selected:
+
+  * Automatically fetch:
+
+    * customer
+    * total_amount
+    * items (optional display)
+* Auto-fill these fields (read-only or display only)
+
+---
+
+## 3. BACKEND LOGIC
+
+Create view:
+
+Function: create_delivery_manual(request)
+
+Flow:
+
+1. User selects Sale ID
+2. Backend fetches Sale object
+3. Pre-fill form using Sale data
+4. On submit:
+
+   * Create Delivery linked to Sale
+   * status = "pending"
+
+---
+
+## 4. OPTIONAL (BETTER UX)
+
+Use AJAX:
+
+* When Sale ID changes:
+
+  * Fetch Sale details dynamically
+  * Update UI without page reload
+
+Create API endpoint:
+GET /sale/<id>/details/
+Return:
+
+* customer
+* total_amount
+* list of items
+
+---
+
+## 5. VALIDATION
+
+* Ensure Sale exists
+* Prevent duplicate Delivery for same Sale
+* Delivery must always have Sale
+
+---
+
+## 6. UI REQUIREMENTS
+
+Delivery Form Page:
+
+* Field: Sale (dropdown or input)
+* Auto-filled display:
+
+  * Customer
+  * Total amount
+  * Products list
+* Button: "Create Delivery"
+
+---
+
+## 7. CONSTRAINTS
+
+* DO NOT involve Invoice
+* DO NOT modify revenue logic
+* Keep code clean and modular
+
+---
+
+## 8. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (Delivery model)
+2. forms.py (DeliveryForm)
+3. views.py (manual + auto-fill logic)
+4. urls.py
+5. template (with optional AJAX)
+6. short explanation
+
+---
+
+EXPECTED RESULT:
+
+* User selects Sale
+* System auto-fills data
+* User confirms → Delivery created
+* Clean and user-friendly workflow

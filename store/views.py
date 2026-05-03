@@ -41,7 +41,7 @@ from django_tables2.export.views import ExportMixin
 from accounts.models import Profile, Vendor
 from transactions.models import Sale
 from .models import Category, Item, Delivery
-from .forms import ItemForm, CategoryForm, DeliveryForm
+from .forms import ItemForm, CategoryForm, DeliveryCreateForm, DeliveryUpdateForm
 from .tables import ItemTable
 
 
@@ -549,16 +549,56 @@ class DeliveryDetailView(LoginRequiredMixin, DetailView):
 
 class DeliveryCreateView(LoginRequiredMixin, CreateView):
     model = Delivery
-    form_class = DeliveryForm
+    form_class = DeliveryCreateForm
     template_name = "store/delivery_form.html"
-    success_url = "/deliveries"
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Only offer sales that don't already have a delivery
+        taken_ids = Delivery.objects.filter(
+            sale__isnull=False
+        ).values_list('sale_id', flat=True)
+        form.fields['sale'].queryset = (
+            Sale.objects.exclude(id__in=taken_ids)
+            .select_related('customer')
+            .order_by('-id')
+        )
+        form.fields['sale'].empty_label = '— Select a sale —'
+        return form
+
+    def form_valid(self, form):
+        from django.contrib import messages
+        delivery = form.save(commit=False)
+        delivery.status = 'PENDING'
+        # Server-side duplicate guard
+        if Delivery.objects.filter(sale=delivery.sale).exists():
+            form.add_error('sale', 'A delivery already exists for this sale.')
+            return self.form_invalid(form)
+        # Copy customer details from the linked sale
+        customer = delivery.sale.customer
+        if customer:
+            if not delivery.phone_number:
+                delivery.phone_number = getattr(customer, 'phone', '') or None
+            if not delivery.location:
+                delivery.location = getattr(customer, 'address', '') or ''
+            delivery.customer = customer
+            delivery.customer_name = customer.get_full_name()
+            delivery.email = getattr(customer, 'email', '') or ''
+        delivery.save()
+        messages.success(
+            self.request,
+            f'Delivery #{delivery.id} created for Sale #{delivery.sale.id}.'
+        )
+        return redirect('delivery-detail', pk=delivery.pk)
 
 
 class DeliveryUpdateView(LoginRequiredMixin, UpdateView):
     model = Delivery
-    form_class = DeliveryForm
-    template_name = "store/delivery_form.html"
-    success_url = "/deliveries"
+    form_class = DeliveryUpdateForm
+    template_name = "store/deliveryupdate.html"
+
+    def get_success_url(self):
+        return reverse('delivery-detail', kwargs={'pk': self.object.pk})
 
 
 class DeliveryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -568,6 +608,50 @@ class DeliveryDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def test_func(self):
         return self.request.user.is_superuser
+
+
+@login_required
+def sale_details_json(request, pk):
+    """
+    AJAX endpoint — returns Sale data for the delivery create form auto-fill.
+    GET /api/sale/<pk>/details/
+    """
+    from transactions.models import Sale
+    try:
+        sale = (
+            Sale.objects
+            .select_related('customer')
+            .prefetch_related('saledetail_set__item')
+            .get(pk=pk)
+        )
+    except Sale.DoesNotExist:
+        return JsonResponse({'error': 'Sale not found'}, status=404)
+
+    # Duplicate guard
+    already_exists = Delivery.objects.filter(sale=sale).exists()
+
+    customer = sale.customer
+    items = [
+        {
+            'name': d.item.name,
+            'quantity': d.quantity,
+            'price': str(d.price),
+            'total': str(d.total_detail),
+        }
+        for d in sale.saledetail_set.all()
+    ]
+
+    return JsonResponse({
+        'sale_id': sale.id,
+        'customer_name': customer.get_full_name() if customer else '',
+        'customer_email': (customer.email or '') if customer else '',
+        'customer_phone': (customer.phone or '') if customer else '',
+        'customer_address': (customer.address or '') if customer else '',
+        'grand_total': str(sale.grand_total),
+        'date': sale.date_added.strftime('%Y-%m-%d %H:%M'),
+        'items': items,
+        'already_has_delivery': already_exists,
+    })
 
 
 @login_required
