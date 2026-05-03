@@ -77,46 +77,65 @@
 .pl-search button:hover { background: #1d4ed8; }
 
 /* ════════════════════════════════════════════════════
-   LIST VIEW — minimal, fast scanning
+   LIST VIEW
 ════════════════════════════════════════════════════ */
 .pl-table-wrap {
     background: #fff; border-radius: 12px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.06); overflow: hidden;
 }
-.pl-table { width: 100%; border-collapse: collapse; }
+.pl-table {
+    width: 100%; border-collapse: collapse; table-layout: fixed;
+}
 .pl-table th {
-    background: #f8fafc; padding: 11px 14px;
+    background: #f8fafc; padding: 10px 12px;
     font-size: 11px; font-weight: 800; text-transform: uppercase;
     letter-spacing: .05em; color: #374151;
-    border-bottom: 2px solid #e5e7eb; text-align: left;
+    border-bottom: 2px solid #e5e7eb;
+    text-align: left; white-space: nowrap; overflow: hidden;
 }
 .pl-table td {
-    padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
-    font-size: 14px; color: #111827; vertical-align: middle;
+    padding: 10px 12px; border-bottom: 1px solid #f1f5f9;
+    font-size: 13px; color: #111827;
+    vertical-align: middle;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .pl-table tr:last-child td { border-bottom: none; }
-.pl-table tr:hover td { background: #f9fafb; }
+.pl-table tbody tr:hover td { background: #f9fafb; }
+
+/* Fixed column widths */
+.pl-table .col-img    { width: 60px; }
+.pl-table .col-name   { width: 18%; }
+.pl-table .col-cat    { width: 12%; }
+.pl-table .col-sku    { width: 10%; }
+.pl-table .col-stock  { width: 7%;  text-align: right; }
+.pl-table .col-price  { width: 10%; text-align: right; }
+.pl-table .col-vendor { width: 13%; }
+.pl-table .col-date   { width: 10%; }
+.pl-table .col-status { width: 10%; }
+.pl-table .col-act    { width: 80px; text-align: center; }
 
 /* Thumbnail */
 .pl-thumb {
-    width: 42px; height: 42px; border-radius: 8px;
-    object-fit: cover; border: 1px solid #e5e7eb; display: block;
+    width: 40px; height: 40px; border-radius: 7px;
+    object-fit: cover; border: 1px solid #e5e7eb;
+    display: block; flex-shrink: 0;
 }
 
 /* Name link */
 .pl-name-link {
-    font-weight: 700; color: #1d4ed8; text-decoration: none; font-size: 14px;
+    font-weight: 700; color: #1d4ed8; text-decoration: none; font-size: 13px;
 }
 .pl-name-link:hover { text-decoration: underline; }
 
 /* SKU */
-.pl-sku { font-size: 12px; color: #6b7280; font-family: monospace; }
+.pl-sku { font-size: 11px; color: #6b7280; font-family: monospace; }
 
 /* Status pill */
 .st-pill {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 3px 10px; border-radius: 999px;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 9px; border-radius: 999px;
     font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+    white-space: nowrap;
 }
 .st-in   { background: #dcfce7; color: #166534; }
 .st-low  { background: #fee2e2; color: #991b1b; }
@@ -124,8 +143,8 @@
 /* Row action icons */
 .act-icon {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 32px; height: 32px; border-radius: 7px;
-    text-decoration: none; font-size: 13px; transition: .15s;
+    width: 30px; height: 30px; border-radius: 7px;
+    text-decoration: none; font-size: 12px; transition: .15s; flex-shrink: 0;
 }
 .act-edit { background: #dbeafe; color: #1d4ed8; }
 .act-edit:hover { background: #bfdbfe; }
@@ -279,82 +298,67 @@
         <div class="pl-table-wrap">
             <div style="overflow-x:auto;">
                 <table class="pl-table">
+                    <colgroup>
+                        <col class="col-img">
+                        <col class="col-name">
+                        <col class="col-cat">
+                        <col class="col-sku">
+                        <col class="col-stock">
+                        <col class="col-price">
+                        <col class="col-vendor">
+                        <col class="col-date">
+                        <col class="col-status">
+                        <col class="col-act">
+                    </colgroup>
                     <thead>
                         <tr>
-                            <th style="width:56px;">Image</th>
-                            <th>Product Name</th>
-                            <th>Category</th>
-                            <th>SKU</th>
-                            <th style="text-align:right;">Stock</th>
-                            <th style="text-align:right;">Selling Price</th>
-                            <th>Vendor</th>
-                            <th>Added</th>
-                            <th>Status</th>
-                            <th style="text-align:center;width:90px;">Actions</th>
+                            <th class="col-img">Image</th>
+                            <th class="col-name">Product Name</th>
+                            <th class="col-cat">Category</th>
+                            <th class="col-sku">SKU</th>
+                            <th class="col-stock">Stock</th>
+                            <th class="col-price">Price (₹)</th>
+                            <th class="col-vendor">Vendor</th>
+                            <th class="col-date">Added</th>
+                            <th class="col-status">Status</th>
+                            <th class="col-act">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in items %}
                         <tr>
-                            <!-- Thumbnail -->
-                            <td>
+                            <td class="col-img">
                                 <img class="pl-thumb"
                                      src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'images/default_product.svg' %}{% endif %}"
                                      alt="{{ item.name }}">
                             </td>
-
-                            <!-- Name -->
-                            <td>
-                                <a class="pl-name-link" href="{% url 'product-detail' item.slug %}">
-                                    {{ item.name }}
-                                </a>
+                            <td class="col-name">
+                                <a class="pl-name-link" href="{% url 'product-detail' item.slug %}">{{ item.name }}</a>
                             </td>
-
-                            <!-- Category -->
-                            <td style="font-size:13px;color:#374151;">
-                                {{ item.category.name|default:"—" }}
-                            </td>
-
-                            <!-- SKU -->
-                            <td><span class="pl-sku">{{ item.sku|default:"—" }}</span></td>
-
-                            <!-- Stock count -->
-                            <td style="text-align:right;">
+                            <td class="col-cat">{{ item.category.name|default:"—" }}</td>
+                            <td class="col-sku"><span class="pl-sku">{{ item.sku|default:"—" }}</span></td>
+                            <td class="col-stock">
                                 <span style="font-weight:700;color:{% if item.is_low_stock %}#dc2626{% else %}#16a34a{% endif %};">
                                     {{ item.quantity }}
                                 </span>
                             </td>
-
-                            <!-- Selling price -->
-                            <td style="text-align:right;font-weight:700;color:#1d4ed8;white-space:nowrap;">
+                            <td class="col-price" style="font-weight:700;color:#1d4ed8;">
                                 ₹ {{ item.price|floatformat:2 }}
                             </td>
-
-                            <!-- Vendor -->
-                            <td style="font-size:13px;color:#374151;">
+                            <td class="col-vendor" style="color:#374151;">
                                 {{ item.vendor.company_name|default:item.vendor.name|default:"—" }}
                             </td>
-
-                            <!-- Added date -->
-                            <td style="font-size:12px;color:#6b7280;white-space:nowrap;">
+                            <td class="col-date" style="color:#6b7280;">
                                 {{ item.created_at|date:"d M Y"|default:"—" }}
                             </td>
-
-                            <!-- Status pill -->
-                            <td>
+                            <td class="col-status">
                                 {% if item.is_low_stock %}
-                                <span class="st-pill st-low">
-                                    <i class="fa-solid fa-triangle-exclamation" style="font-size:9px;"></i> Low
-                                </span>
+                                <span class="st-pill st-low"><i class="fa-solid fa-triangle-exclamation" style="font-size:9px;"></i> Low</span>
                                 {% else %}
-                                <span class="st-pill st-in">
-                                    <i class="fa-solid fa-circle-check" style="font-size:9px;"></i> In Stock
-                                </span>
+                                <span class="st-pill st-in"><i class="fa-solid fa-circle-check" style="font-size:9px;"></i> In Stock</span>
                                 {% endif %}
                             </td>
-
-                            <!-- Actions -->
-                            <td style="text-align:center;">
+                            <td class="col-act">
                                 <a class="act-icon act-edit" href="{% url 'product-update' item.slug %}" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </a>

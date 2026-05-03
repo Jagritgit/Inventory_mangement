@@ -1,0 +1,132 @@
+ROLE:
+Act as a Django frontend developer. Fix the Product List table so it displays as a proper, clean, well-aligned table with consistent rows and columns.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Product list uses a table layout
+* Current issue:
+  Table looks misaligned and inconsistent (columns not properly structured)
+
+---
+
+## CORE REQUIREMENT
+
+Make the table look like a proper professional table:
+
+* Clean rows and columns
+* Consistent alignment
+* Proper spacing
+* No broken layout
+
+---
+
+## 1. TABLE STRUCTURE
+
+Use a standard HTML table:
+
+<table class="table table-bordered align-middle text-start">
+
+Columns must be:
+
+1. Image
+2. Product Name
+3. Category
+4. Quantity
+5. Price
+6. Vendor
+7. Date
+8. Actions
+
+---
+
+## 2. ALIGNMENT RULES
+
+* All text should be left-aligned
+* Actions column should be center-aligned
+* Vertical alignment must be consistent (middle)
+
+---
+
+## 3. COLUMN CONSISTENCY
+
+* Each column must maintain consistent width
+* Prevent layout shifting between rows
+* Do NOT allow uneven spacing
+
+---
+
+## 4. IMAGE HANDLING
+
+* Use fixed size for images:
+  width: 40px
+  height: 40px
+  object-fit: cover
+
+* Ensure images do not stretch or distort rows
+
+---
+
+## 5. TEXT HANDLING
+
+* Prevent text wrapping:
+  white-space: nowrap
+
+* Keep rows clean and readable
+
+---
+
+## 6. HEADER STYLING
+
+* Use light background for header
+* Bold column names
+* Clear separation from body
+
+---
+
+## 7. ROW STYLING
+
+* Equal padding for all cells
+* Optional subtle hover effect
+* No excessive colors or styling
+
+---
+
+## 8. CSS REQUIREMENTS
+
+Add clean CSS:
+
+* consistent padding
+* fixed column widths
+* proper alignment
+* minimal styling
+
+---
+
+## 9. CONSTRAINTS
+
+* Do NOT redesign UI
+* Do NOT convert to cards
+* Do NOT add extra features
+* Only fix table structure and alignment
+
+---
+
+## 10. OUTPUT FORMAT
+
+Provide:
+
+1. Updated HTML table
+2. CSS for alignment and layout
+3. Small explanation
+
+---
+
+## EXPECTED RESULT
+
+* Table looks clean and professional
+* Columns are aligned properly
+* Rows are consistent
+* No visual clutter or broken layout
