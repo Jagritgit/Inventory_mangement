@@ -162,12 +162,6 @@
                 </a>
                 <ul class="dropdown-menu border-0">
                     <li>
-                        <a class="dropdown-item {% if request.resolver_match.url_name == 'vendor-list' or request.resolver_match.url_name == 'vendor-create' or request.resolver_match.url_name == 'vendor-update' %}active{% endif %}"
-                           href="{% url 'vendor-list' %}">
-                            <i class="fa-solid fa-building me-1"></i> Vendors
-                        </a>
-                    </li>
-                    <li>
                         <a class="dropdown-item {% if 'purchase-order' in request.resolver_match.url_name %}active{% endif %}"
                            href="{% url 'purchase-order-list' %}">
                             <i class="fa-solid fa-file-lines me-1"></i> Purchase Orders
