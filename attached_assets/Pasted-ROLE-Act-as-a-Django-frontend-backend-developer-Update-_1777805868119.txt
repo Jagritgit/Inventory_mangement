@@ -1,0 +1,119 @@
+ROLE:
+Act as a Django frontend + backend developer. Update the Product List table to include additional useful fields and display a clean, professional layout.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Product list page currently shows basic table
+* Need to enhance table with more useful data
+
+---
+
+## CORE REQUIREMENT
+
+Update Product List table to display:
+
+* Small product image
+* Product name
+* Quantity (stock)
+* Selling price
+* Vendor name
+* Date (created or last updated)
+* Actions (Edit / Delete)
+
+---
+
+## 1. TABLE STRUCTURE
+
+Columns:
+
+1. Image (small thumbnail ~40px)
+2. Product Name
+3. Quantity
+4. Price (₹ format)
+5. Vendor Name
+6. Date
+7. Actions
+
+---
+
+## 2. IMAGE HANDLING
+
+* If product.image exists:
+  → display image
+* Else:
+  → display default placeholder image
+
+---
+
+## 3. DATA DISPLAY
+
+* Product Name → product.name
+* Quantity → product.quantity
+* Price → product.selling_price
+* Vendor → product.vendor.name (if exists, else show "-")
+* Date → product.created_at (format: dd-mm-yyyy)
+
+---
+
+## 4. MODEL REQUIREMENTS
+
+Ensure Product model has:
+
+* image (ImageField, optional)
+* selling_price (DecimalField)
+* quantity (IntegerField)
+* created_at (DateTimeField)
+* vendor (ForeignKey to Vendor, optional)
+
+---
+
+## 5. TEMPLATE IMPLEMENTATION
+
+Use a clean HTML table:
+
+* Use <thead> and <tbody>
+* Loop through products
+* Show image in first column
+* Keep layout aligned and readable
+
+---
+
+## 6. UI RULES
+
+* Keep image small (30–50px)
+* Do NOT use cards for this view
+* Keep design minimal and table-based
+* Avoid unnecessary colors or styling
+
+---
+
+## 7. CONSTRAINTS
+
+* Do NOT break existing product functionality
+* Do NOT duplicate product data
+* Handle missing vendor/image gracefully
+* Keep code clean and readable
+
+---
+
+## 8. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (if updates needed)
+2. views.py (if query changes needed)
+3. template (updated table)
+4. CSS (minimal styling)
+5. short explanation
+
+---
+
+## EXPECTED RESULT
+
+* Product list shows image, name, quantity, price, vendor, date
+* Table looks clean and professional
+* Missing data handled properly
+* Similar to real inventory systems

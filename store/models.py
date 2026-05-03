@@ -43,7 +43,8 @@ class Item(models.Model):
     )
 
     expiring_date = models.DateTimeField(null=True, blank=True)
-    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True)
+    created_at    = models.DateTimeField(auto_now_add=True, null=True, blank=True)
+    vendor = models.ForeignKey(Vendor, on_delete=models.SET_NULL, null=True, blank=True)
 
     @property
     def is_low_stock(self):

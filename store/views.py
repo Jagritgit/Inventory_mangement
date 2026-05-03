@@ -367,19 +367,16 @@ class ProductListView(LoginRequiredMixin, ExportMixin, tables.SingleTableView):
     SingleTableView.table_pagination = False
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = super().get_queryset().select_related('vendor', 'category')
         order = self.request.GET.get('order', 'old')
 
         if order == 'new':
             return queryset.order_by('-id')
-
         elif order == 'high':
             return queryset.order_by('-price')
-
         elif order == 'low':
             return queryset.order_by('price')
-
-        else:  # default = oldest
+        else:
             return queryset.order_by('id')
 
 
