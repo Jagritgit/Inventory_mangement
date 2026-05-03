@@ -1,0 +1,133 @@
+ROLE:
+Act as a senior Django developer. Fix URL routing and implement a proper Bills module to resolve 404 errors caused by incorrect URL matching.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Existing URLs include:
+  purchase-orders/[slug:slug](slug:slug)/ → PurchaseOrderDetailView
+* Current issue:
+  Visiting /purchase-orders/bills/ causes 404
+  because "bills" is treated as a slug instead of a route
+
+---
+
+## PROBLEM
+
+* Django URL pattern:
+  purchase-orders/[slug:slug](slug:slug)/
+  is catching:
+  purchase-orders/bills/
+
+* Django tries:
+  PurchaseOrder.objects.get(slug="bills")
+  → fails → 404 error
+
+---
+
+## REQUIREMENTS
+
+### 1. CREATE PROPER BILL ROUTES
+
+Add new URL patterns:
+
+* bills/ → list all bills
+* bills/[int:pk](int:pk)/ → bill detail
+* purchase-orders/[slug:slug](slug:slug)/create-bill/ → create bill from purchase order
+
+---
+
+### 2. FIX URL ORDER (CRITICAL)
+
+Ensure correct order in urls.py:
+
+* bills/ route must come BEFORE:
+  purchase-orders/[slug:slug](slug:slug)/
+
+Correct order:
+
+path('bills/', BillListView.as_view(), name='bill-list'),
+path('bills/[int:pk](int:pk)/', BillDetailView.as_view(), name='bill-detail'),
+
+path('purchase-orders/', PurchaseOrderListView.as_view(), name='purchase-order-list'),
+path('purchase-orders/new/', PurchaseOrderCreateView.as_view(), name='purchase-order-create'),
+path('purchase-orders/[slug:slug](slug:slug)/', PurchaseOrderDetailView.as_view(), name='purchase-order-detail'),
+
+---
+
+### 3. CREATE BILL LIST VIEW
+
+Implement:
+
+class BillListView(ListView):
+model = Bill
+template_name = 'bills/bill_list.html'
+context_object_name = 'bills'
+
+---
+
+### 4. CREATE BILL FROM PURCHASE ORDER
+
+Create function:
+
+def create_bill_from_po(request, slug):
+- Fetch PurchaseOrder using slug
+- Create Bill linked to PurchaseOrder
+- Copy:
+vendor
+items (product, quantity, price)
+- Redirect to bill detail page
+
+---
+
+### 5. FIX TEMPLATE LINKS
+
+Replace incorrect links like:
+
+/purchase-orders/bills/
+
+WITH:
+
+{% url 'bill-list' %}
+
+---
+
+### 6. OPTIONAL: ADD SIDEBAR LINK
+
+Sidebar:
+
+* Purchases
+  → Vendors
+  → Purchase Orders
+  → Bills (linked to bill-list)
+
+---
+
+### 7. CONSTRAINTS
+
+* Do NOT let purchase-orders/<slug> capture unrelated routes
+* Keep URL structure clean and RESTful
+* Avoid hardcoded URLs in templates
+
+---
+
+## OUTPUT FORMAT
+
+Provide:
+
+1. Updated urls.py
+2. BillListView and BillDetailView
+3. create_bill_from_po function
+4. Correct template links
+5. Short explanation
+
+---
+
+## EXPECTED RESULT
+
+* /bills/ works correctly
+* No more 404 from /purchase-orders/bills/
+* Bills module accessible from sidebar
+* Proper routing without conflicts
