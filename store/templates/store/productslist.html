@@ -5,7 +5,6 @@
 {% block title %}Products{% endblock %}
 
 {% block content %}
-
 <style>
 /* ── Wrapper ───────────────────────────────────────── */
 .pl-wrap { padding: 16px; }
@@ -13,15 +12,9 @@
 /* ── Header bar ────────────────────────────────────── */
 .pl-header {
     background: linear-gradient(135deg, #1f2937, #111827);
-    border-radius: 14px;
-    padding: 18px 22px;
-    margin-bottom: 16px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-    color: #fff;
+    border-radius: 14px; padding: 18px 22px; margin-bottom: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px; color: #fff;
     box-shadow: 0 6px 20px rgba(0,0,0,0.18);
 }
 .pl-header h4 { margin: 0; font-size: 18px; font-weight: 800; }
@@ -34,9 +27,8 @@
 }
 .sort-btn {
     padding: 7px 14px; font-size: 13px; font-weight: 600;
-    color: rgba(255,255,255,0.8); text-decoration: none;
-    border-right: 1px solid rgba(255,255,255,0.1);
-    transition: .15s;
+    color: rgba(255,255,255,0.75); text-decoration: none;
+    border-right: 1px solid rgba(255,255,255,0.1); transition: .15s;
 }
 .sort-btn:last-child { border-right: none; }
 .sort-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
@@ -48,152 +40,196 @@
     border-radius: 8px; overflow: hidden;
 }
 .view-btn {
-    padding: 7px 14px; font-size: 13px; font-weight: 600;
+    padding: 7px 16px; font-size: 13px; font-weight: 600;
     color: rgba(255,255,255,0.8); border: none; background: transparent;
-    cursor: pointer; display: flex; align-items: center; gap: 5px;
-    transition: .15s;
+    cursor: pointer; display: flex; align-items: center; gap: 6px; transition: .15s;
 }
 .view-btn:hover { background: rgba(255,255,255,0.15); color: #fff; }
 .view-btn.active { background: #fff; color: #111827; }
 
-/* ── Action buttons ────────────────────────────────── */
+/* ── Top-right action buttons ───────────────────────── */
 .btn-add {
-    background: #16a34a; color: #fff; border: none;
-    border-radius: 8px; padding: 8px 16px; font-size: 13px;
-    font-weight: 600; text-decoration: none; display: flex;
-    align-items: center; gap: 5px; transition: .15s;
+    background: #16a34a; color: #fff; border: none; border-radius: 8px;
+    padding: 8px 16px; font-size: 13px; font-weight: 600;
+    text-decoration: none; display: flex; align-items: center; gap: 5px; transition: .15s;
 }
 .btn-add:hover { background: #15803d; color: #fff; }
 .btn-export {
     background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.4);
-    border-radius: 8px; padding: 7px 14px; font-size: 13px;
-    font-weight: 600; text-decoration: none; display: flex;
-    align-items: center; gap: 5px; transition: .15s;
+    border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 600;
+    text-decoration: none; display: flex; align-items: center; gap: 5px; transition: .15s;
 }
 .btn-export:hover { background: rgba(255,255,255,0.1); color: #fff; }
 
 /* ── Search bar ────────────────────────────────────── */
 .pl-search { margin-bottom: 14px; }
-.pl-search form { display: flex; gap: 0; }
+.pl-search form { display: flex; }
 .pl-search input {
     flex: 1; padding: 9px 16px; border-radius: 8px 0 0 8px;
     border: 1px solid #d1d5db; border-right: none;
-    font-size: 14px; outline: none; color: #111;
+    font-size: 14px; color: #111; outline: none;
 }
 .pl-search input:focus { border-color: #2563eb; }
 .pl-search button {
     background: #2563eb; color: #fff; border: none;
-    border-radius: 0 8px 8px 0; padding: 9px 18px;
-    font-size: 14px; cursor: pointer;
+    border-radius: 0 8px 8px 0; padding: 9px 18px; cursor: pointer;
 }
 .pl-search button:hover { background: #1d4ed8; }
 
-/* ── Stock badge ───────────────────────────────────── */
-.stock-ok  { color: #16a34a; font-weight: 700; }
-.stock-low { color: #dc2626; font-weight: 700; }
-
-/* ── LIST TABLE ────────────────────────────────────── */
+/* ════════════════════════════════════════════════════
+   LIST VIEW — minimal, fast scanning
+════════════════════════════════════════════════════ */
 .pl-table-wrap {
     background: #fff; border-radius: 12px;
     box-shadow: 0 4px 14px rgba(0,0,0,0.06); overflow: hidden;
 }
 .pl-table { width: 100%; border-collapse: collapse; }
 .pl-table th {
-    background: #f8fafc; padding: 12px 14px;
+    background: #f8fafc; padding: 11px 14px;
     font-size: 11px; font-weight: 800; text-transform: uppercase;
-    letter-spacing: .04em; color: #374151;
+    letter-spacing: .05em; color: #374151;
     border-bottom: 2px solid #e5e7eb; text-align: left;
 }
 .pl-table td {
-    padding: 11px 14px; border-bottom: 1px solid #f1f5f9;
+    padding: 10px 14px; border-bottom: 1px solid #f1f5f9;
     font-size: 14px; color: #111827; vertical-align: middle;
 }
 .pl-table tr:last-child td { border-bottom: none; }
 .pl-table tr:hover td { background: #f9fafb; }
-.pl-thumb {
-    width: 40px; height: 40px; border-radius: 8px;
-    object-fit: cover; border: 1px solid #e5e7eb;
-}
-.pl-sku { font-size: 11px; color: #6b7280; }
-.pl-table .act-edit {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 6px;
-    background: #dbeafe; color: #1d4ed8; text-decoration: none;
-    font-size: 12px; transition: .15s;
-}
-.pl-table .act-edit:hover { background: #bfdbfe; }
-.pl-table .act-del {
-    display: inline-flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px; border-radius: 6px;
-    background: #fee2e2; color: #dc2626; text-decoration: none;
-    font-size: 12px; transition: .15s;
-}
-.pl-table .act-del:hover { background: #fecaca; }
 
-/* ── GRID VIEW ─────────────────────────────────────── */
+/* Thumbnail */
+.pl-thumb {
+    width: 42px; height: 42px; border-radius: 8px;
+    object-fit: cover; border: 1px solid #e5e7eb; display: block;
+}
+
+/* Name link */
+.pl-name-link {
+    font-weight: 700; color: #1d4ed8; text-decoration: none; font-size: 14px;
+}
+.pl-name-link:hover { text-decoration: underline; }
+
+/* SKU */
+.pl-sku { font-size: 12px; color: #6b7280; font-family: monospace; }
+
+/* Status pill */
+.st-pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+}
+.st-in   { background: #dcfce7; color: #166534; }
+.st-low  { background: #fee2e2; color: #991b1b; }
+
+/* Row action icons */
+.act-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 7px;
+    text-decoration: none; font-size: 13px; transition: .15s;
+}
+.act-edit { background: #dbeafe; color: #1d4ed8; }
+.act-edit:hover { background: #bfdbfe; }
+.act-del  { background: #fee2e2; color: #dc2626; }
+.act-del:hover  { background: #fecaca; }
+
+/* ════════════════════════════════════════════════════
+   GRID VIEW — detailed product understanding
+════════════════════════════════════════════════════ */
 .pl-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 18px;
 }
+
 .pl-card {
-    background: #fff; border-radius: 12px;
-    box-shadow: 0 4px 14px rgba(0,0,0,0.06);
-    overflow: hidden; transition: transform .18s, box-shadow .18s;
-    display: flex; flex-direction: column;
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+    overflow: hidden; display: flex; flex-direction: column;
+    transition: transform .18s, box-shadow .18s;
 }
-.pl-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+.pl-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,0.11); }
+
+/* Image */
 .pl-card-img-wrap {
-    width: 100%; aspect-ratio: 1 / 1; overflow: hidden;
-    background: #f1f5f9;
+    width: 100%; aspect-ratio: 4/3; overflow: hidden; background: #f1f5f9;
+    position: relative;
 }
-.pl-card-img {
-    width: 100%; height: 100%; object-fit: cover;
-    transition: transform .25s;
+.pl-card-img { width: 100%; height: 100%; object-fit: cover; transition: transform .28s; }
+.pl-card:hover .pl-card-img { transform: scale(1.05); }
+
+/* Status badge overlaid on image */
+.pl-card-badge {
+    position: absolute; top: 10px; right: 10px;
+    padding: 3px 10px; border-radius: 999px;
+    font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
 }
-.pl-card:hover .pl-card-img { transform: scale(1.04); }
-.pl-card-body { padding: 12px; flex: 1; display: flex; flex-direction: column; gap: 4px; }
-.pl-card-name { font-size: 14px; font-weight: 700; color: #111827; }
-.pl-card-sku  { font-size: 11px; color: #9ca3af; }
-.pl-card-price { font-size: 15px; font-weight: 800; color: #1d4ed8; margin-top: 4px; }
-.pl-card-qty  { font-size: 12px; }
+.badge-in  { background: #dcfce7; color: #166534; }
+.badge-low { background: #fee2e2; color: #991b1b; }
+
+/* Body */
+.pl-card-body { padding: 14px; flex: 1; display: flex; flex-direction: column; gap: 0; }
+.pl-card-name { font-size: 15px; font-weight: 800; color: #111827; line-height: 1.3; margin-bottom: 6px; }
+
+/* Price row */
+.pl-card-prices {
+    display: flex; gap: 10px; align-items: baseline; margin-bottom: 10px; flex-wrap: wrap;
+}
+.pl-price-sell {
+    font-size: 18px; font-weight: 900; color: #1d4ed8;
+}
+.pl-price-sell-label {
+    font-size: 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; margin-bottom: 1px;
+}
+.pl-price-cost {
+    font-size: 13px; font-weight: 700; color: #374151;
+}
+.pl-price-cost-label {
+    font-size: 10px; color: #9ca3af; font-weight: 600; text-transform: uppercase; margin-bottom: 1px;
+}
+.pl-divider { width: 1px; height: 30px; background: #e5e7eb; flex-shrink: 0; }
+
+/* Info rows */
+.pl-card-info {
+    display: flex; justify-content: space-between;
+    font-size: 13px; color: #374151; padding: 6px 0;
+    border-top: 1px solid #f1f5f9;
+}
+.pl-card-info .info-label { color: #9ca3af; font-weight: 600; font-size: 12px; }
+.pl-card-info .info-val { font-weight: 700; }
+
+/* Actions */
 .pl-card-actions {
-    padding: 0 12px 12px;
-    display: flex; gap: 6px;
+    display: flex; gap: 8px; padding: 12px 14px 14px; border-top: 1px solid #f1f5f9;
 }
 .pl-card-actions a {
-    flex: 1; text-align: center; padding: 7px 0;
-    border-radius: 7px; font-size: 12px; font-weight: 600;
+    flex: 1; text-align: center; padding: 8px 0;
+    border-radius: 8px; font-size: 13px; font-weight: 700;
     text-decoration: none; transition: .15s;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
 }
-.pl-card-actions .ca-edit { background: #dbeafe; color: #1d4ed8; }
-.pl-card-actions .ca-edit:hover { background: #bfdbfe; }
-.pl-card-actions .ca-del  { background: #fee2e2; color: #dc2626; }
-.pl-card-actions .ca-del:hover { background: #fecaca; }
+.ca-edit { background: #dbeafe; color: #1d4ed8; }
+.ca-edit:hover { background: #bfdbfe; }
+.ca-del  { background: #fee2e2; color: #dc2626; }
+.ca-del:hover  { background: #fecaca; }
 
 /* ── Pagination ────────────────────────────────────── */
-.pl-pag {
-    display: flex; justify-content: center;
-    gap: 6px; margin-top: 16px;
-}
+.pl-pag { display: flex; justify-content: center; gap: 6px; margin-top: 18px; }
 .pl-pag a, .pl-pag span {
     padding: 6px 12px; border-radius: 6px; font-size: 13px;
-    text-decoration: none; color: #374151; background: #fff;
-    border: 1px solid #e5e7eb;
+    text-decoration: none; color: #374151; background: #fff; border: 1px solid #e5e7eb;
 }
 .pl-pag .cur { background: #2563eb; color: #fff; border-color: #2563eb; }
 
-/* Low-stock badge on card */
-.low-stock-badge {
-    display: inline-block; background: #fee2e2; color: #dc2626;
-    font-size: 10px; font-weight: 700; padding: 2px 8px;
-    border-radius: 999px; text-transform: uppercase; letter-spacing: .04em;
+/* ── View hint label ───────────────────────────────── */
+.view-hint {
+    font-size: 11px; color: #9ca3af; text-align: right;
+    margin-bottom: 8px; font-style: italic;
 }
 </style>
 
 <div class="pl-wrap">
 
-    <!-- ── Header ───────────────────────────────────── -->
+    <!-- ── Header bar ────────────────────────────────── -->
     <div class="pl-header">
         <h4><i class="fa-solid fa-box me-2"></i>Products</h4>
         <div class="pl-header-right">
@@ -209,14 +245,13 @@
             <!-- View toggle -->
             <div class="view-toggle">
                 <button class="view-btn active" id="btnList" onclick="showList()">
-                    <i class="fa-solid fa-list"></i> List
+                    <i class="fa-solid fa-list-ul"></i> List
                 </button>
                 <button class="view-btn" id="btnGrid" onclick="showGrid()">
                     <i class="fa-solid fa-grip"></i> Grid
                 </button>
             </div>
 
-            <!-- Actions -->
             <a href="{% url 'product-create' %}" class="btn-add">
                 <i class="fa-solid fa-plus"></i> Add Product
             </a>
@@ -227,7 +262,7 @@
         </div>
     </div>
 
-    <!-- ── Search ────────────────────────────────────── -->
+    <!-- ── Search ─────────────────────────────────────── -->
     <div class="pl-search">
         <form method="get" action="{% url 'item_search_list_view' %}">
             <input name="q" type="text" placeholder="Search products by name…"
@@ -236,63 +271,77 @@
         </form>
     </div>
 
-    <!-- ══════════════════════════════════════════════
-         LIST VIEW (default)
-    ═══════════════════════════════════════════════ -->
+    <!-- ══════════════════════════════════════════════════
+         LIST VIEW — minimal, quick scanning, no prices
+    ═══════════════════════════════════════════════════ -->
     <div id="list-view">
+        <p class="view-hint">List view — fast scanning. Switch to Grid for pricing details.</p>
         <div class="pl-table-wrap">
             <div style="overflow-x:auto;">
                 <table class="pl-table">
                     <thead>
                         <tr>
-                            <th style="width:52px;">Image</th>
-                            <th>Name</th>
+                            <th style="width:56px;">Image</th>
+                            <th>Product Name</th>
                             <th>SKU</th>
-                            <th>Category</th>
-                            <th>Price</th>
                             <th>Stock</th>
-                            <th>Vendor</th>
-                            <th style="text-align:center;">Actions</th>
+                            <th>Status</th>
+                            <th style="text-align:center; width:90px;">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for item in items %}
                         <tr>
+                            <!-- Thumbnail -->
                             <td>
                                 <img class="pl-thumb"
                                      src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'images/default_product.svg' %}{% endif %}"
                                      alt="{{ item.name }}">
                             </td>
+
+                            <!-- Name -->
                             <td>
-                                <a href="{% url 'product-detail' item.slug %}"
-                                   style="font-weight:600;color:#1d4ed8;text-decoration:none;">
+                                <a class="pl-name-link" href="{% url 'product-detail' item.slug %}">
                                     {{ item.name }}
                                 </a>
-                                {% if item.is_low_stock %}
-                                <span class="low-stock-badge ms-1">Low</span>
-                                {% endif %}
                             </td>
+
+                            <!-- SKU -->
                             <td><span class="pl-sku">{{ item.sku|default:"—" }}</span></td>
-                            <td>{{ item.category.name }}</td>
-                            <td>₹ {{ item.price }}</td>
+
+                            <!-- Stock count -->
                             <td>
-                                <span class="{% if item.is_low_stock %}stock-low{% else %}stock-ok{% endif %}">
+                                <span style="font-weight:700;color:{% if item.is_low_stock %}#dc2626{% else %}#16a34a{% endif %};">
                                     {{ item.quantity }}
                                 </span>
                             </td>
-                            <td>{{ item.vendor|default:"—" }}</td>
+
+                            <!-- Status pill -->
+                            <td>
+                                {% if item.is_low_stock %}
+                                <span class="st-pill st-low">
+                                    <i class="fa-solid fa-triangle-exclamation" style="font-size:9px;"></i> Low Stock
+                                </span>
+                                {% else %}
+                                <span class="st-pill st-in">
+                                    <i class="fa-solid fa-circle-check" style="font-size:9px;"></i> In Stock
+                                </span>
+                                {% endif %}
+                            </td>
+
+                            <!-- Actions -->
                             <td style="text-align:center;">
-                                <a class="act-edit" href="{% url 'product-update' item.slug %}" title="Edit">
+                                <a class="act-icon act-edit" href="{% url 'product-update' item.slug %}" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </a>
-                                <a class="act-del ms-1" href="{% url 'product-delete' item.slug %}" title="Delete">
+                                <a class="act-icon act-del ms-1" href="{% url 'product-delete' item.slug %}" title="Delete">
                                     <i class="fa-solid fa-trash"></i>
                                 </a>
                             </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="8" style="text-align:center;color:#9ca3af;padding:28px;">
+                            <td colspan="6" style="text-align:center;color:#9ca3af;padding:32px;">
                                 No products found.
                                 <a href="{% url 'product-create' %}" style="color:#2563eb;">Add one →</a>
                             </td>
@@ -304,34 +353,73 @@
         </div>
     </div>
 
-    <!-- ══════════════════════════════════════════════
-         GRID VIEW (hidden by default)
-    ═══════════════════════════════════════════════ -->
+    <!-- ══════════════════════════════════════════════════
+         GRID VIEW — detailed: pricing, cost, status
+    ═══════════════════════════════════════════════════ -->
     <div id="grid-view" style="display:none;">
+        <p class="view-hint">Grid view — detailed pricing info. Switch to List for fast scanning.</p>
         <div class="pl-grid">
             {% for item in items %}
             <div class="pl-card">
+
+                <!-- Image with status badge overlay -->
                 <div class="pl-card-img-wrap">
                     <img class="pl-card-img"
                          src="{% if item.image %}{{ item.image.url }}{% else %}{% static 'images/default_product.svg' %}{% endif %}"
                          alt="{{ item.name }}">
+                    {% if item.is_low_stock %}
+                    <span class="pl-card-badge badge-low">
+                        <i class="fa-solid fa-triangle-exclamation"></i> Low Stock
+                    </span>
+                    {% else %}
+                    <span class="pl-card-badge badge-in">
+                        <i class="fa-solid fa-circle-check"></i> In Stock
+                    </span>
+                    {% endif %}
                 </div>
+
+                <!-- Body: name + prices -->
                 <div class="pl-card-body">
-                    <div class="pl-card-name">
-                        {{ item.name }}
-                        {% if item.is_low_stock %}
-                        <span class="low-stock-badge">Low</span>
-                        {% endif %}
+                    <div class="pl-card-name">{{ item.name }}</div>
+
+                    <!-- Selling price / Cost price split -->
+                    <div class="pl-card-prices">
+                        <div>
+                            <div class="pl-price-sell-label">Selling Price</div>
+                            <div class="pl-price-sell">₹ {{ item.price|floatformat:2 }}</div>
+                        </div>
+                        <div class="pl-divider"></div>
+                        <div>
+                            <div class="pl-price-cost-label">Cost Price</div>
+                            <div class="pl-price-cost">₹ {{ item.cost_price|floatformat:2 }}</div>
+                        </div>
                     </div>
-                    {% if item.sku %}<div class="pl-card-sku">{{ item.sku }}</div>{% endif %}
-                    <div class="pl-card-price">₹ {{ item.price }}</div>
-                    <div class="pl-card-qty">
-                        Stock:
-                        <span class="{% if item.is_low_stock %}stock-low{% else %}stock-ok{% endif %}">
-                            {{ item.quantity }}
+
+                    <!-- Stock info row -->
+                    <div class="pl-card-info">
+                        <span class="info-label">Available Stock</span>
+                        <span class="info-val" style="color:{% if item.is_low_stock %}#dc2626{% else %}#16a34a{% endif %};">
+                            {{ item.quantity }} units
                         </span>
                     </div>
+
+                    <!-- Category row -->
+                    <div class="pl-card-info">
+                        <span class="info-label">Category</span>
+                        <span class="info-val">{{ item.category.name }}</span>
+                    </div>
+
+                    <!-- SKU row -->
+                    {% if item.sku %}
+                    <div class="pl-card-info">
+                        <span class="info-label">SKU</span>
+                        <span class="info-val" style="font-family:monospace;font-size:12px;">{{ item.sku }}</span>
+                    </div>
+                    {% endif %}
+
                 </div>
+
+                <!-- Action buttons -->
                 <div class="pl-card-actions">
                     <a class="ca-edit" href="{% url 'product-update' item.slug %}">
                         <i class="fa-solid fa-pen"></i> Edit
@@ -340,25 +428,29 @@
                         <i class="fa-solid fa-trash"></i> Delete
                     </a>
                 </div>
+
             </div>
             {% empty %}
-            <p style="color:#9ca3af;grid-column:1/-1;text-align:center;padding:28px;">
+            <p style="color:#9ca3af;grid-column:1/-1;text-align:center;padding:32px;">
                 No products found.
+                <a href="{% url 'product-create' %}" style="color:#2563eb;">Add one →</a>
             </p>
             {% endfor %}
         </div>
     </div>
 
-    <!-- ── Pagination ─────────────────────────────── -->
+    <!-- ── Pagination ─────────────────────────────────── -->
     {% if is_paginated %}
     <div class="pl-pag">
         {% if page_obj.has_previous %}
         <a href="?page={{ page_obj.previous_page_number }}&order={{ request.GET.order }}">‹ Prev</a>
         {% endif %}
         {% for i in paginator.page_range %}
-        <{% if page_obj.number == i %}span class="cur"{% else %}a href="?page={{ i }}&order={{ request.GET.order }}"{% endif %}>
-            {{ i }}
-        </{% if page_obj.number == i %}span{% else %}a{% endif %}>
+        {% if page_obj.number == i %}
+        <span class="cur">{{ i }}</span>
+        {% else %}
+        <a href="?page={{ i }}&order={{ request.GET.order }}">{{ i }}</a>
+        {% endif %}
         {% endfor %}
         {% if page_obj.has_next %}
         <a href="?page={{ page_obj.next_page_number }}&order={{ request.GET.order }}">Next ›</a>
@@ -387,7 +479,7 @@ function showGrid() {
     localStorage.setItem(PREF_KEY, 'grid');
 }
 
-// Restore preference on page load
+// Restore last-used preference on load
 (function () {
     if (localStorage.getItem(PREF_KEY) === 'grid') showGrid();
 })();
