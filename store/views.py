@@ -468,6 +468,27 @@ class ProductUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         else:
             return False
 
+    def _latest_purchase_price(self):
+        """Return the price from the most-recent Purchase for this product, or None."""
+        from transactions.models import Purchase
+        latest = Purchase.objects.filter(item=self.object).order_by('-order_date').first()
+        return latest.price if latest else None
+
+    def get_form(self, form_class=None):
+        form = super().get_form(form_class)
+        # Only auto-fill when the form hasn't been submitted yet (GET request),
+        # so we don't override what the user just typed on a failed POST.
+        if self.request.method == 'GET':
+            latest_price = self._latest_purchase_price()
+            if latest_price is not None and not form.initial.get('cost_price'):
+                form.fields['cost_price'].initial = latest_price
+        return form
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['latest_purchase_price'] = self._latest_purchase_price()
+        return ctx
+
 
 class ProductDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     """

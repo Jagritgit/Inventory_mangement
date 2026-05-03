@@ -47,7 +47,8 @@
 .pf-card input:focus, .pf-card select:focus, .pf-card textarea:focus {
     border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
 }
-.pf-err { color: #dc2626; font-size: 12px; margin-top: 3px; }
+.pf-err  { color: #dc2626; font-size: 12px; margin-top: 3px; }
+.pf-hint { font-size: 11px; color: #6b7280; margin-top: 4px; }
 
 /* Image upload area */
 .img-upload-area {
@@ -146,6 +147,7 @@
                 <div>
                     <label class="pf-label">Cost Price (₹)</label>
                     {{ form.cost_price }}
+                    <div class="pf-hint">Enter the price you paid / procured this product for.</div>
                     <div class="pf-err">{{ form.cost_price.errors.0 }}</div>
                 </div>
                 <div>

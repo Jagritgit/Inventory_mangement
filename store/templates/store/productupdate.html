@@ -47,7 +47,15 @@
 .pf-card input:focus, .pf-card select:focus, .pf-card textarea:focus {
     border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.08);
 }
-.pf-err { color: #dc2626; font-size: 12px; margin-top: 3px; }
+.pf-err  { color: #dc2626; font-size: 12px; margin-top: 3px; }
+.pf-hint { font-size: 11px; color: #6b7280; margin-top: 4px; line-height: 1.6; }
+.btn-use-purchase {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin-top: 5px; padding: 4px 11px; border: 1px solid #2563eb;
+    border-radius: 6px; background: #eff6ff; color: #1d4ed8;
+    font-size: 11px; font-weight: 700; cursor: pointer; transition: .15s;
+}
+.btn-use-purchase:hover { background: #dbeafe; }
 
 /* Current image */
 .img-current {
@@ -160,6 +168,17 @@
                 <div>
                     <label class="pf-label">Cost Price (₹)</label>
                     {{ form.cost_price }}
+                    {% if latest_purchase_price %}
+                    <div class="pf-hint">
+                        Auto-filled from latest purchase — editable.
+                        <button type="button" class="btn-use-purchase"
+                                onclick="usePurchasePrice('{{ latest_purchase_price }}')">
+                            <i class="fa-solid fa-rotate"></i> Use Latest Purchase Price (₹ {{ latest_purchase_price }})
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="pf-hint">No purchase history — enter cost price manually.</div>
+                    {% endif %}
                     <div class="pf-err">{{ form.cost_price.errors.0 }}</div>
                 </div>
                 <div>
@@ -226,6 +245,17 @@ document.getElementById('id_image').addEventListener('change', function () {
     preview.style.display = 'block';
     preview.onload = () => URL.revokeObjectURL(preview.src);
 });
+
+function usePurchasePrice(price) {
+    const field = document.getElementById('id_cost_price');
+    if (field) {
+        field.value = parseFloat(price).toFixed(2);
+        field.focus();
+        field.style.transition = 'background .3s';
+        field.style.background = '#eff6ff';
+        setTimeout(() => { field.style.background = ''; }, 900);
+    }
+}
 </script>
 
 {% endblock %}

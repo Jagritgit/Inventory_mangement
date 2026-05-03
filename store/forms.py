@@ -16,8 +16,10 @@ class ItemForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 2}),
             'category': forms.Select(attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control'}),
-            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'cost_price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'price': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0'}),
+            'cost_price': forms.NumberInput(attrs={
+                'class': 'form-control', 'step': '0.01', 'min': '0', 'id': 'id_cost_price',
+            }),
             'low_stock_threshold': forms.NumberInput(attrs={'class': 'form-control'}),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
             'expiring_date': forms.DateTimeInput(
@@ -25,6 +27,24 @@ class ItemForm(forms.ModelForm):
             ),
             'vendor': forms.Select(attrs={'class': 'form-control'}),
         }
+
+    def clean_cost_price(self):
+        cost = self.cleaned_data.get('cost_price')
+        if cost is not None and cost < 0:
+            raise forms.ValidationError("Cost price cannot be negative.")
+        return cost
+
+    def clean(self):
+        cleaned = super().clean()
+        selling = cleaned.get('price')
+        cost = cleaned.get('cost_price')
+        if selling is not None and cost is not None and selling < cost:
+            self.add_error(
+                'price',
+                "Selling price (₹ %.2f) is less than cost price (₹ %.2f). "
+                "You will sell at a loss." % (selling, cost),
+            )
+        return cleaned
 
 
 class CategoryForm(forms.ModelForm):
