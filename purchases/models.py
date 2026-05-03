@@ -25,6 +25,10 @@ class PurchaseOrder(models.Model):
     status        = models.CharField(max_length=10, choices=PO_STATUS, default='PENDING')
     notes         = models.TextField(blank=True, null=True, max_length=500)
     total_amount  = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    stock_updated = models.BooleanField(
+        default=False,
+        help_text='True after stock has been incremented on marking as Received.'
+    )
 
     class Meta:
         ordering        = ['-order_date']

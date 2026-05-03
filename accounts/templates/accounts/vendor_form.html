@@ -1,46 +1,105 @@
-{% extends 'store/base.html' %}
-{% load static %}
-
+{% extends "store/base.html" %}
+{% block title %}{% if object %}Edit Vendor{% else %}Add Vendor{% endif %}{% endblock %}
 {% block content %}
-<div class="container mt-5">
-  <div class="card shadow-lg border-0 rounded-4">
+{% include "invoice/_styles.html" %}
 
-    <!-- Header -->
-    <div class="card-header bg-primary text-white rounded-top-4">
-      <h4 class="mb-0">
-        {{ form.instance.pk|yesno:"Edit Vendor,Add Vendor" }}
-      </h4>
-    </div>
+<style>
+.vf-wrap { max-width: 680px; margin: 0 auto; }
+.vf-card {
+    background: #fff; border-radius: 14px;
+    box-shadow: 0 4px 18px rgba(0,0,0,0.07); padding: 28px;
+}
+.vf-section-title {
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .06em; color: #6b7280; margin-bottom: 16px;
+    padding-bottom: 8px; border-bottom: 1px solid #e5e7eb;
+}
+.vf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.vf-full { grid-column: 1 / -1; }
+.vf-label { font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 5px; display: block; }
+.vf-err   { color: #dc2626; font-size: 12px; margin-top: 3px; }
+.vf-card input, .vf-card textarea, .vf-card select {
+    width: 100%; padding: 9px 12px; border: 1px solid #d1d5db;
+    border-radius: 8px; font-size: 14px; color: #111827;
+    outline: none; transition: border .15s; box-sizing: border-box;
+}
+.vf-card input:focus, .vf-card textarea:focus {
+    border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.08);
+}
+.vf-submit {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 22px; padding-top: 16px; border-top: 1px solid #e5e7eb;
+}
+.btn-save   { background: #059669; color: #fff; border: none; border-radius: 9px; padding: 10px 28px; font-size: 14px; font-weight: 700; cursor: pointer; }
+.btn-save:hover { background: #047857; }
+.btn-back   { background: #f1f5f9; color: #374151; border: none; border-radius: 9px; padding: 10px 20px; font-size: 14px; font-weight: 600; text-decoration: none; }
+.btn-back:hover { background: #e2e8f0; }
+@media (max-width: 600px) { .vf-grid { grid-template-columns: 1fr; } }
+</style>
 
-    <!-- Body -->
-    <div class="card-body p-4">
-      <form method="post">
-        {% csrf_token %}
+<div class="module-wrap vf-wrap">
 
-        <!-- Show form errors -->
-        {% if form.errors %}
-          <div class="alert alert-danger">
-            Please fix the errors below.
-          </div>
-        {% endif %}
-
-        <!-- Django auto fields -->
-        {{ form.as_p }}
-
-        <!-- Buttons -->
-        <div class="d-flex justify-content-between mt-4">
-          <a href="{% url 'vendor-list' %}" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left me-1"></i> Back
-          </a>
-
-          <button type="submit" class="btn btn-primary px-4">
-            <i class="fas fa-save me-2"></i> Save
-          </button>
+    <div class="module-header" style="background: linear-gradient(135deg, #064e3b 0%, #059669 100%);">
+        <div>
+            <h2>{% if object %}Edit Vendor{% else %}Add Vendor{% endif %}</h2>
+            <small>{% if object %}{{ object.company_name|default:object.name }}{% else %}Fill in supplier details{% endif %}</small>
         </div>
-
-      </form>
+        <a class="btn-action ghost" href="{% url 'vendor-list' %}">← Back</a>
     </div>
 
-  </div>
+    <div class="vf-card">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div class="vf-section-title">Contact Details</div>
+            <div class="vf-grid">
+
+                <div>
+                    <label class="vf-label">Contact Name *</label>
+                    {{ form.name }}
+                    <div class="vf-err">{{ form.name.errors.0 }}</div>
+                </div>
+
+                <div>
+                    <label class="vf-label">Company Name</label>
+                    {{ form.company_name }}
+                    <div class="vf-err">{{ form.company_name.errors.0 }}</div>
+                </div>
+
+                <div>
+                    <label class="vf-label">Phone</label>
+                    {{ form.phone_number }}
+                    <div class="vf-err">{{ form.phone_number.errors.0 }}</div>
+                </div>
+
+                <div>
+                    <label class="vf-label">Email</label>
+                    {{ form.email }}
+                    <div class="vf-err">{{ form.email.errors.0 }}</div>
+                </div>
+
+                <div class="vf-full">
+                    <label class="vf-label">Address</label>
+                    {{ form.address }}
+                    <div class="vf-err">{{ form.address.errors.0 }}</div>
+                </div>
+
+            </div>
+
+            {% if form.non_field_errors %}
+            <div style="color:#dc2626;margin-top:10px;">{{ form.non_field_errors }}</div>
+            {% endif %}
+
+            <div class="vf-submit">
+                <a class="btn-back" href="{% url 'vendor-list' %}">Cancel</a>
+                <button type="submit" class="btn-save">
+                    <i class="fa-solid fa-check me-1"></i>
+                    {% if object %}Save Changes{% else %}Add Vendor{% endif %}
+                </button>
+            </div>
+
+        </form>
+    </div>
+
 </div>
 {% endblock %}

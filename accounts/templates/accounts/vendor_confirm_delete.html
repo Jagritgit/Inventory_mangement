@@ -1,18 +1,39 @@
-{% extends 'store/base.html' %}
-{% load static %}
-
+{% extends "store/base.html" %}
+{% block title %}Delete Vendor{% endblock %}
 {% block content %}
-<div class="container px-5">
-    <h1 class="my-4">Confirm Delete</h1>
-    <p>Are you sure you want to delete "{{ object.name }}"?</p>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-danger">
-            <i class="fas fa-trash-alt"></i> Confirm
-        </button>
-        <a href="{% url 'vendor-list' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Cancel
-        </a>
-    </form>
+{% include "invoice/_styles.html" %}
+
+<div class="module-wrap" style="max-width:520px;margin:0 auto;">
+
+    <div class="module-header" style="background:linear-gradient(135deg,#7f1d1d,#dc2626);">
+        <div>
+            <h2><i class="fa-solid fa-triangle-exclamation me-2"></i>Delete Vendor</h2>
+            <small>This action cannot be undone</small>
+        </div>
+    </div>
+
+    <div style="background:#fff;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,0.07);padding:28px;text-align:center;">
+        <p style="font-size:16px;color:#111827;margin-bottom:6px;">
+            Are you sure you want to delete <strong>{{ object.company_name|default:object.name }}</strong>?
+        </p>
+        {% if object.purchase_orders.exists %}
+        <p style="color:#dc2626;font-size:13px;margin-bottom:16px;">
+            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+            This vendor has {{ object.purchase_orders.count }} purchase order(s) linked to them.
+        </p>
+        {% endif %}
+        <form method="POST" style="display:flex;gap:10px;justify-content:center;">
+            {% csrf_token %}
+            <a href="{% url 'vendor-list' %}"
+               style="background:#f1f5f9;color:#374151;border-radius:8px;padding:9px 20px;font-weight:600;text-decoration:none;">
+                Cancel
+            </a>
+            <button type="submit"
+                    style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-weight:700;cursor:pointer;">
+                Yes, Delete
+            </button>
+        </form>
+    </div>
+
 </div>
 {% endblock %}

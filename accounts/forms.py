@@ -89,16 +89,23 @@ class CustomerForm(forms.ModelForm):
 class VendorForm(forms.ModelForm):
     """Form for creating/updating vendor information."""
     class Meta:
-        model = Vendor
-        fields = ['name', 'phone_number', 'address']
+        model  = Vendor
+        fields = ['name', 'company_name', 'phone_number', 'email', 'address']
         widgets = {
-            'name': forms.TextInput(
-                attrs={'class': 'form-control', 'placeholder': 'Vendor Name'}
-            ),
-            'phone_number': forms.NumberInput(
-                attrs={'class': 'form-control', 'placeholder': 'Phone Number'}
-            ),
-            'address': forms.TextInput(
-                attrs={'class': 'form-control', 'placeholder': 'Address'}
-            ),
+            'name': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'Contact person name',
+            }),
+            'company_name': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'Company / business name',
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control', 'placeholder': 'e.g. 9876543210',
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control', 'placeholder': 'vendor@example.com',
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control', 'rows': 3,
+                'placeholder': 'Full address',
+            }),
         }

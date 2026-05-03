@@ -94,31 +94,39 @@ class Vendor(models.Model):
     """
     Represents a vendor with contact and address information.
     """
-    name = models.CharField(max_length=50, verbose_name='Name')
+    name = models.CharField(max_length=100, verbose_name='Name')
     slug = AutoSlugField(
         unique=True,
         populate_from='name',
         verbose_name='Slug'
     )
-    phone_number = models.BigIntegerField(
-        blank=True, null=True, verbose_name='Phone Number'
+    company_name = models.CharField(
+        max_length=150, blank=True, null=True, verbose_name='Company Name'
+    )
+    phone_number = models.CharField(
+        max_length=20, blank=True, null=True, verbose_name='Phone Number'
     )
     email = models.EmailField(
         blank=True, null=True, verbose_name='Email'
     )
-    address = models.CharField(
-        max_length=255, blank=True, null=True, verbose_name='Address'
+    address = models.TextField(
+        blank=True, null=True, verbose_name='Address'
+    )
+    total_paid = models.DecimalField(
+        max_digits=12, decimal_places=2, default=0,
+        verbose_name='Total Paid (₹)',
+        help_text='Auto-updated when a Purchase Order is marked as received.'
+    )
+    created_at = models.DateTimeField(
+        auto_now_add=True, null=True, verbose_name='Created At'
     )
 
     def __str__(self):
-        """
-        Returns a string representation of the vendor.
-        """
-        return self.name
+        return self.company_name or self.name
 
     class Meta:
-        """Meta options for the Vendor model."""
-        verbose_name = 'Vendor'
+        ordering        = ['-created_at']
+        verbose_name    = 'Vendor'
         verbose_name_plural = 'Vendors'
 
 

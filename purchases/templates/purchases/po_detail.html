@@ -4,20 +4,31 @@
 {% include "invoice/_styles.html" %}
 
 <style>
-.po-detail-wrap { max-width: 860px; margin: 0 auto; }
+.po-detail-wrap { max-width: 900px; margin: 0 auto; }
+
 .po-card {
     background: #fff; border-radius: 14px;
     box-shadow: 0 4px 18px rgba(0,0,0,0.07); margin-bottom: 18px; overflow: hidden;
 }
 .po-card-header {
-    padding: 14px 20px; border-bottom: 1px solid #f1f5f9;
-    font-size: 12px; font-weight: 800; text-transform: uppercase;
+    padding: 13px 20px; border-bottom: 1px solid #f1f5f9;
+    font-size: 11px; font-weight: 800; text-transform: uppercase;
     letter-spacing: .06em; color: #6b7280; background: #f8fafc;
 }
 .po-card-body { padding: 18px 20px; }
-.po-meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; }
-.po-meta-item label { font-size: 11px; font-weight: 700; color: #9ca3af; text-transform: uppercase; letter-spacing: .04em; }
-.po-meta-item span { font-size: 14px; font-weight: 700; color: #111827; display: block; margin-top: 3px; }
+.po-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 16px;
+}
+.po-meta-item label {
+    font-size: 10px; font-weight: 800; color: #9ca3af;
+    text-transform: uppercase; letter-spacing: .05em; display: block;
+}
+.po-meta-item span {
+    font-size: 14px; font-weight: 700; color: #111827;
+    display: block; margin-top: 4px;
+}
 
 .items-table { width: 100%; border-collapse: collapse; }
 .items-table th {
@@ -32,53 +43,117 @@
 .items-table tr:last-child td { border-bottom: none; }
 .items-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .items-table th.num { text-align: right; }
-
 .total-row td { font-weight: 800; background: #f8fafc; }
-.po-actions { display: flex; gap: 10px; justify-content: flex-end; padding: 14px 0 0; }
+
+/* Mark received button */
+.btn-mark-received {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 20px; border: none; border-radius: 9px;
+    background: #16a34a; color: #fff;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: .15s;
+}
+.btn-mark-received:hover { background: #15803d; }
+.received-note {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px; border-radius: 9px;
+    background: #dcfce7; color: #166534;
+    font-size: 13px; font-weight: 700;
+}
 </style>
 
 <div class="module-wrap po-detail-wrap">
 
+    <!-- Header -->
     <div class="module-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);">
         <div>
             <h2>{{ order.order_number }}</h2>
-            <small>Purchase Order — {{ order.order_date|date:"d M Y, H:i" }}</small>
+            <small>Purchase Order · {{ order.order_date|date:"d M Y, H:i" }}</small>
         </div>
         <div class="module-actions">
             <a class="btn-action ghost" href="{% url 'purchase-order-list' %}">← Back</a>
-            {% if user.is_superuser %}
+            {% if user.is_superuser and not order.stock_updated %}
             <a class="btn-action primary" href="{% url 'purchase-order-update' order.slug %}">Edit</a>
             <a class="btn-action danger" href="{% url 'purchase-order-delete' order.pk %}">Delete</a>
             {% endif %}
         </div>
     </div>
 
-    <!-- Meta info -->
+    <!-- Messages -->
+    {% if messages %}
+    <div style="margin-bottom:14px;">
+        {% for msg in messages %}
+        <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;
+                    background:{% if msg.tags == 'success' %}#dcfce7;color:#166534{% elif msg.tags == 'warning' %}#fef3c7;color:#92400e{% else %}#dbeafe;color:#1e40af{% endif %};">
+            {{ msg }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Order meta -->
     <div class="po-card">
         <div class="po-card-header">Order Details</div>
         <div class="po-card-body">
             <div class="po-meta">
+
                 <div class="po-meta-item">
                     <label>Vendor</label>
-                    <span>{{ order.vendor.name|default:"—" }}</span>
+                    <span>{{ order.vendor.company_name|default:order.vendor.name|default:"—" }}</span>
                 </div>
+
                 <div class="po-meta-item">
                     <label>Status</label>
-                    <span><span class="status-badge {{ order.status_color }}">{{ order.get_status_display }}</span></span>
+                    <span>
+                        <span class="status-badge {{ order.status_color }}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </span>
                 </div>
+
                 <div class="po-meta-item">
                     <label>Order Date</label>
                     <span>{{ order.order_date|date:"d M Y" }}</span>
                 </div>
+
                 <div class="po-meta-item">
                     <label>Expected Delivery</label>
                     <span>{{ order.expected_date|date:"d M Y"|default:"Not set" }}</span>
                 </div>
+
+                <div class="po-meta-item">
+                    <label>Order Total</label>
+                    <span style="color:#1d4ed8;">₹ {{ order.total_amount|floatformat:2 }}</span>
+                </div>
+
                 {% if order.notes %}
                 <div class="po-meta-item" style="grid-column: 1 / -1;">
                     <label>Notes</label>
-                    <span style="font-weight:400;">{{ order.notes }}</span>
+                    <span style="font-weight:400;color:#374151;">{{ order.notes }}</span>
                 </div>
+                {% endif %}
+
+            </div>
+
+            <!-- Mark as Received action -->
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
+                {% if order.stock_updated %}
+                <span class="received-note">
+                    <i class="fa-solid fa-circle-check"></i>
+                    Stock received and updated
+                </span>
+                {% else %}
+                <form method="POST" action="{% url 'purchase-order-mark-received' order.pk %}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Mark this order as received? This will increase stock for all {{ order.items.count }} product(s) and cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-mark-received">
+                        <i class="fa-solid fa-circle-check"></i>
+                        Mark as Received &amp; Update Stock
+                    </button>
+                </form>
+                <span style="font-size:12px;color:#6b7280;margin-left:12px;">
+                    Stock will be increased for all {{ order.items.count }} line item(s).
+                </span>
                 {% endif %}
             </div>
         </div>
@@ -86,7 +161,7 @@
 
     <!-- Line items -->
     <div class="po-card">
-        <div class="po-card-header">Ordered Products</div>
+        <div class="po-card-header">Ordered Products ({{ order.items.count }})</div>
         <div style="overflow-x:auto;">
             <table class="items-table">
                 <thead>
@@ -95,28 +170,35 @@
                         <th>Product</th>
                         <th>SKU</th>
                         <th class="num">Unit Cost</th>
-                        <th class="num">Qty</th>
+                        <th class="num">Qty Ordered</th>
                         <th class="num">Line Total</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in order.items.all %}
                     <tr>
-                        <td style="color:#9ca3af;">{{ forloop.counter }}</td>
+                        <td style="color:#9ca3af;font-size:13px;">{{ forloop.counter }}</td>
                         <td><strong>{{ item.product.name }}</strong></td>
-                        <td style="font-size:12px;color:#6b7280;font-family:monospace;">{{ item.product.sku|default:"—" }}</td>
+                        <td style="font-size:12px;color:#6b7280;font-family:monospace;">
+                            {{ item.product.sku|default:"—" }}
+                        </td>
                         <td class="num">₹ {{ item.price|floatformat:2 }}</td>
                         <td class="num">{{ item.quantity }}</td>
                         <td class="num"><strong>₹ {{ item.line_total|floatformat:2 }}</strong></td>
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" style="text-align:center;color:#9ca3af;padding:24px;">No items on this order.</td>
+                        <td colspan="6" style="text-align:center;color:#9ca3af;padding:28px;">
+                            No items on this order.
+                        </td>
                     </tr>
                     {% endfor %}
+
                     {% if order.items.exists %}
                     <tr class="total-row">
-                        <td colspan="5" style="text-align:right;padding-right:16px;">Total</td>
+                        <td colspan="5" style="text-align:right;padding-right:16px;font-size:13px;">
+                            Order Total
+                        </td>
                         <td class="num">₹ {{ order.total_amount|floatformat:2 }}</td>
                     </tr>
                     {% endif %}

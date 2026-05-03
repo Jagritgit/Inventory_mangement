@@ -3,6 +3,16 @@
 {% block content %}
 {% include "invoice/_styles.html" %}
 
+<style>
+.mark-rcvd-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 11px; border: none; border-radius: 6px;
+    background: #dcfce7; color: #166534;
+    font-size: 11px; font-weight: 700; cursor: pointer; transition: .15s;
+}
+.mark-rcvd-btn:hover { background: #bbf7d0; }
+</style>
+
 <div class="module-wrap">
 
     <div class="module-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);">
@@ -14,6 +24,18 @@
             <a class="btn-action primary" href="{% url 'purchase-order-create' %}">+ New Order</a>
         </div>
     </div>
+
+    <!-- Django messages -->
+    {% if messages %}
+    <div style="margin-bottom:12px;">
+        {% for msg in messages %}
+        <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:6px;
+                    background:{% if msg.tags == 'success' %}#dcfce7;color:#166534{% elif msg.tags == 'warning' %}#fef3c7;color:#92400e{% else %}#dbeafe;color:#1e40af{% endif %};">
+            {{ msg }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
 
     <!-- Filters -->
     <form method="get" class="filter-bar">
@@ -34,7 +56,7 @@
             <tr>
                 <th>PO #</th>
                 <th>Vendor</th>
-                <th>Items</th>
+                <th>Products</th>
                 <th class="num">Total (₹)</th>
                 <th>Order Date</th>
                 <th>Expected</th>
@@ -46,14 +68,32 @@
             {% for order in orders %}
             <tr>
                 <td><strong>{{ order.order_number }}</strong></td>
-                <td>{{ order.vendor.name|default:"—" }}</td>
-                <td style="color:#6b7280;">{{ order.items.count }} product{{ order.items.count|pluralize }}</td>
+                <td>{{ order.vendor.company_name|default:order.vendor.name|default:"—" }}</td>
+                <td style="color:#6b7280;font-size:13px;">
+                    {{ order.items.count }} item{{ order.items.count|pluralize }}
+                </td>
                 <td class="num">₹ {{ order.total_amount|floatformat:2 }}</td>
                 <td>{{ order.order_date|date:"d M Y" }}</td>
                 <td>{{ order.expected_date|date:"d M Y"|default:"—" }}</td>
-                <td><span class="status-badge {{ order.status_color }}">{{ order.get_status_display }}</span></td>
-                <td style="display:flex;gap:6px;">
-                    <a class="view-btn" href="{% url 'purchase-order-detail' order.slug %}">View</a>
+                <td>
+                    <span class="status-badge {{ order.status_color }}">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td style="display:flex;gap:5px;flex-wrap:wrap;">
+                    <a class="view-btn" href="{% url 'purchase-order-detail' order.slug %}">
+                        View
+                    </a>
+                    {% if not order.stock_updated %}
+                    <form method="POST" action="{% url 'purchase-order-mark-received' order.pk %}"
+                          style="display:inline;"
+                          onsubmit="return confirm('Mark {{ order.order_number }} as received and update stock?');">
+                        {% csrf_token %}
+                        <button type="submit" class="mark-rcvd-btn">
+                            <i class="fa-solid fa-check"></i> Received
+                        </button>
+                    </form>
+                    {% endif %}
                     {% if user.is_superuser %}
                     <a class="view-btn" href="{% url 'purchase-order-update' order.slug %}"
                        style="background:#f59e0b;">Edit</a>

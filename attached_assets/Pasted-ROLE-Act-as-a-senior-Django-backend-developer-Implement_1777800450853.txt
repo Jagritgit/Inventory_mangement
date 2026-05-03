@@ -1,0 +1,169 @@
+ROLE:
+Act as a senior Django backend developer. Implement Vendor and Purchase Order modules with proper structure and real-world behavior.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Purchases module already planned
+* Need to implement Vendor and Purchase Orders with correct fields and relationships
+
+---
+
+## 1. VENDOR MODULE
+
+Create Vendor model with following fields:
+
+* id (primary key)
+* name (person name)
+* company_name
+* email
+* phone (contact number)
+* address (TextField)
+* total_paid (DecimalField, default=0)  ← tracks how much paid to this vendor
+* created_at
+
+---
+
+### VENDOR FEATURES
+
+* Add vendor
+* Edit vendor
+* View vendor list (table layout)
+* Display:
+  Name | Company | Phone | Total Paid | Actions
+
+---
+
+## 2. PURCHASE ORDER MODULE
+
+Purpose:
+Track what products you ordered from vendors and whether they are received
+
+---
+
+### PurchaseOrder model:
+
+Fields:
+
+* id
+* vendor (ForeignKey → Vendor)
+* order_date
+* status:
+
+  * pending
+  * received
+* total_amount (calculated)
+
+---
+
+### PurchaseOrderItem model:
+
+Fields:
+
+* purchase_order (FK)
+* product (FK)
+* quantity
+* price_per_item
+* total_price (quantity × price)
+
+---
+
+## 3. PURCHASE ORDER FEATURES
+
+### Create Purchase Order:
+
+* Select Vendor
+
+* Add multiple products
+
+* Enter:
+
+  * quantity
+  * price per item
+
+* Auto-calculate:
+  total_price per item
+  total_amount of order
+
+---
+
+### Status Tracking:
+
+* Default: pending
+* When items received:
+  → status = "received"
+
+---
+
+## 4. UI REQUIREMENTS
+
+### Purchase Order Form:
+
+* Vendor dropdown
+
+* Dynamic product rows:
+
+  * product
+  * quantity
+  * price per item
+
+* Show calculated totals
+
+---
+
+### Purchase Order List:
+
+Display:
+
+* Order Date
+* Vendor Name
+* Total Amount
+* Status (received / pending)
+* Actions (View / Edit)
+
+---
+
+## 5. IMPORTANT LOGIC
+
+* total_price = quantity × price_per_item
+* total_amount = sum of all item totals
+
+---
+
+## 6. OPTIONAL (SMART FEATURE)
+
+* When order marked as "received":
+  → Update product stock (increase quantity)
+
+---
+
+## 7. CONSTRAINTS
+
+* DO NOT store multiple products in one field
+* Use separate PurchaseOrderItem model
+* Keep data normalized
+* Keep UI simple and table-based
+
+---
+
+## 8. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (Vendor, PurchaseOrder, PurchaseOrderItem)
+2. views.py
+3. forms.py
+4. urls.py
+5. templates (list + form)
+6. short explanation
+
+---
+
+## EXPECTED RESULT
+
+* Vendors stored with full details and payment tracking
+* Purchase Orders track products, quantity, and price
+* Orders can be marked as received
+* Clean and realistic purchasing workflow

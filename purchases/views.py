@@ -1,6 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib import messages
+from django.db import transaction
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.shortcuts import redirect
+from django.views import View
 from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView
 )
@@ -27,8 +30,8 @@ class PurchaseOrderListView(LoginRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx['q']      = self.request.GET.get('q', '')
-        ctx['status'] = self.request.GET.get('status', '')
+        ctx['q']              = self.request.GET.get('q', '')
+        ctx['status']         = self.request.GET.get('status', '')
         ctx['status_choices'] = PurchaseOrder._meta.get_field('status').choices
         return ctx
 
@@ -39,7 +42,11 @@ class PurchaseOrderDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'order'
 
     def get_queryset(self):
-        return super().get_queryset().select_related('vendor').prefetch_related('items__product')
+        return (
+            super().get_queryset()
+            .select_related('vendor')
+            .prefetch_related('items__product')
+        )
 
 
 class PurchaseOrderCreateView(LoginRequiredMixin, CreateView):
@@ -58,7 +65,7 @@ class PurchaseOrderCreateView(LoginRequiredMixin, CreateView):
         return ctx
 
     def form_valid(self, form):
-        ctx         = self.get_context_data()
+        ctx          = self.get_context_data()
         item_formset = ctx['item_formset']
         if item_formset.is_valid():
             self.object = form.save()
@@ -82,7 +89,9 @@ class PurchaseOrderUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateVie
         ctx = super().get_context_data(**kwargs)
         ctx['title'] = f'Edit {self.object.order_number}'
         if self.request.POST:
-            ctx['item_formset'] = PurchaseOrderItemFormSet(self.request.POST, instance=self.object)
+            ctx['item_formset'] = PurchaseOrderItemFormSet(
+                self.request.POST, instance=self.object
+            )
         else:
             ctx['item_formset'] = PurchaseOrderItemFormSet(instance=self.object)
         return ctx
@@ -106,3 +115,49 @@ class PurchaseOrderDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteVie
 
     def test_func(self):
         return self.request.user.is_superuser
+
+
+class MarkReceivedView(LoginRequiredMixin, View):
+    """
+    POST-only action view. On first call:
+      1. Increments each product's stock by ordered quantity.
+      2. Adds order total to vendor.total_paid.
+      3. Sets status = RECEIVED and stock_updated = True.
+    Idempotent: does nothing if already marked received.
+    """
+
+    def post(self, request, pk):
+        order = get_object_or_404(PurchaseOrder, pk=pk)
+
+        if order.stock_updated:
+            messages.warning(
+                request,
+                f"{order.order_number} was already marked as received — no changes made."
+            )
+            return redirect('purchase-order-detail', slug=order.slug)
+
+        with transaction.atomic():
+            # 1. Increase each product's stock
+            for line in order.items.select_related('product'):
+                line.product.quantity += line.quantity
+                line.product.save(update_fields=['quantity'])
+
+            # 2. Bump vendor.total_paid
+            if order.vendor_id:
+                from accounts.models import Vendor as VendorModel
+                vendor = VendorModel.objects.select_for_update().get(pk=order.vendor_id)
+                vendor.total_paid = (vendor.total_paid or 0) + order.total_amount
+                vendor.save(update_fields=['total_paid'])
+
+            # 3. Mark the order
+            order.status        = 'RECEIVED'
+            order.stock_updated = True
+            order.save(update_fields=['status', 'stock_updated'])
+
+        item_count = order.items.count()
+        messages.success(
+            request,
+            f"{order.order_number} marked as Received. "
+            f"Stock updated for {item_count} product{'s' if item_count != 1 else ''}."
+        )
+        return redirect('purchase-order-detail', slug=order.slug)
