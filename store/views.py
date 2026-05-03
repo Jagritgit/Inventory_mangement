@@ -300,22 +300,22 @@ def dashboard(request):
     category_counts = [cat["item_count"] for cat in category_counts_qs]
 
     # -----------------------------
-    # SALES CHART
+    # SALES CHART (revenue + quantity per day)
     # -----------------------------
-    sale_dates = (
-        Sale.objects.values("date_added__date")
-        .annotate(total_sales=Sum("grand_total"))
-        .order_by("date_added__date")
+    from transactions.models import SaleDetail as _SD
+    daily_stats = (
+        _SD.objects
+        .values("sale__date_added__date")
+        .annotate(
+            daily_revenue=Sum("total_detail"),
+            daily_qty=Sum("quantity"),
+        )
+        .order_by("sale__date_added__date")
     )
 
-    sale_dates_labels = [
-        date["date_added__date"].strftime("%Y-%m-%d")
-        for date in sale_dates
-    ]
-
-    sale_dates_values = [
-        float(date["total_sales"]) for date in sale_dates
-    ]
+    sale_dates_labels    = [d["sale__date_added__date"].strftime("%Y-%m-%d") for d in daily_stats]
+    sale_dates_values    = [float(d["daily_revenue"] or 0) for d in daily_stats]
+    sale_dates_quantities = [int(d["daily_qty"] or 0) for d in daily_stats]
 
     # -----------------------------
     # FINAL CONTEXT
@@ -352,6 +352,7 @@ def dashboard(request):
         "category_counts": category_counts,
         "sale_dates_labels": sale_dates_labels,
         "sale_dates_values": sale_dates_values,
+        "sale_dates_quantities": sale_dates_quantities,
     }
 
     return render(request, "store/dashboard.html", context)

@@ -1,0 +1,169 @@
+ROLE:
+Act as a frontend + Django developer. Implement an interactive dashboard with toggle views and dynamic charts.
+
+---
+
+SYSTEM CONTEXT:
+
+* Inventory Management System (Django backend + HTML/CSS/JS frontend)
+* Dashboard homepage contains:
+
+  * Summary cards (sales, revenue, orders, etc.)
+  * Charts (sales/revenue visualization)
+
+---
+
+## 1. DASHBOARD VIEW TOGGLE
+
+Implement two modes:
+
+### Mode A: Cards View (DEFAULT)
+
+* Show summary cards:
+
+  * Total Sales
+  * Revenue
+  * Orders
+  * Stock
+* Hide charts section
+
+### Mode B: Charts View
+
+* Show charts section
+* Hide cards section
+
+---
+
+## 2. UI REQUIREMENT (TOP TOGGLE)
+
+Add two buttons/tabs at top:
+
+* "Cards"
+* "Charts"
+
+Behavior:
+
+* Default active → Cards
+* Clicking "Charts":
+
+  * Hide cards
+  * Show charts
+* Clicking "Cards":
+
+  * Show cards
+  * Hide charts
+
+---
+
+## 3. STRUCTURE
+
+HTML Sections:
+
+* <div id="cards-section"> → contains all cards
+* <div id="charts-section"> → contains charts (hidden by default)
+
+---
+
+## 4. JAVASCRIPT LOGIC
+
+Implement functions:
+
+* showCards()
+* showCharts()
+
+These functions toggle visibility of:
+
+* cards-section
+* charts-section
+
+---
+
+## 5. REVENUE / SALES CHART REQUIREMENT
+
+Inside charts section, create ONE chart with TWO modes:
+
+### Mode 1: Quantity View
+
+* Show number of products sold
+* Label: "Quantity Sold"
+
+### Mode 2: Revenue View
+
+* Show total price (money earned)
+* Label: "Revenue ₹"
+
+---
+
+## 6. CHART UI TOGGLE
+
+Inside chart area, add two buttons:
+
+* "Quantity"
+* "Revenue ₹"
+
+Behavior:
+
+* Default → Revenue ₹
+* Clicking Quantity:
+
+  * Update chart data to quantity
+* Clicking Revenue:
+
+  * Show revenue data again
+
+---
+
+## 7. DATA STRUCTURE
+
+Frontend receives:
+
+* labels (e.g., months or days)
+* quantityData (array)
+* revenueData (array)
+
+Example:
+labels = ["Jan", "Feb", "Mar"]
+quantityData = [5, 10, 8]
+revenueData = [500, 1000, 800]
+
+---
+
+## 8. CHART IMPLEMENTATION
+
+* Use Chart.js
+* Single chart instance
+* Destroy and recreate chart when switching mode
+* Do NOT create multiple charts
+
+---
+
+## 9. UI/UX CONSTRAINTS
+
+* Clean layout (no clutter)
+* Toggle buttons should visually show active state
+* Do NOT show cards and charts together
+* Keep interaction smooth and simple
+
+---
+
+## 10. OUTPUT FORMAT
+
+Provide:
+
+1. HTML structure (cards + charts + buttons)
+2. CSS (basic styling for toggle and layout)
+3. JavaScript (toggle + chart switching logic)
+4. Example Chart.js implementation
+5. Short explanation
+
+---
+
+EXPECTED RESULT:
+
+* Dashboard loads with cards visible
+* Clicking "Charts" shows chart view
+* Chart can switch between:
+
+  * Quantity (products sold)
+  * Revenue (price)
+* Clean, interactive UI
