@@ -68,7 +68,7 @@ class DeliveryCreateForm(forms.ModelForm):
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'e.g. +254712345678',
+                'placeholder': 'e.g. 9876543210',
                 'id': 'id_phone_number',
             }),
             'location': forms.TextInput(attrs={
@@ -123,7 +123,7 @@ class DeliveryUpdateForm(forms.ModelForm):
             'status': forms.Select(attrs={'class': 'form-control'}),
             'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'e.g. +254712345678',
+                'placeholder': 'e.g. 9876543210',
             }),
             'location': forms.TextInput(attrs={
                 'class': 'form-control',

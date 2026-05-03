@@ -4,11 +4,13 @@ Module: models.py
 Contains Django models for handling categories, items, and deliveries.
 """
 
+import re
+
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.forms import model_to_dict
 from django_extensions.db.fields import AutoSlugField
-from phonenumber_field.modelfields import PhoneNumberField
 from accounts.models import Vendor
 
 
@@ -114,13 +116,43 @@ class Delivery(models.Model):
     )
     customer_name = models.CharField(max_length=60, blank=True, null=True)
     email = models.EmailField(max_length=120, blank=True, null=True)
-    phone_number = PhoneNumberField(blank=True, null=True)
+    phone_number = models.CharField(max_length=15, blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)
     date = models.DateTimeField(null=True, blank=True)
     is_delivered = models.BooleanField(default=False, verbose_name='Is Delivered')
 
     class Meta:
         ordering = ['-id']
+
+    # ── Indian phone helpers ──────────────────────────────────
+    _PHONE_RE = re.compile(r'^[6-9]\d{9}$')
+
+    def clean(self):
+        super().clean()
+        raw = (self.phone_number or '').strip()
+        if not raw:
+            return
+        # Strip +91 or 91 prefix so we always validate the bare 10-digit number
+        if raw.startswith('+91'):
+            raw = raw[3:]
+        elif raw.startswith('91') and len(raw) == 12:
+            raw = raw[2:]
+        if not self._PHONE_RE.match(raw):
+            raise ValidationError({
+                'phone_number': (
+                    'Enter a valid 10-digit Indian mobile number '
+                    '(starts with 6–9). Example: 9876543210'
+                )
+            })
+        # Store the normalised 10-digit form so save() can prepend +91 once
+        self.phone_number = raw
+
+    def save(self, *args, **kwargs):
+        raw = (self.phone_number or '').strip()
+        if raw and not raw.startswith('+'):
+            # Bare 10-digit number — prepend Indian country code
+            self.phone_number = '+91' + raw
+        super().save(*args, **kwargs)
 
     @property
     def status_color(self):
