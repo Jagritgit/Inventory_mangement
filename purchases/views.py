@@ -9,7 +9,10 @@ from django.views.generic import (
 )
 
 from .models import PurchaseOrder, PurchaseBill, PurchaseBillItem
-from .forms import PurchaseOrderForm, PurchaseOrderItemFormSet
+from .forms import (
+    PurchaseOrderForm, PurchaseOrderItemFormSet,
+    PurchaseBillForm, PurchaseBillItemFormSet,
+)
 from store.models import Item
 
 
@@ -53,11 +56,8 @@ class PurchaseOrderDetailView(LoginRequiredMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        # Pass existing bill (if any) to template so we can show View Bill link
-        try:
-            ctx['existing_bill'] = self.object.purchase_bill
-        except PurchaseBill.DoesNotExist:
-            ctx['existing_bill'] = None
+        # purchase_order is now FK → use .first() (returns None if no bill)
+        ctx['existing_bill'] = self.object.purchase_bills.first()
         return ctx
 
 
@@ -130,10 +130,7 @@ class PurchaseOrderDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteVie
 
 
 class MarkReceivedView(LoginRequiredMixin, View):
-    """
-    POST-only. Increments product stocks, bumps vendor.total_paid,
-    marks order RECEIVED. Idempotent via stock_updated flag.
-    """
+    """POST-only. Increments stock, bumps vendor.total_paid, marks RECEIVED."""
 
     def post(self, request, pk):
         order = get_object_or_404(PurchaseOrder, pk=pk)
@@ -210,10 +207,9 @@ class PurchaseBillDetailView(LoginRequiredMixin, DetailView):
 
 class CreatePurchaseBillView(LoginRequiredMixin, View):
     """
-    POST-only. Creates a PurchaseBill from a PurchaseOrder in one click.
-    - Copies all line items with their unit costs.
-    - Updates each product's cost_price to the purchased price.
-    - Idempotent: if a bill already exists, redirects to it.
+    POST-only. One-click bill creation from a PurchaseOrder.
+    Copies all line items, updates each product's cost_price.
+    Idempotent: redirects to existing bill if already created.
     """
 
     def post(self, request, pk):
@@ -221,13 +217,14 @@ class CreatePurchaseBillView(LoginRequiredMixin, View):
             PurchaseOrder.objects.prefetch_related('items__product'), pk=pk
         )
 
-        # Idempotency guard
-        try:
-            existing = order.purchase_bill
-            messages.info(request, f"Bill {existing.bill_number} already exists for {order.order_number}.")
+        # Idempotency guard — FK now, so use .first()
+        existing = order.purchase_bills.first()
+        if existing:
+            messages.info(
+                request,
+                f"Bill {existing.bill_number} already exists for {order.order_number}."
+            )
             return redirect('purchase-bill-detail', slug=existing.slug)
-        except PurchaseBill.DoesNotExist:
-            pass
 
         with transaction.atomic():
             bill = PurchaseBill.objects.create(
@@ -235,7 +232,6 @@ class CreatePurchaseBillView(LoginRequiredMixin, View):
                 vendor=order.vendor,
                 total_amount=order.total_amount,
             )
-
             for line in order.items.all():
                 PurchaseBillItem.objects.create(
                     bill=bill,
@@ -243,7 +239,6 @@ class CreatePurchaseBillView(LoginRequiredMixin, View):
                     quantity=line.quantity,
                     cost_price=line.price,
                 )
-                # Update product's recorded cost price to the latest purchase price
                 if line.product_id:
                     Item.objects.filter(pk=line.product_id).update(cost_price=line.price)
 
@@ -253,6 +248,54 @@ class CreatePurchaseBillView(LoginRequiredMixin, View):
             f"Cost prices updated for {order.items.count()} product(s)."
         )
         return redirect('purchase-bill-detail', slug=bill.slug)
+
+
+class ManualPurchaseBillCreateView(LoginRequiredMixin, CreateView):
+    """
+    Manual bill creation — no PurchaseOrder needed.
+    Uses an inline formset for multiple product rows.
+    """
+    model         = PurchaseBill
+    form_class    = PurchaseBillForm
+    template_name = 'purchases/purchase_bill_form.html'
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        if self.request.POST:
+            ctx['item_formset'] = PurchaseBillItemFormSet(self.request.POST)
+        else:
+            ctx['item_formset'] = PurchaseBillItemFormSet()
+        return ctx
+
+    def form_valid(self, form):
+        ctx          = self.get_context_data()
+        item_formset = ctx['item_formset']
+        if item_formset.is_valid():
+            with transaction.atomic():
+                self.object = form.save()
+                item_formset.instance = self.object
+                item_formset.save()
+
+                # Calculate total from saved items
+                total = sum(i.total_price for i in self.object.items.all())
+                self.object.total_amount = total
+                self.object.save(update_fields=['total_amount'])
+
+                # Update each product's cost_price
+                for item in self.object.items.select_related('product'):
+                    if item.product_id:
+                        Item.objects.filter(pk=item.product_id).update(
+                            cost_price=item.cost_price
+                        )
+
+            messages.success(
+                self.request,
+                f"Bill {self.object.bill_number} created with "
+                f"{self.object.items.count()} product(s)."
+            )
+            return redirect('purchase-bill-detail', slug=self.object.slug)
+
+        return self.render_to_response(self.get_context_data(form=form))
 
 
 class ToggleBillStatusView(LoginRequiredMixin, View):

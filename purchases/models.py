@@ -101,13 +101,14 @@ PBILL_STATUS = [
 
 class PurchaseBill(models.Model):
     """
-    A vendor invoice derived from a PurchaseOrder.
-    One-to-one with PurchaseOrder — one bill per order.
+    A vendor invoice. Can be created automatically from a PurchaseOrder
+    (purchase_order is set) or manually from scratch (purchase_order=None).
     """
     bill_number    = models.CharField(max_length=25, unique=True, blank=True)
     slug           = AutoSlugField(unique=True, populate_from='bill_number')
-    purchase_order = models.OneToOneField(
-        PurchaseOrder, on_delete=models.CASCADE, related_name='purchase_bill'
+    purchase_order = models.ForeignKey(
+        PurchaseOrder, on_delete=models.SET_NULL,
+        null=True, blank=True, related_name='purchase_bills'
     )
     vendor         = models.ForeignKey(
         Vendor, on_delete=models.SET_NULL, null=True, blank=True,

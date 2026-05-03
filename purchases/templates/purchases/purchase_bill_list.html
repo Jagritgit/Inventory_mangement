@@ -8,11 +8,14 @@
     <div class="module-header" style="background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 100%);">
         <div>
             <h2><i class="fa-solid fa-file-invoice me-2"></i>Purchase Bills</h2>
-            <small>Vendor invoices generated from Purchase Orders</small>
+            <small>Auto-generated from Purchase Orders or created manually</small>
         </div>
         <div class="module-actions">
             <a class="btn-action ghost" href="{% url 'purchase-order-list' %}">
-                View Orders
+                <i class="fa-solid fa-file-lines me-1"></i> Orders
+            </a>
+            <a class="btn-action primary" href="{% url 'purchase-bill-manual-create' %}">
+                + Create Bill
             </a>
         </div>
     </div>
@@ -45,7 +48,7 @@
         <thead>
             <tr>
                 <th>Bill #</th>
-                <th>PO Reference</th>
+                <th>Source</th>
                 <th>Vendor</th>
                 <th>Products</th>
                 <th class="num">Total (₹)</th>
@@ -58,8 +61,15 @@
             {% for bill in bills %}
             <tr>
                 <td><strong>{{ bill.bill_number }}</strong></td>
-                <td style="font-family:monospace;font-size:12px;color:#6b7280;">
-                    {{ bill.purchase_order.order_number }}
+                <td>
+                    {% if bill.purchase_order %}
+                    <a href="{% url 'purchase-order-detail' bill.purchase_order.slug %}"
+                       style="font-family:monospace;font-size:12px;color:#4f46e5;text-decoration:none;">
+                        {{ bill.purchase_order.order_number }}
+                    </a>
+                    {% else %}
+                    <span style="font-size:12px;color:#9ca3af;">Manual</span>
+                    {% endif %}
                 </td>
                 <td>{{ bill.vendor.company_name|default:bill.vendor.name|default:"—" }}</td>
                 <td style="font-size:13px;color:#6b7280;">
@@ -79,10 +89,11 @@
             {% empty %}
             <tr>
                 <td colspan="8" style="text-align:center;padding:36px;color:#9ca3af;">
-                    No bills yet. Open a Purchase Order and click "Create Bill".
-                    <a href="{% url 'purchase-order-list' %}" style="color:#4f46e5;">
-                        Go to Orders →
+                    No bills yet.
+                    <a href="{% url 'purchase-bill-manual-create' %}" style="color:#4f46e5;">
+                        Create one manually →
                     </a>
+                    &nbsp;or open a Purchase Order and click "Create Bill".
                 </td>
             </tr>
             {% endfor %}
