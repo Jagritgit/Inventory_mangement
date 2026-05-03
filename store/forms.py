@@ -37,17 +37,34 @@ class CategoryForm(forms.ModelForm):
 
 class DeliveryCreateForm(forms.ModelForm):
     """
-    Form for manually creating a delivery from a Sale.
-    Only the sale selector, shipping address, and phone are editable.
-    Customer / total / items are shown via AJAX as read-only info.
+    Supports two creation modes:
+      - 'sale'   : user picks a Sale; customer details auto-fill via AJAX.
+      - 'manual' : no Sale; user enters customer_name, phone, address by hand.
+
+    The `mode` field is a hidden input driven by the JS toggle in the template.
     """
+
+    MODE_SALE   = 'sale'
+    MODE_MANUAL = 'manual'
+
+    mode = forms.ChoiceField(
+        choices=[('sale', 'From Sale'), ('manual', 'Manual')],
+        initial='sale',
+        widget=forms.HiddenInput(attrs={'id': 'id_mode'}),
+    )
+
     class Meta:
         model = Delivery
-        fields = ['sale', 'phone_number', 'location']
+        fields = ['sale', 'customer_name', 'phone_number', 'location']
         widgets = {
             'sale': forms.Select(attrs={
                 'class': 'form-control',
                 'id': 'id_sale',
+            }),
+            'customer_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Full name',
+                'id': 'id_customer_name',
             }),
             'phone_number': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -62,15 +79,42 @@ class DeliveryCreateForm(forms.ModelForm):
         }
         labels = {
             'sale': 'Sale',
+            'customer_name': 'Customer Name',
             'phone_number': 'Contact Phone',
             'location': 'Delivery Address',
         }
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Both sale and customer_name are optional at the field level;
+        # cross-field validation happens in clean().
+        self.fields['sale'].required = False
+        self.fields['customer_name'].required = False
+        self.fields['phone_number'].required = False
+        self.fields['location'].required = False
+
+    def clean(self):
+        data = super().clean()
+        mode = data.get('mode', self.MODE_SALE)
+        sale = data.get('sale')
+        customer_name = (data.get('customer_name') or '').strip()
+
+        if mode == self.MODE_SALE:
+            if not sale:
+                self.add_error('sale', 'Please select a sale.')
+        else:
+            # Manual mode — sale must be empty, customer_name is required
+            data['sale'] = None
+            if not customer_name:
+                self.add_error('customer_name', 'Customer name is required.')
+
+        return data
+
 
 class DeliveryUpdateForm(forms.ModelForm):
     """
-    Form for updating delivery contact info and status.
-    The sale link is intentionally excluded — it cannot be changed after creation.
+    Form for editing an existing delivery.
+    The sale link cannot be changed after creation.
     """
     class Meta:
         model = Delivery
@@ -98,5 +142,5 @@ class DeliveryUpdateForm(forms.ModelForm):
         }
 
 
-# Legacy form kept for any existing code that imports DeliveryForm
+# Legacy alias
 DeliveryForm = DeliveryUpdateForm

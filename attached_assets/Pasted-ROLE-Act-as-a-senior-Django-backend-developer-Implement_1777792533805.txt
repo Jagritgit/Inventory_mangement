@@ -1,0 +1,174 @@
+ROLE:
+Act as a senior Django backend developer. Implement a Delivery creation system that supports both:
+
+1. Auto-fill from Sale (including phone number)
+2. Manual creation from scratch
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+
+* Sale model exists with:
+
+  * id
+  * customer (ForeignKey)
+  * total_amount
+
+* Customer model contains:
+
+  * name
+  * phone
+  * address
+
+* Delivery must support:
+
+  * creation from Sale (auto-filled)
+  * manual creation (no Sale)
+
+---
+
+## 1. DELIVERY MODEL
+
+Update Delivery model:
+
+Fields:
+
+* id
+* sale (ForeignKey to Sale, null=True, blank=True)
+* customer_name (CharField)
+* phone (CharField)
+* address (TextField)
+* status (choices: pending, shipped, delivered)
+* created_at (auto timestamp)
+* shipped_date (nullable)
+* delivered_date (nullable)
+
+---
+
+## 2. FORM BEHAVIOR
+
+Delivery form must support two modes:
+
+### Mode A: From Sale
+
+* User selects Sale ID
+* System automatically fills:
+
+  * customer_name
+  * phone
+  * address
+* These fields can be read-only or editable
+
+### Mode B: Manual (from scratch)
+
+* No Sale selected
+* User manually enters:
+
+  * customer_name
+  * phone
+  * address
+
+---
+
+## 3. AUTO-FILL IMPLEMENTATION
+
+Create API endpoint:
+
+GET /sale/<id>/details/
+
+Return JSON:
+
+* customer_name
+* phone
+* address
+* total_amount
+
+---
+
+## 4. FRONTEND LOGIC
+
+* When Sale is selected:
+
+  * Call API
+  * Populate form fields automatically
+
+* If Sale is cleared:
+
+  * Allow manual input
+
+* Optional:
+
+  * Toggle switch:
+
+    * "From Sale"
+    * "Manual"
+
+---
+
+## 5. BACKEND VALIDATION
+
+Implement model clean() method:
+
+* If sale is selected:
+  → auto-fill fields from sale.customer
+
+* If sale is NOT selected:
+  → require manual fields:
+  - customer_name
+  - phone
+  - address
+
+* Prevent empty delivery creation
+
+---
+
+## 6. DELIVERY CREATION LOGIC
+
+On form submit:
+
+Case 1: From Sale
+
+* Fetch Sale
+* Fill:
+  customer_name = sale.customer.name
+  phone = sale.customer.phone
+  address = sale.customer.address
+* Create Delivery
+
+Case 2: Manual
+
+* Use manually entered data
+* Create Delivery
+
+---
+
+## 7. CONSTRAINTS
+
+* DO NOT involve Invoice
+* DO NOT modify revenue logic
+* Ensure clean Django ORM usage
+* Avoid duplicate deliveries for same Sale (optional check)
+
+---
+
+## 8. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (updated Delivery model + validation)
+2. forms.py
+3. views.py (manual + auto-fill logic)
+4. urls.py
+5. template (with JS for auto-fill)
+6. short explanation
+
+---
+
+EXPECTED RESULT:
+
+* User can select Sale → fields auto-fill (including phone)
+* User can create Delivery manually without Sale
+* System validates input correctly
+* Clean, flexible, real-world workflow

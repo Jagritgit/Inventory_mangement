@@ -4,7 +4,7 @@
 {% block title %}Create Delivery{% endblock %}
 
 {% block content %}
-<div class="container py-4" style="max-width:860px;">
+<div class="container py-4" style="max-width:900px;">
 
     <!-- HEADER -->
     <div class="card header-dark rounded-4 p-4 mb-4">
@@ -13,7 +13,7 @@
                 <h4 class="text-white mb-1">
                     <i class="fa-solid fa-truck me-2"></i> Create Delivery
                 </h4>
-                <small class="text-light opacity-75">Select a sale — customer details will auto-fill.</small>
+                <small class="text-light opacity-75">Choose a mode: auto-fill from a Sale, or enter details manually.</small>
             </div>
             <a href="{% url 'deliveries' %}" class="btn btn-outline-light btn-sm rounded-pill">
                 <i class="fa-solid fa-arrow-left me-1"></i> Back
@@ -22,52 +22,72 @@
     </div>
 
     <!-- MESSAGES -->
-    {% if messages %}
     {% for msg in messages %}
     <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show rounded-3" role="alert">
         {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
     {% endfor %}
-    {% endif %}
+
+    <!-- MODE TOGGLE -->
+    <div class="d-flex justify-content-center mb-4">
+        <div class="mode-toggle">
+            <button type="button" class="mode-btn active" id="btnSaleMode"
+                    onclick="setMode('sale')">
+                <i class="fa-solid fa-receipt me-2"></i> From Sale
+            </button>
+            <button type="button" class="mode-btn" id="btnManualMode"
+                    onclick="setMode('manual')">
+                <i class="fa-solid fa-pen-to-square me-2"></i> Manual Entry
+            </button>
+        </div>
+    </div>
 
     <form method="post" id="deliveryForm">
         {% csrf_token %}
 
+        <!-- Hidden mode field -->
+        {{ form.mode }}
+
         <div class="row g-4">
 
-            <!-- LEFT — Sale selector -->
+            <!-- ============================================================
+                 LEFT PANEL — changes per mode
+            ============================================================ -->
             <div class="col-md-5">
-                <div class="card shadow-sm rounded-4 h-100">
+
+                <!-- ---- FROM SALE panel ---- -->
+                <div id="panelSale" class="card shadow-sm rounded-4 h-100">
                     <div class="card-header bg-white border-bottom fw-semibold">
                         <i class="fa-solid fa-receipt me-2 text-primary"></i> Select Sale
                     </div>
                     <div class="card-body">
 
-                        <!-- Sale dropdown -->
                         <div class="mb-3">
-                            <label class="form-label fw-medium">Sale <span class="text-danger">*</span></label>
+                            <label class="form-label fw-medium">
+                                Sale <span class="text-danger">*</span>
+                            </label>
                             {{ form.sale }}
                             {% if form.sale.errors %}
                             <div class="text-danger small mt-1">{{ form.sale.errors.0 }}</div>
                             {% endif %}
-                            <div class="text-muted" style="font-size:11px; margin-top:4px;">
+                            <div class="text-muted mt-1" style="font-size:11px;">
                                 Only sales without an existing delivery are shown.
                             </div>
                         </div>
 
-                        <!-- Duplicate warning (hidden by default) -->
+                        <!-- Duplicate warning -->
                         <div id="duplicateWarning" class="alert alert-warning py-2 small d-none">
                             <i class="fa-solid fa-triangle-exclamation me-1"></i>
                             This sale already has a delivery.
                         </div>
 
-                        <!-- Loading spinner -->
+                        <!-- Loading -->
                         <div id="loadingSpinner" class="text-center py-3 d-none">
-                            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+                            <div class="spinner-border spinner-border-sm text-primary"></div>
                             <span class="ms-2 text-muted small">Fetching sale data…</span>
                         </div>
 
-                        <!-- Sale summary card (hidden until sale selected) -->
+                        <!-- Sale summary (shown after AJAX) -->
                         <div id="saleSummary" class="d-none">
                             <div class="border rounded-3 p-3 bg-light">
                                 <div class="mb-2">
@@ -80,11 +100,11 @@
                                 </div>
                                 <div class="mb-2">
                                     <span class="text-muted small">Email</span>
-                                    <div id="sumEmail" class="small">—</div>
+                                    <div class="small" id="sumEmail">—</div>
                                 </div>
                                 <div class="mb-2">
                                     <span class="text-muted small">Date</span>
-                                    <div id="sumDate" class="small">—</div>
+                                    <div class="small" id="sumDate">—</div>
                                 </div>
                                 <div>
                                     <span class="text-muted small">Grand Total</span>
@@ -95,18 +115,46 @@
 
                     </div>
                 </div>
+
+                <!-- ---- MANUAL panel ---- -->
+                <div id="panelManual" class="card shadow-sm rounded-4 h-100 d-none">
+                    <div class="card-header bg-white border-bottom fw-semibold">
+                        <i class="fa-solid fa-user me-2 text-primary"></i> Customer Details
+                    </div>
+                    <div class="card-body">
+
+                        <div class="mb-3">
+                            <label class="form-label fw-medium">
+                                Customer Name <span class="text-danger">*</span>
+                            </label>
+                            {{ form.customer_name }}
+                            {% if form.customer_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.customer_name.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+
+                        <p class="text-muted small">
+                            <i class="fa-solid fa-circle-info me-1"></i>
+                            Fill the customer name here. Phone and address are shared below.
+                        </p>
+
+                    </div>
+                </div>
+
             </div>
 
-            <!-- RIGHT — Address + items -->
+            <!-- ============================================================
+                 RIGHT PANEL — items table (sale mode only) + shared fields
+            ============================================================ -->
             <div class="col-md-7">
 
-                <!-- Items table (hidden until sale selected) -->
+                <!-- Items table — sale mode only -->
                 <div id="itemsCard" class="card shadow-sm rounded-4 mb-4 d-none">
                     <div class="card-header bg-white border-bottom fw-semibold">
                         <i class="fa-solid fa-box me-2 text-primary"></i> Items in this Sale
                     </div>
                     <div class="card-body p-0">
-                        <table class="table table-sm table-striped mb-0" id="itemsTable">
+                        <table class="table table-sm table-striped mb-0">
                             <thead class="table-light">
                                 <tr>
                                     <th>Item</th>
@@ -120,7 +168,7 @@
                     </div>
                 </div>
 
-                <!-- Delivery address card -->
+                <!-- Shared shipping fields -->
                 <div class="card shadow-sm rounded-4">
                     <div class="card-header bg-white border-bottom fw-semibold">
                         <i class="fa-solid fa-location-dot me-2 text-primary"></i> Shipping Details
@@ -135,7 +183,7 @@
                             {% endif %}
                         </div>
 
-                        <div class="mb-3">
+                        <div class="mb-4">
                             <label class="form-label fw-medium">Delivery Address</label>
                             {{ form.location }}
                             {% if form.location.errors %}
@@ -143,9 +191,15 @@
                             {% endif %}
                         </div>
 
-                        <div class="d-grid mt-4">
-                            <button type="submit" class="btn submit-btn" id="submitBtn" disabled>
-                                <i class="fa-solid fa-truck me-2"></i> Create Delivery
+                        <!-- Non-field errors -->
+                        {% if form.non_field_errors %}
+                        <div class="alert alert-danger small">{{ form.non_field_errors }}</div>
+                        {% endif %}
+
+                        <div class="d-grid">
+                            <button type="submit" class="btn submit-btn" id="submitBtn">
+                                <i class="fa-solid fa-truck me-2"></i>
+                                <span id="submitLabel">Create Delivery from Sale</span>
                             </button>
                         </div>
 
@@ -163,54 +217,115 @@
 
 </div>
 
+<!-- STYLE -->
 <style>
 .header-dark { background: linear-gradient(135deg, #0f172a, #1e293b); }
+
+.mode-toggle {
+    display: flex;
+    background: #f1f5f9;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 4px;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+}
+.mode-btn {
+    padding: 10px 28px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: #374151;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: .2s;
+}
+.mode-btn.active {
+    background: #fff;
+    color: #1d4ed8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.mode-btn:not(.active):hover { background: #e2e8f0; }
+
 .submit-btn {
     background: #2563eb; color: #fff;
     padding: 12px; border-radius: 10px; border: none;
     font-weight: 600; transition: .2s;
 }
-.submit-btn:hover:not(:disabled) { background: #1d4ed8; }
+.submit-btn:hover { background: #1d4ed8; }
 .submit-btn:disabled { background: #94a3b8; cursor: not-allowed; }
 </style>
 
+<!-- SCRIPT -->
 <script>
-const SALE_DETAILS_URL = "{% url 'sale_details' 0 %}".replace('/0/', '/');
+const SALE_DETAILS_TPL = "{% url 'sale_details' 0 %}";
+function saleDetailsUrl(id) { return SALE_DETAILS_TPL.replace('0', id); }
 
+const modeInput    = document.getElementById('id_mode');
 const saleSelect   = document.getElementById('id_sale');
+const panelSale    = document.getElementById('panelSale');
+const panelManual  = document.getElementById('panelManual');
 const spinner      = document.getElementById('loadingSpinner');
 const summary      = document.getElementById('saleSummary');
 const itemsCard    = document.getElementById('itemsCard');
 const itemsBody    = document.getElementById('itemsBody');
 const submitBtn    = document.getElementById('submitBtn');
+const submitLabel  = document.getElementById('submitLabel');
 const dupWarning   = document.getElementById('duplicateWarning');
 const phoneInput   = document.getElementById('id_phone_number');
-const locationInput = document.getElementById('id_location');
+const locInput     = document.getElementById('id_location');
+const nameInput    = document.getElementById('id_customer_name');
+const btnSale      = document.getElementById('btnSaleMode');
+const btnManual    = document.getElementById('btnManualMode');
 
-function clearPanel() {
+function setMode(mode) {
+    modeInput.value = mode;
+
+    if (mode === 'sale') {
+        panelSale.classList.remove('d-none');
+        panelManual.classList.add('d-none');
+        btnSale.classList.add('active');
+        btnManual.classList.remove('active');
+        submitLabel.textContent = 'Create Delivery from Sale';
+        // Re-evaluate current sale selection
+        clearSalePanel();
+        if (saleSelect.value) fetchSaleDetails(saleSelect.value);
+    } else {
+        panelManual.classList.remove('d-none');
+        panelSale.classList.add('d-none');
+        btnManual.classList.add('active');
+        btnSale.classList.remove('active');
+        submitLabel.textContent = 'Create Delivery Manually';
+        // Clear sale-specific panels
+        clearSalePanel();
+        submitBtn.disabled = false;
+    }
+}
+
+function clearSalePanel() {
     summary.classList.add('d-none');
     itemsCard.classList.add('d-none');
     dupWarning.classList.add('d-none');
-    submitBtn.disabled = true;
+    spinner.classList.add('d-none');
+    if (modeInput.value === 'sale') submitBtn.disabled = true;
 }
 
 async function fetchSaleDetails(saleId) {
-    clearPanel();
+    clearSalePanel();
     if (!saleId) return;
-
     spinner.classList.remove('d-none');
     try {
-        const resp = await fetch(`${SALE_DETAILS_URL}${saleId}/details/`);
-        if (!resp.ok) { spinner.classList.add('d-none'); return; }
-        const data = await resp.json();
+        const resp = await fetch(saleDetailsUrl(saleId));
         spinner.classList.add('d-none');
+        if (!resp.ok) return;
+        const data = await resp.json();
 
         if (data.already_has_delivery) {
             dupWarning.classList.remove('d-none');
             return;
         }
 
-        // Populate summary
+        // Populate sale summary
         document.getElementById('sumSaleId').textContent  = '#' + data.sale_id;
         document.getElementById('sumCustomer').textContent = data.customer_name || '—';
         document.getElementById('sumEmail').textContent    = data.customer_email || '—';
@@ -218,20 +333,20 @@ async function fetchSaleDetails(saleId) {
         document.getElementById('sumTotal').textContent    = '₹ ' + data.grand_total;
         summary.classList.remove('d-none');
 
-        // Auto-fill phone + address if empty
+        // Auto-fill shipping fields
         if (!phoneInput.value && data.customer_phone)
             phoneInput.value = data.customer_phone;
-        if (!locationInput.value && data.customer_address)
-            locationInput.value = data.customer_address;
+        if (!locInput.value && data.customer_address)
+            locInput.value = data.customer_address;
 
-        // Populate items table
-        if (data.items && data.items.length > 0) {
-            itemsBody.innerHTML = data.items.map(item => `
+        // Items table
+        if (data.items && data.items.length) {
+            itemsBody.innerHTML = data.items.map(i => `
                 <tr>
-                    <td>${item.name}</td>
-                    <td class="text-center">${item.quantity}</td>
-                    <td class="text-end">₹ ${item.price}</td>
-                    <td class="text-end">₹ ${item.total}</td>
+                    <td>${i.name}</td>
+                    <td class="text-center">${i.quantity}</td>
+                    <td class="text-end">₹ ${i.price}</td>
+                    <td class="text-end">₹ ${i.total}</td>
                 </tr>
             `).join('');
             itemsCard.classList.remove('d-none');
@@ -244,14 +359,19 @@ async function fetchSaleDetails(saleId) {
     }
 }
 
+// Sale dropdown change
 saleSelect.addEventListener('change', function() {
-    phoneInput.value    = '';
-    locationInput.value = '';
+    phoneInput.value = '';
+    locInput.value   = '';
     fetchSaleDetails(this.value);
 });
 
-// If a sale is pre-selected (e.g. form re-render on error), load its details
-if (saleSelect.value) fetchSaleDetails(saleSelect.value);
+// Restore state on validation re-render
+const savedMode = modeInput.value || 'sale';
+setMode(savedMode);
+if (savedMode === 'sale' && saleSelect.value) {
+    fetchSaleDetails(saleSelect.value);
+}
 </script>
 
 {% endblock %}

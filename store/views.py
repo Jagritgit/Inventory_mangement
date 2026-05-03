@@ -554,7 +554,7 @@ class DeliveryCreateView(LoginRequiredMixin, CreateView):
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
-        # Only offer sales that don't already have a delivery
+        # Sale dropdown only shows sales that don't already have a delivery
         taken_ids = Delivery.objects.filter(
             sale__isnull=False
         ).values_list('sale_id', flat=True)
@@ -570,25 +570,38 @@ class DeliveryCreateView(LoginRequiredMixin, CreateView):
         from django.contrib import messages
         delivery = form.save(commit=False)
         delivery.status = 'PENDING'
-        # Server-side duplicate guard
-        if Delivery.objects.filter(sale=delivery.sale).exists():
-            form.add_error('sale', 'A delivery already exists for this sale.')
-            return self.form_invalid(form)
-        # Copy customer details from the linked sale
-        customer = delivery.sale.customer
-        if customer:
-            if not delivery.phone_number:
-                delivery.phone_number = getattr(customer, 'phone', '') or None
-            if not delivery.location:
-                delivery.location = getattr(customer, 'address', '') or ''
-            delivery.customer = customer
-            delivery.customer_name = customer.get_full_name()
-            delivery.email = getattr(customer, 'email', '') or ''
-        delivery.save()
-        messages.success(
-            self.request,
-            f'Delivery #{delivery.id} created for Sale #{delivery.sale.id}.'
-        )
+        mode = form.cleaned_data.get('mode', 'sale')
+
+        if mode == 'sale':
+            sale = delivery.sale
+            # Server-side duplicate guard
+            if Delivery.objects.filter(sale=sale).exists():
+                form.add_error('sale', 'A delivery already exists for this sale.')
+                return self.form_invalid(form)
+            # Copy customer details from the linked sale
+            customer = sale.customer if sale else None
+            if customer:
+                if not delivery.phone_number:
+                    delivery.phone_number = getattr(customer, 'phone', '') or None
+                if not delivery.location:
+                    delivery.location = getattr(customer, 'address', '') or ''
+                delivery.customer = customer
+                delivery.customer_name = customer.get_full_name()
+                delivery.email = getattr(customer, 'email', '') or ''
+            delivery.save()
+            messages.success(
+                self.request,
+                f'Delivery #{delivery.id} created for Sale #{sale.id}.'
+            )
+        else:
+            # Manual mode — no sale link
+            delivery.sale = None
+            delivery.save()
+            messages.success(
+                self.request,
+                f'Manual delivery #{delivery.id} created for {delivery.customer_name or "customer"}.'
+            )
+
         return redirect('delivery-detail', pk=delivery.pk)
 
 
