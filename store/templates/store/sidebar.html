@@ -153,23 +153,6 @@
                 </a>
             </li>
 
-            <!-- Purchases dropdown -->
-            <li class="nav-item mb-1 dropdown">
-                <a class="nav-link dropdown-toggle
-                   {% if 'purchase' in request.resolver_match.url_name or request.resolver_match.url_name == 'vendor-list' or request.resolver_match.url_name == 'vendor-create' or request.resolver_match.url_name == 'vendor-update' %}active{% endif %}"
-                   href="#" data-bs-toggle="dropdown">
-                    <i class="fa-solid fa-cart-arrow-down me-2"></i> Purchases
-                </a>
-                <ul class="dropdown-menu border-0">
-                    <li>
-                        <a class="dropdown-item {% if 'purchase-order' in request.resolver_match.url_name %}active{% endif %}"
-                           href="{% url 'purchase-order-list' %}">
-                            <i class="fa-solid fa-file-lines me-1"></i> Purchase Orders
-                        </a>
-                    </li>
-                </ul>
-            </li>
-
             <!-- Package -->
             <li class="nav-item mb-1">
                 <a class="nav-link {% if request.resolver_match.url_name == 'deliveries' %}active{% endif %}"
