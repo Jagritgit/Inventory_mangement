@@ -45,7 +45,6 @@
 .items-table th.num { text-align: right; }
 .total-row td { font-weight: 800; background: #f8fafc; }
 
-/* Mark received button */
 .btn-mark-received {
     display: inline-flex; align-items: center; gap: 7px;
     padding: 9px 20px; border: none; border-radius: 9px;
@@ -53,17 +52,31 @@
     font-size: 13px; font-weight: 700; cursor: pointer; transition: .15s;
 }
 .btn-mark-received:hover { background: #15803d; }
+.btn-create-bill {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 9px 20px; border: none; border-radius: 9px;
+    background: #4f46e5; color: #fff;
+    font-size: 13px; font-weight: 700; cursor: pointer; transition: .15s;
+}
+.btn-create-bill:hover { background: #4338ca; }
 .received-note {
     display: inline-flex; align-items: center; gap: 7px;
     padding: 8px 16px; border-radius: 9px;
     background: #dcfce7; color: #166534;
     font-size: 13px; font-weight: 700;
 }
+.bill-exists-note {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 16px; border-radius: 9px;
+    background: #ede9fe; color: #4338ca;
+    font-size: 13px; font-weight: 700;
+    text-decoration: none;
+}
+.bill-exists-note:hover { background: #ddd6fe; color: #3730a3; }
 </style>
 
 <div class="module-wrap po-detail-wrap">
 
-    <!-- Header -->
     <div class="module-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);">
         <div>
             <h2>{{ order.order_number }}</h2>
@@ -71,6 +84,13 @@
         </div>
         <div class="module-actions">
             <a class="btn-action ghost" href="{% url 'purchase-order-list' %}">← Back</a>
+            {% if existing_bill %}
+            <a class="btn-action primary"
+               href="{% url 'purchase-bill-detail' existing_bill.slug %}"
+               style="background:#ede9fe;color:#4338ca;">
+                <i class="fa-solid fa-file-invoice me-1"></i> View Bill
+            </a>
+            {% endif %}
             {% if user.is_superuser and not order.stock_updated %}
             <a class="btn-action primary" href="{% url 'purchase-order-update' order.slug %}">Edit</a>
             <a class="btn-action danger" href="{% url 'purchase-order-delete' order.pk %}">Delete</a>
@@ -78,12 +98,11 @@
         </div>
     </div>
 
-    <!-- Messages -->
     {% if messages %}
     <div style="margin-bottom:14px;">
         {% for msg in messages %}
         <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;
-                    background:{% if msg.tags == 'success' %}#dcfce7;color:#166534{% elif msg.tags == 'warning' %}#fef3c7;color:#92400e{% else %}#dbeafe;color:#1e40af{% endif %};">
+            background:{% if msg.tags == 'success' %}#dcfce7;color:#166534{% elif msg.tags == 'warning' %}#fef3c7;color:#92400e{% elif msg.tags == 'info' %}#ede9fe;color:#4338ca{% else %}#dbeafe;color:#1e40af{% endif %};">
             {{ msg }}
         </div>
         {% endfor %}
@@ -134,27 +153,43 @@
 
             </div>
 
-            <!-- Mark as Received action -->
-            <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
+            <!-- Action row -->
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;
+                        display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+
+                <!-- Mark as Received -->
                 {% if order.stock_updated %}
                 <span class="received-note">
-                    <i class="fa-solid fa-circle-check"></i>
-                    Stock received and updated
+                    <i class="fa-solid fa-circle-check"></i> Stock received &amp; updated
                 </span>
                 {% else %}
                 <form method="POST" action="{% url 'purchase-order-mark-received' order.pk %}"
                       style="display:inline;"
-                      onsubmit="return confirm('Mark this order as received? This will increase stock for all {{ order.items.count }} product(s) and cannot be undone.');">
+                      onsubmit="return confirm('Mark as received? This will increase stock for all {{ order.items.count }} product(s).');">
                     {% csrf_token %}
                     <button type="submit" class="btn-mark-received">
-                        <i class="fa-solid fa-circle-check"></i>
-                        Mark as Received &amp; Update Stock
+                        <i class="fa-solid fa-circle-check"></i> Mark as Received
                     </button>
                 </form>
-                <span style="font-size:12px;color:#6b7280;margin-left:12px;">
-                    Stock will be increased for all {{ order.items.count }} line item(s).
-                </span>
                 {% endif %}
+
+                <!-- Create Bill / View Bill -->
+                {% if existing_bill %}
+                <a class="bill-exists-note" href="{% url 'purchase-bill-detail' existing_bill.slug %}">
+                    <i class="fa-solid fa-file-invoice"></i>
+                    {{ existing_bill.bill_number }} · View Bill
+                </a>
+                {% else %}
+                <form method="POST" action="{% url 'purchase-bill-create' order.pk %}"
+                      style="display:inline;"
+                      onsubmit="return confirm('Create a purchase bill from {{ order.order_number }}?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-create-bill">
+                        <i class="fa-solid fa-file-invoice"></i> Create Bill
+                    </button>
+                </form>
+                {% endif %}
+
             </div>
         </div>
     </div>

@@ -89,3 +89,82 @@ class PurchaseOrderItem(models.Model):
 
     def __str__(self):
         return f"{self.product.name} × {self.quantity}"
+
+
+# ── Purchase Bills ────────────────────────────────────────────────────────────
+
+PBILL_STATUS = [
+    ('UNPAID', 'Unpaid'),
+    ('PAID',   'Paid'),
+]
+
+
+class PurchaseBill(models.Model):
+    """
+    A vendor invoice derived from a PurchaseOrder.
+    One-to-one with PurchaseOrder — one bill per order.
+    """
+    bill_number    = models.CharField(max_length=25, unique=True, blank=True)
+    slug           = AutoSlugField(unique=True, populate_from='bill_number')
+    purchase_order = models.OneToOneField(
+        PurchaseOrder, on_delete=models.CASCADE, related_name='purchase_bill'
+    )
+    vendor         = models.ForeignKey(
+        Vendor, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='purchase_bills'
+    )
+    bill_date      = models.DateTimeField(auto_now_add=True)
+    total_amount   = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    status         = models.CharField(max_length=10, choices=PBILL_STATUS, default='UNPAID')
+    notes          = models.TextField(blank=True, null=True, max_length=500)
+
+    class Meta:
+        ordering        = ['-bill_date']
+        verbose_name    = 'Purchase Bill'
+        verbose_name_plural = 'Purchase Bills'
+
+    @staticmethod
+    def _next_bill_number():
+        year   = timezone.now().year
+        prefix = f"PBILL-{year}-"
+        last   = (
+            PurchaseBill.objects
+            .filter(bill_number__startswith=prefix)
+            .order_by('-bill_number')
+            .first()
+        )
+        if last and last.bill_number:
+            try:
+                seq = int(last.bill_number.split('-')[-1]) + 1
+            except (ValueError, IndexError):
+                seq = 1
+        else:
+            seq = 1
+        return f"{prefix}{seq:04d}"
+
+    def save(self, *args, **kwargs):
+        if not self.bill_number:
+            self.bill_number = self._next_bill_number()
+        super().save(*args, **kwargs)
+
+    @property
+    def status_color(self):
+        return {'PAID': 'success', 'UNPAID': 'danger'}.get(self.status, 'secondary')
+
+    def __str__(self):
+        return self.bill_number or f"PBill-{self.pk}"
+
+
+class PurchaseBillItem(models.Model):
+    bill       = models.ForeignKey(PurchaseBill, on_delete=models.CASCADE, related_name='items')
+    product    = models.ForeignKey(Item, on_delete=models.SET_NULL, null=True, related_name='purchase_bill_items')
+    quantity   = models.PositiveIntegerField()
+    cost_price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name='Unit Cost (₹)')
+
+    @property
+    def total_price(self):
+        return self.cost_price * self.quantity
+
+    def __str__(self):
+        name = self.product.name if self.product else '—'
+        return f"{name} × {self.quantity}"

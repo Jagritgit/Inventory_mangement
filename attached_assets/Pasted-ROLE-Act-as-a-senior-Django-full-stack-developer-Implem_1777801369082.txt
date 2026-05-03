@@ -1,0 +1,204 @@
+ROLE:
+Act as a senior Django full-stack developer. Implement a Bill system that is created from Purchase Orders and displays data in a real-world bill format.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Existing models:
+
+  * Vendor
+  * Product
+  * PurchaseOrder
+  * PurchaseOrderItem
+
+RELATION:
+
+* PurchaseOrder → Vendor
+* PurchaseOrder → PurchaseOrderItems (products, quantity, price)
+
+---
+
+## CORE REQUIREMENT
+
+Bills must be created FROM Purchase Orders, not manually from scratch.
+
+---
+
+## 1. BILL MODEL
+
+Create Bill model:
+
+Fields:
+
+* id
+* vendor (ForeignKey → Vendor)
+* purchase_order (ForeignKey → PurchaseOrder)
+* bill_date
+* total_amount
+* status:
+
+  * unpaid
+  * paid
+* created_at
+
+---
+
+Create BillItem model:
+
+Fields:
+
+* bill (FK)
+* product (FK)
+* quantity
+* cost_price
+* total_price (quantity × cost_price)
+
+---
+
+## 2. CREATE BILL FROM PURCHASE ORDER
+
+Implement functionality:
+
+* Button: "Create Bill" on Purchase Order page
+
+When clicked:
+
+1. Fetch PurchaseOrder
+
+2. Create Bill:
+
+   * vendor = purchase_order.vendor
+   * purchase_order = selected order
+   * total_amount = calculated
+
+3. For each PurchaseOrderItem:
+   → Create BillItem:
+   - product
+   - quantity
+   - cost_price = price_per_item
+   - total_price
+
+---
+
+## 3. COPY DATA FROM PURCHASE ORDER
+
+Bill must include:
+
+* Vendor details
+* Product names
+* Quantities
+* Cost price per item
+* Total amount
+* Delivery/received status (from PurchaseOrder)
+
+---
+
+## 4. UPDATE PRODUCT DATA (IMPORTANT)
+
+When Bill is created:
+
+* Update product:
+
+  * cost_price = latest bill price
+
+* Optional:
+
+  * Update stock if order is marked "received"
+
+---
+
+## 5. REAL-WORLD BILL DESIGN (IMPORTANT)
+
+Bill must look like real printed bills:
+
+### Structure:
+
+1. Header:
+
+   * Company Name
+   * Address
+   * Contact info
+
+2. Bill Info:
+
+   * Bill Number
+   * Date
+   * Vendor Name
+
+3. Vendor Details:
+
+   * Company Name
+   * Phone
+   * Address
+
+4. Product Table:
+   Columns:
+
+   * Product Name
+   * Quantity
+   * Price per item
+   * Total
+
+5. Summary:
+
+   * Subtotal
+   * Total Amount
+
+6. Status:
+
+   * Paid / Unpaid
+
+7. Delivery Info:
+
+   * Purchase Order status (received or pending)
+
+---
+
+## 6. UI REQUIREMENTS
+
+Purchase Order Page:
+
+* Button: "Create Bill"
+
+Bill Page:
+
+* Clean printable layout (A4 friendly)
+* No fancy UI
+* Use table for product list
+
+---
+
+## 7. CONSTRAINTS
+
+* Do NOT create bill manually without PurchaseOrder
+
+* Do NOT duplicate product data incorrectly
+
+* Keep relations clean:
+  PurchaseOrder → Bill → BillItems
+
+* Do NOT add unnecessary UI elements
+
+---
+
+## 8. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (Bill, BillItem)
+2. views.py (create bill from purchase order)
+3. urls.py
+4. template (real-world bill layout)
+5. short explanation
+
+---
+
+## EXPECTED RESULT
+
+* Bill is created from Purchase Order with one click
+* All data is copied correctly
+* Bill shows vendor, products, quantity, price, total
+* Bill looks like a real printed document
+* Product cost price updates correctly

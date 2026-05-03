@@ -8,9 +8,12 @@ from django.views.generic import (
     ListView, DetailView, CreateView, UpdateView, DeleteView
 )
 
-from .models import PurchaseOrder
+from .models import PurchaseOrder, PurchaseBill, PurchaseBillItem
 from .forms import PurchaseOrderForm, PurchaseOrderItemFormSet
+from store.models import Item
 
+
+# ── Purchase Orders ───────────────────────────────────────────────────────────
 
 class PurchaseOrderListView(LoginRequiredMixin, ListView):
     model               = PurchaseOrder
@@ -47,6 +50,15 @@ class PurchaseOrderDetailView(LoginRequiredMixin, DetailView):
             .select_related('vendor')
             .prefetch_related('items__product')
         )
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        # Pass existing bill (if any) to template so we can show View Bill link
+        try:
+            ctx['existing_bill'] = self.object.purchase_bill
+        except PurchaseBill.DoesNotExist:
+            ctx['existing_bill'] = None
+        return ctx
 
 
 class PurchaseOrderCreateView(LoginRequiredMixin, CreateView):
@@ -119,11 +131,8 @@ class PurchaseOrderDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteVie
 
 class MarkReceivedView(LoginRequiredMixin, View):
     """
-    POST-only action view. On first call:
-      1. Increments each product's stock by ordered quantity.
-      2. Adds order total to vendor.total_paid.
-      3. Sets status = RECEIVED and stock_updated = True.
-    Idempotent: does nothing if already marked received.
+    POST-only. Increments product stocks, bumps vendor.total_paid,
+    marks order RECEIVED. Idempotent via stock_updated flag.
     """
 
     def post(self, request, pk):
@@ -137,19 +146,16 @@ class MarkReceivedView(LoginRequiredMixin, View):
             return redirect('purchase-order-detail', slug=order.slug)
 
         with transaction.atomic():
-            # 1. Increase each product's stock
             for line in order.items.select_related('product'):
                 line.product.quantity += line.quantity
                 line.product.save(update_fields=['quantity'])
 
-            # 2. Bump vendor.total_paid
             if order.vendor_id:
                 from accounts.models import Vendor as VendorModel
                 vendor = VendorModel.objects.select_for_update().get(pk=order.vendor_id)
                 vendor.total_paid = (vendor.total_paid or 0) + order.total_amount
                 vendor.save(update_fields=['total_paid'])
 
-            # 3. Mark the order
             order.status        = 'RECEIVED'
             order.stock_updated = True
             order.save(update_fields=['status', 'stock_updated'])
@@ -161,3 +167,100 @@ class MarkReceivedView(LoginRequiredMixin, View):
             f"Stock updated for {item_count} product{'s' if item_count != 1 else ''}."
         )
         return redirect('purchase-order-detail', slug=order.slug)
+
+
+# ── Purchase Bills ────────────────────────────────────────────────────────────
+
+class PurchaseBillListView(LoginRequiredMixin, ListView):
+    model               = PurchaseBill
+    template_name       = 'purchases/purchase_bill_list.html'
+    context_object_name = 'bills'
+    paginate_by         = 20
+
+    def get_queryset(self):
+        qs = super().get_queryset().select_related('vendor', 'purchase_order')
+        q  = self.request.GET.get('q')
+        if q:
+            qs = qs.filter(bill_number__icontains=q) | qs.filter(vendor__name__icontains=q)
+        status = self.request.GET.get('status')
+        if status:
+            qs = qs.filter(status=status)
+        return qs
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx['q']              = self.request.GET.get('q', '')
+        ctx['status']         = self.request.GET.get('status', '')
+        ctx['status_choices'] = PurchaseBill._meta.get_field('status').choices
+        return ctx
+
+
+class PurchaseBillDetailView(LoginRequiredMixin, DetailView):
+    model               = PurchaseBill
+    template_name       = 'purchases/purchase_bill_detail.html'
+    context_object_name = 'bill'
+
+    def get_queryset(self):
+        return (
+            super().get_queryset()
+            .select_related('vendor', 'purchase_order')
+            .prefetch_related('items__product')
+        )
+
+
+class CreatePurchaseBillView(LoginRequiredMixin, View):
+    """
+    POST-only. Creates a PurchaseBill from a PurchaseOrder in one click.
+    - Copies all line items with their unit costs.
+    - Updates each product's cost_price to the purchased price.
+    - Idempotent: if a bill already exists, redirects to it.
+    """
+
+    def post(self, request, pk):
+        order = get_object_or_404(
+            PurchaseOrder.objects.prefetch_related('items__product'), pk=pk
+        )
+
+        # Idempotency guard
+        try:
+            existing = order.purchase_bill
+            messages.info(request, f"Bill {existing.bill_number} already exists for {order.order_number}.")
+            return redirect('purchase-bill-detail', slug=existing.slug)
+        except PurchaseBill.DoesNotExist:
+            pass
+
+        with transaction.atomic():
+            bill = PurchaseBill.objects.create(
+                purchase_order=order,
+                vendor=order.vendor,
+                total_amount=order.total_amount,
+            )
+
+            for line in order.items.all():
+                PurchaseBillItem.objects.create(
+                    bill=bill,
+                    product=line.product,
+                    quantity=line.quantity,
+                    cost_price=line.price,
+                )
+                # Update product's recorded cost price to the latest purchase price
+                if line.product_id:
+                    Item.objects.filter(pk=line.product_id).update(cost_price=line.price)
+
+        messages.success(
+            request,
+            f"Bill {bill.bill_number} created from {order.order_number}. "
+            f"Cost prices updated for {order.items.count()} product(s)."
+        )
+        return redirect('purchase-bill-detail', slug=bill.slug)
+
+
+class ToggleBillStatusView(LoginRequiredMixin, View):
+    """POST-only. Flips bill status between UNPAID ↔ PAID."""
+
+    def post(self, request, pk):
+        bill = get_object_or_404(PurchaseBill, pk=pk)
+        bill.status = 'PAID' if bill.status == 'UNPAID' else 'UNPAID'
+        bill.save(update_fields=['status'])
+        messages.success(request, f"{bill.bill_number} marked as {bill.get_status_display()}.")
+        return redirect('purchase-bill-detail', slug=bill.slug)

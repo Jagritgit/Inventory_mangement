@@ -1,0 +1,370 @@
+{% extends "store/base.html" %}
+{% block title %}{{ bill.bill_number }}{% endblock %}
+
+{% block content %}
+<style>
+/* ── Screen chrome ───────────────────────────────────────────────── */
+.bill-screen-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #4f46e5 100%);
+    border-radius: 14px; padding: 16px 22px; margin: 18px 18px 14px;
+    color: #fff;
+}
+.bill-screen-bar h2 { margin: 0; font-size: 20px; font-weight: 800; color: #fff; }
+.bill-screen-bar small { color: rgba(255,255,255,.8); }
+.bar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.btn-pill {
+    padding: 7px 16px; border-radius: 999px; font-size: 13px;
+    font-weight: 600; border: none; cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-pill.ghost  { background: transparent; border: 1px solid rgba(255,255,255,.5); color: #fff; }
+.btn-pill.indigo { background: #fff; color: #4f46e5; }
+.btn-pill.green  { background: #16a34a; color: #fff; }
+.btn-pill.yellow { background: #d97706; color: #fff; }
+.btn-pill.print  { background: #4f46e5; color: #fff; }
+
+/* ── Printable Bill ─────────────────────────────────────────────── */
+.bill-page {
+    max-width: 800px; margin: 0 auto 40px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    font-size: 14px;
+    color: #111827;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+/* Header band */
+.bill-header {
+    background: #1e1b4b;
+    color: #fff;
+    padding: 28px 32px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.company-name { font-size: 26px; font-weight: 900; letter-spacing: -.5px; color: #fff; }
+.company-sub  { font-size: 12px; color: rgba(255,255,255,.7); margin-top: 2px; }
+.bill-title   { text-align: right; }
+.bill-title h3 {
+    font-size: 22px; font-weight: 900; letter-spacing: 2px;
+    text-transform: uppercase; color: #a5b4fc; margin: 0 0 8px;
+}
+.bill-meta-grid { display: grid; grid-template-columns: auto auto; gap: 2px 16px; text-align: right; }
+.bill-meta-grid .lbl { font-size: 10px; color: rgba(255,255,255,.6); text-transform: uppercase; letter-spacing: .06em; }
+.bill-meta-grid .val { font-size: 13px; font-weight: 700; color: #fff; }
+
+/* Two-column info strip */
+.info-strip {
+    display: grid; grid-template-columns: 1fr 1fr;
+    padding: 20px 32px;
+    border-bottom: 1px solid #f1f5f9;
+    gap: 20px;
+}
+.info-block h5 {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .08em; color: #9ca3af; margin: 0 0 8px;
+}
+.info-block p { margin: 2px 0; font-size: 13px; color: #374151; line-height: 1.5; }
+.info-block .primary { font-size: 15px; font-weight: 800; color: #111827; }
+
+/* Products table */
+.products-section { padding: 0 32px 20px; }
+.products-section h5 {
+    font-size: 10px; font-weight: 800; text-transform: uppercase;
+    letter-spacing: .08em; color: #9ca3af; margin: 20px 0 10px;
+}
+.bill-table { width: 100%; border-collapse: collapse; }
+.bill-table thead tr { background: #f8fafc; }
+.bill-table th {
+    padding: 10px 12px; font-size: 11px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .05em;
+    color: #374151; text-align: left; border-bottom: 2px solid #e5e7eb;
+}
+.bill-table th.r { text-align: right; }
+.bill-table td { padding: 11px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+.bill-table td.r { text-align: right; font-variant-numeric: tabular-nums; }
+.bill-table tbody tr:last-child td { border-bottom: none; }
+.bill-table tbody tr:hover { background: #fafafa; }
+
+/* Totals panel */
+.totals-panel {
+    margin: 0 32px 20px;
+    display: flex; justify-content: flex-end;
+}
+.totals-inner {
+    min-width: 260px;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.totals-inner table { width: 100%; border-collapse: collapse; }
+.totals-inner td { padding: 8px 14px; font-size: 13px; }
+.totals-inner tr:not(:last-child) td { border-bottom: 1px solid #f1f5f9; }
+.totals-inner td:last-child { text-align: right; font-weight: 700; }
+.totals-inner .grand td {
+    background: #1e1b4b; color: #fff; font-size: 15px; font-weight: 900;
+}
+
+/* Status + footer */
+.bill-footer {
+    margin: 0 32px 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+    padding-top: 16px; border-top: 1px solid #f1f5f9;
+}
+.status-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 8px 18px; border-radius: 999px;
+    font-size: 13px; font-weight: 800;
+}
+.status-chip.paid   { background: #dcfce7; color: #166534; }
+.status-chip.unpaid { background: #fee2e2; color: #991b1b; }
+.delivery-tag {
+    font-size: 12px; color: #6b7280;
+    display: flex; align-items: center; gap: 5px;
+}
+
+/* Print overrides */
+@media print {
+    .bill-screen-bar, .no-print { display: none !important; }
+    .sidebar, .navbar, nav { display: none !important; }
+    .main-content, .content-area, main, body > div { margin: 0 !important; padding: 0 !important; }
+    .bill-page {
+        border: none; box-shadow: none; max-width: 100%;
+        margin: 0; border-radius: 0;
+    }
+    @page { size: A4; margin: 10mm; }
+}
+
+@media (max-width: 640px) {
+    .info-strip { grid-template-columns: 1fr; }
+    .bill-header { flex-direction: column; }
+    .bill-title { text-align: left; }
+    .bill-meta-grid { text-align: left; }
+    .products-section, .totals-panel, .bill-footer { padding-left: 16px; padding-right: 16px; }
+    .totals-inner { min-width: 100%; }
+}
+</style>
+
+<!-- Screen toolbar (hidden on print) -->
+<div class="bill-screen-bar no-print">
+    <div>
+        <h2><i class="fa-solid fa-file-invoice me-2"></i>{{ bill.bill_number }}</h2>
+        <small>Purchase Bill · {{ bill.bill_date|date:"d M Y, H:i" }}</small>
+    </div>
+    <div class="bar-actions">
+        <a class="btn-pill ghost" href="{% url 'purchase-bill-list' %}">← Bills</a>
+        <a class="btn-pill ghost" href="{% url 'purchase-order-detail' bill.purchase_order.slug %}">
+            View PO
+        </a>
+        <!-- Toggle Paid / Unpaid -->
+        <form method="POST" action="{% url 'purchase-bill-toggle-status' bill.pk %}"
+              style="display:inline;"
+              onsubmit="return confirm('Mark this bill as {{ bill.status == 'UNPAID' and 'Paid' or 'Unpaid' }}?');">
+            {% csrf_token %}
+            {% if bill.status == 'UNPAID' %}
+            <button type="submit" class="btn-pill green">
+                <i class="fa-solid fa-check"></i> Mark Paid
+            </button>
+            {% else %}
+            <button type="submit" class="btn-pill yellow">
+                <i class="fa-solid fa-rotate-left"></i> Mark Unpaid
+            </button>
+            {% endif %}
+        </form>
+        <button class="btn-pill print" onclick="window.print()">
+            <i class="fa-solid fa-print"></i> Print
+        </button>
+    </div>
+</div>
+
+<!-- Messages (screen only) -->
+{% if messages %}
+<div class="no-print" style="margin:0 18px 10px;">
+    {% for msg in messages %}
+    <div style="padding:10px 16px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:6px;
+        background:{% if msg.tags == 'success' %}#dcfce7;color:#166534{% elif msg.tags == 'warning' %}#fef3c7;color:#92400e{% else %}#dbeafe;color:#1e40af{% endif %};">
+        {{ msg }}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- ── The printable bill ─────────────────────────────────────────────── -->
+<div class="bill-page">
+
+    <!-- Header -->
+    <div class="bill-header">
+        <div>
+            <div class="company-name">InventoryMS</div>
+            <div class="company-sub">Inventory Management System</div>
+        </div>
+        <div class="bill-title">
+            <h3>Purchase Bill</h3>
+            <div class="bill-meta-grid">
+                <span class="lbl">Bill No.</span>
+                <span class="val">{{ bill.bill_number }}</span>
+
+                <span class="lbl">Bill Date</span>
+                <span class="val">{{ bill.bill_date|date:"d M Y" }}</span>
+
+                <span class="lbl">PO Ref.</span>
+                <span class="val">{{ bill.purchase_order.order_number }}</span>
+
+                {% if bill.purchase_order.expected_date %}
+                <span class="lbl">Expected By</span>
+                <span class="val">{{ bill.purchase_order.expected_date|date:"d M Y" }}</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Billed To / Vendor Info -->
+    <div class="info-strip">
+
+        <div class="info-block">
+            <h5>Billed To (Our Company)</h5>
+            <p class="primary">InventoryMS</p>
+            <p>Inventory Management System</p>
+        </div>
+
+        <div class="info-block">
+            <h5>Supplier / Vendor</h5>
+            {% if bill.vendor %}
+            <p class="primary">{{ bill.vendor.company_name|default:bill.vendor.name }}</p>
+            {% if bill.vendor.company_name %}
+            <p>{{ bill.vendor.name }}</p>
+            {% endif %}
+            {% if bill.vendor.phone_number %}
+            <p><i class="fa-solid fa-phone fa-xs"></i> {{ bill.vendor.phone_number }}</p>
+            {% endif %}
+            {% if bill.vendor.email %}
+            <p><i class="fa-solid fa-envelope fa-xs"></i> {{ bill.vendor.email }}</p>
+            {% endif %}
+            {% if bill.vendor.address %}
+            <p><i class="fa-solid fa-location-dot fa-xs"></i> {{ bill.vendor.address }}</p>
+            {% endif %}
+            {% else %}
+            <p>—</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- Product Table -->
+    <div class="products-section">
+        <h5>Items Ordered</h5>
+        <table class="bill-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Product</th>
+                    <th>SKU</th>
+                    <th class="r">Unit Cost (₹)</th>
+                    <th class="r">Qty</th>
+                    <th class="r">Total (₹)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in bill.items.all %}
+                <tr>
+                    <td style="color:#9ca3af;">{{ forloop.counter }}</td>
+                    <td><strong>{{ item.product.name|default:"Deleted product" }}</strong></td>
+                    <td style="font-family:monospace;font-size:12px;color:#6b7280;">
+                        {{ item.product.sku|default:"—" }}
+                    </td>
+                    <td class="r">{{ item.cost_price|floatformat:2 }}</td>
+                    <td class="r">{{ item.quantity }}</td>
+                    <td class="r"><strong>{{ item.total_price|floatformat:2 }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align:center;color:#9ca3af;padding:24px;">
+                        No items.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totals -->
+    <div class="totals-panel">
+        <div class="totals-inner">
+            <table>
+                <tr>
+                    <td style="color:#6b7280;">Subtotal</td>
+                    <td>₹ {{ bill.total_amount|floatformat:2 }}</td>
+                </tr>
+                <tr>
+                    <td style="color:#6b7280;">Tax / GST</td>
+                    <td>₹ 0.00</td>
+                </tr>
+                <tr class="grand">
+                    <td>Total Amount</td>
+                    <td>₹ {{ bill.total_amount|floatformat:2 }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Footer: status + delivery info -->
+    <div class="bill-footer">
+
+        <div>
+            {% if bill.status == 'PAID' %}
+            <span class="status-chip paid">
+                <i class="fa-solid fa-circle-check"></i> PAID
+            </span>
+            {% else %}
+            <span class="status-chip unpaid">
+                <i class="fa-solid fa-circle-xmark"></i> UNPAID
+            </span>
+            {% endif %}
+        </div>
+
+        <div class="delivery-tag">
+            <i class="fa-solid fa-truck"></i>
+            Delivery:
+            <strong>
+                {% if bill.purchase_order.status == 'RECEIVED' %}
+                    Received
+                {% elif bill.purchase_order.status == 'PARTIAL' %}
+                    Partially Received
+                {% elif bill.purchase_order.status == 'ORDERED' %}
+                    Ordered / In Transit
+                {% else %}
+                    Pending
+                {% endif %}
+            </strong>
+            &nbsp;·&nbsp;
+            PO Status:
+            <span class="status-badge {{ bill.purchase_order.status_color }}"
+                  style="font-size:11px;padding:2px 8px;">
+                {{ bill.purchase_order.get_status_display }}
+            </span>
+        </div>
+
+    </div>
+
+    {% if bill.notes %}
+    <div style="margin:0 32px 24px;padding:12px 16px;background:#f8fafc;border-radius:8px;font-size:13px;color:#374151;">
+        <strong style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#9ca3af;margin-bottom:4px;">Notes</strong>
+        {{ bill.notes }}
+    </div>
+    {% endif %}
+
+    <!-- Print-only thank you note -->
+    <div style="text-align:center;padding:18px 32px 24px;font-size:12px;color:#9ca3af;border-top:1px solid #f1f5f9;">
+        Generated by InventoryMS · {{ bill.bill_date|date:"d M Y, H:i" }}
+    </div>
+
+</div>
+{% endblock %}

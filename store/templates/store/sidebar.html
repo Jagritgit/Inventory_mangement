@@ -156,13 +156,13 @@
             <!-- Purchases dropdown -->
             <li class="nav-item mb-1 dropdown">
                 <a class="nav-link dropdown-toggle
-                   {% if request.resolver_match.url_name == 'purchase-order-list' or request.resolver_match.url_name == 'purchase-order-create' or request.resolver_match.url_name == 'purchase-order-detail' or request.resolver_match.url_name == 'vendor-list' or request.resolver_match.url_name == 'bill_list' %}active{% endif %}"
+                   {% if 'purchase' in request.resolver_match.url_name or request.resolver_match.url_name == 'vendor-list' or request.resolver_match.url_name == 'vendor-create' or request.resolver_match.url_name == 'vendor-update' %}active{% endif %}"
                    href="#" data-bs-toggle="dropdown">
                     <i class="fa-solid fa-cart-arrow-down me-2"></i> Purchases
                 </a>
                 <ul class="dropdown-menu border-0">
                     <li>
-                        <a class="dropdown-item {% if request.resolver_match.url_name == 'vendor-list' %}active{% endif %}"
+                        <a class="dropdown-item {% if request.resolver_match.url_name == 'vendor-list' or request.resolver_match.url_name == 'vendor-create' or request.resolver_match.url_name == 'vendor-update' %}active{% endif %}"
                            href="{% url 'vendor-list' %}">
                             <i class="fa-solid fa-building me-1"></i> Vendors
                         </a>
@@ -174,9 +174,9 @@
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item {% if request.resolver_match.url_name == 'bill_list' %}active{% endif %}"
-                           href="{% url 'bill_list' %}">
-                            <i class="fa-solid fa-receipt me-1"></i> Bills
+                        <a class="dropdown-item {% if 'purchase-bill' in request.resolver_match.url_name %}active{% endif %}"
+                           href="{% url 'purchase-bill-list' %}">
+                            <i class="fa-solid fa-file-invoice me-1"></i> Purchase Bills
                         </a>
                     </li>
                 </ul>
