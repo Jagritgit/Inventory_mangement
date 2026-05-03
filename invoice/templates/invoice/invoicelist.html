@@ -8,7 +8,6 @@
     <div class="module-header">
         <div>
             <h2>Invoices</h2>
-            
         </div>
         <div class="module-actions">
             <a class="btn-action primary" href="{% url 'invoice-create' %}">+ New Invoice</a>
@@ -57,10 +56,16 @@
                 <td><strong>{{ invoice.invoice_number|default:invoice.slug }}</strong></td>
                 <td>{{ invoice.customer.get_full_name|default:invoice.customer_name }}</td>
                 <td>
-                    <span style="color:#374151;">{{ invoice.item.name|default:"—" }}</span>
-                    {% if invoice.quantity > 1 %}
-                        <small style="color:#6b7280;">× {{ invoice.quantity }}</small>
+                    {% with lines=invoice.items.all %}
+                    {% if lines %}
+                        <span style="color:#374151;">{{ lines.0.product.name }}</span>
+                        {% if lines|length > 1 %}
+                            <small style="color:#6b7280;">+{{ lines|length|add:"-1" }} more</small>
+                        {% endif %}
+                    {% else %}
+                        <span style="color:#9ca3af;">—</span>
                     {% endif %}
+                    {% endwith %}
                 </td>
                 <td class="num">₹ {{ invoice.grand_total|floatformat:2 }}</td>
                 <td>{{ invoice.date|date:"d M Y" }}</td>

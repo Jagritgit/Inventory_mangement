@@ -1,12 +1,16 @@
 from datetime import timedelta
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 from django.utils import timezone
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import DetailView, CreateView, UpdateView, DeleteView, ListView
+from django.contrib.auth.decorators import login_required
+from django.views.generic import DetailView, DeleteView, ListView
+from django.db import transaction
 from django.db.models import Q
 
-from .models import Invoice
-from .forms import InvoiceForm
+from store.models import Item
+from .models import Invoice, InvoiceItem
+from .forms import InvoiceHeaderForm
 
 
 class InvoiceListView(LoginRequiredMixin, ListView):
@@ -23,7 +27,7 @@ class InvoiceListView(LoginRequiredMixin, ListView):
     }
 
     def get_queryset(self):
-        qs = super().get_queryset().select_related("item", "customer")
+        qs = super().get_queryset().prefetch_related("items__product").select_related("customer")
 
         q = self.request.GET.get("q")
         if q:
@@ -66,33 +70,146 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     template_name = "invoice/invoicedetail.html"
     context_object_name = "invoice"
 
+    def get_queryset(self):
+        return super().get_queryset().prefetch_related("items__product")
 
-class InvoiceCreateView(LoginRequiredMixin, CreateView):
-    model = Invoice
-    form_class = InvoiceForm
-    template_name = "invoice/invoice_form.html"
-    success_url = reverse_lazy("invoicelist")
 
-    def form_valid(self, form):
+def _parse_items(post):
+    """
+    Extract parallel lists of product_id / quantity / price from POST data.
+    Returns a list of dicts, skipping rows with no product selected.
+    """
+    product_ids = post.getlist("product_id[]")
+    quantities  = post.getlist("quantity[]")
+    prices      = post.getlist("price[]")
+
+    items = []
+    for pid, qty, prc in zip(product_ids, quantities, prices):
+        pid = pid.strip()
+        if not pid:
+            continue
         try:
-            return super().form_valid(form)
-        except ValueError as e:
-            form.add_error(None, str(e))
-            return self.form_invalid(form)
+            qty = int(qty)
+            prc = float(prc)
+        except (ValueError, TypeError):
+            continue
+        if qty <= 0 or prc < 0:
+            continue
+        items.append({"product_id": int(pid), "quantity": qty, "price": prc})
+    return items
 
 
-class InvoiceUpdateView(LoginRequiredMixin, UpdateView):
-    model = Invoice
-    form_class = InvoiceForm
-    template_name = "invoice/invoice_form.html"
-    success_url = reverse_lazy("invoicelist")
+def _apply_stock(invoice, item_rows, restore=False):
+    """
+    Deduct or restore stock for a list of item rows.
+    Does nothing when the invoice is CANCELLED.
+    Raises ValueError on insufficient stock when deducting.
+    """
+    if invoice.status == "CANCELLED":
+        return
+    sign = 1 if restore else -1
+    for row in item_rows:
+        product = Item.objects.select_for_update().get(pk=row["product_id"])
+        new_qty = product.quantity + sign * row["quantity"]
+        if new_qty < 0:
+            raise ValueError(
+                f"Insufficient stock for '{product.name}': "
+                f"available {product.quantity}, requested {row['quantity']}."
+            )
+        product.quantity = new_qty
+        product.save()
 
-    def form_valid(self, form):
-        try:
-            return super().form_valid(form)
-        except ValueError as e:
-            form.add_error(None, str(e))
-            return self.form_invalid(form)
+
+@login_required
+def invoice_create(request):
+    all_products = Item.objects.order_by("name")
+    errors = []
+
+    if request.method == "POST":
+        form = InvoiceHeaderForm(request.POST)
+        item_rows = _parse_items(request.POST)
+
+        if not item_rows:
+            errors.append("Add at least one product line.")
+
+        if form.is_valid() and not errors:
+            try:
+                with transaction.atomic():
+                    invoice = form.save()
+                    _apply_stock(invoice, item_rows, restore=False)
+                    for row in item_rows:
+                        InvoiceItem.objects.create(
+                            invoice=invoice,
+                            product_id=row["product_id"],
+                            quantity=row["quantity"],
+                            price=row["price"],
+                        )
+                    invoice.recompute_total()
+                return redirect("invoicelist")
+            except ValueError as e:
+                errors.append(str(e))
+    else:
+        form = InvoiceHeaderForm()
+
+    return render(request, "invoice/invoice_form.html", {
+        "form": form,
+        "all_products": all_products,
+        "errors": errors,
+        "editing": False,
+    })
+
+
+@login_required
+def invoice_update(request, slug):
+    invoice = get_object_or_404(Invoice, slug=slug)
+    all_products = Item.objects.order_by("name")
+    existing_items = list(invoice.items.select_related("product").all())
+    errors = []
+
+    if request.method == "POST":
+        form = InvoiceHeaderForm(request.POST, instance=invoice)
+        item_rows = _parse_items(request.POST)
+
+        if not item_rows:
+            errors.append("Add at least one product line.")
+
+        if form.is_valid() and not errors:
+            try:
+                with transaction.atomic():
+                    old_status = Invoice.objects.select_for_update().get(pk=invoice.pk).status
+                    old_rows = [
+                        {"product_id": ii.product_id, "quantity": ii.quantity}
+                        for ii in existing_items
+                    ]
+                    old_invoice_stub = type("Stub", (), {"status": old_status})()
+                    _apply_stock(old_invoice_stub, old_rows, restore=True)
+
+                    invoice = form.save()
+                    invoice.items.all().delete()
+
+                    _apply_stock(invoice, item_rows, restore=False)
+                    for row in item_rows:
+                        InvoiceItem.objects.create(
+                            invoice=invoice,
+                            product_id=row["product_id"],
+                            quantity=row["quantity"],
+                            price=row["price"],
+                        )
+                    invoice.recompute_total()
+                return redirect("invoicelist")
+            except ValueError as e:
+                errors.append(str(e))
+    else:
+        form = InvoiceHeaderForm(instance=invoice)
+
+    return render(request, "invoice/invoice_form.html", {
+        "form": form,
+        "all_products": all_products,
+        "existing_items": existing_items,
+        "errors": errors,
+        "editing": True,
+        "invoice": invoice,
+    })
 
 
 class InvoiceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
@@ -102,3 +219,14 @@ class InvoiceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
     def test_func(self):
         return self.request.user.is_superuser
+
+    def form_valid(self, form):
+        invoice = self.get_object()
+        with transaction.atomic():
+            if invoice.status != "CANCELLED":
+                rows = [
+                    {"product_id": ii.product_id, "quantity": ii.quantity}
+                    for ii in invoice.items.all()
+                ]
+                _apply_stock(invoice, rows, restore=True)
+        return super().form_valid(form)

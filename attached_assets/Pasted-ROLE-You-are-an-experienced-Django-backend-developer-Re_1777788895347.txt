@@ -1,0 +1,121 @@
+ROLE:
+You are an experienced Django backend developer. Refactor and fix my Inventory Management System with correct database design and business logic.
+
+PROJECT STACK:
+
+* Django (models, views, templates)
+* Relational database (SQLite/PostgreSQL)
+
+---
+
+CURRENT ISSUES:
+
+1. DOUBLE REVENUE BUG:
+
+* Revenue increases when a Sale is created ✅ (correct)
+* Revenue increases AGAIN when an Invoice is created ❌ (wrong)
+* This results in duplicate revenue counting
+
+2. INVOICE LIMITATION:
+
+* Each Invoice currently supports only ONE product
+* I need ONE invoice to support MULTIPLE products with quantities
+
+---
+
+GOALS:
+
+### A. FIX REVENUE LOGIC (CRITICAL)
+
+* Revenue must be updated ONLY when a Sale is created
+* Invoice must NOT modify revenue
+* If any revenue logic exists in Invoice-related code, REMOVE it
+* Ensure no duplicate financial updates occur anywhere
+
+---
+
+### B. CORRECT DATABASE DESIGN
+
+Implement proper relational structure:
+
+1. Product (existing)
+2. Invoice
+3. InvoiceItem (NEW)
+
+Invoice:
+
+* id
+* customer
+* date
+* total_amount (calculated)
+
+InvoiceItem:
+
+* id
+* invoice (ForeignKey → Invoice, CASCADE)
+* product (ForeignKey → Product)
+* quantity (IntegerField)
+* price (DecimalField)
+
+RELATION:
+
+* One Invoice → Many InvoiceItems
+* One Product → Can appear in many InvoiceItems
+
+---
+
+### C. BACKEND IMPLEMENTATION
+
+* Modify invoice creation logic:
+
+  * Accept multiple products and quantities
+  * Loop through submitted data
+  * Create multiple InvoiceItem objects linked to one Invoice
+
+* Calculate total_amount:
+  total = sum(quantity × price for all items)
+
+* Save total in Invoice OR compute dynamically
+
+---
+
+### D. FRONTEND / FORM REQUIREMENTS
+
+* Update invoice form UI:
+
+  * Allow dynamic rows ("Add Product" button)
+  * Each row includes:
+
+    * product dropdown
+    * quantity input
+    * price input
+
+* Ensure backend correctly receives arrays/lists of:
+  products[], quantities[], prices[]
+
+---
+
+### E. CONSTRAINTS
+
+* Do NOT redesign the entire project unnecessarily
+* Do NOT introduce redundant models
+* Keep code clean, modular, and readable
+* Follow Django best practices
+
+---
+
+### EXPECTED RESULT
+
+* Revenue is correct (no duplication)
+* Invoice supports multiple products
+* Data model follows proper normalization
+* System behaves like a real-world inventory system
+
+---
+
+OUTPUT FORMAT:
+
+1. Updated models.py
+2. Updated views.py (invoice creation logic)
+3. Example HTML form (multi-product input)
+4. Brief explanation of changes

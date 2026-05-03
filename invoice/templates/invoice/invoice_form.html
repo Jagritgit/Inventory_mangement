@@ -1,45 +1,141 @@
 {% extends "store/base.html" %}
-{% block title %}{% if form.instance.pk %}Edit{% else %}New{% endif %} Invoice{% endblock %}
+{% block title %}{% if editing %}Edit{% else %}New{% endif %} Invoice{% endblock %}
 {% block content %}
 {% include "invoice/_styles.html" %}
+
+<style>
+.items-table { width:100%; border-collapse:collapse; margin-top:8px; }
+.items-table th {
+    background:#f1f5f9; font-size:11px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.04em; padding:8px 10px; text-align:left; color:#374151;
+}
+.items-table td { padding:6px 8px; vertical-align:middle; }
+.items-table tr:not(:last-child) td { border-bottom:1px solid #f1f5f9; }
+.items-table select, .items-table input[type=number] {
+    width:100%; border:1px solid #d1d5db; border-radius:6px; padding:6px 8px;
+    font-size:13px; background:#fff; color:#1f2937;
+}
+.items-table .line-total { text-align:right; font-variant-numeric:tabular-nums;
+    font-weight:600; color:#1e40af; font-size:13px; min-width:80px; }
+.btn-remove-row {
+    background:none; border:none; color:#dc2626; cursor:pointer; font-size:18px;
+    line-height:1; padding:0 4px;
+}
+.btn-add-row {
+    background:#eff6ff; color:#2563eb; border:1px dashed #93c5fd;
+    border-radius:8px; padding:7px 16px; font-size:13px; font-weight:600;
+    cursor:pointer; margin-top:8px; width:100%;
+}
+.btn-add-row:hover { background:#dbeafe; }
+.section-label {
+    font-size:12px; font-weight:700; color:#374151; text-transform:uppercase;
+    letter-spacing:.05em; margin:18px 0 8px;
+}
+</style>
 
 <div class="module-wrap">
     <div class="module-header">
         <div>
-            <h2>{% if form.instance.pk %}Edit Invoice {{ form.instance.invoice_number }}{% else %}New Invoice{% endif %}</h2>
-            <small>Sale to a customer — stock will be deducted automatically.</small>
+            <h2>{% if editing %}Edit Invoice {{ invoice.invoice_number }}{% else %}New Invoice{% endif %}</h2>
+            <small>Sale to a customer — stock will be adjusted automatically.</small>
         </div>
         <a class="btn-action ghost" href="{% url 'invoicelist' %}">← Back</a>
     </div>
 
-    <form method="post" class="form-card">
+    <form method="post" class="form-card" id="invoice-form">
         {% csrf_token %}
-        {% if form.non_field_errors %}
-            <div style="background:#fee2e2;color:#991b1b;padding:10px;border-radius:8px;margin-bottom:12px;">
-                {{ form.non_field_errors }}
-            </div>
+
+        {% if errors %}
+        <div style="background:#fee2e2;color:#991b1b;padding:10px;border-radius:8px;margin-bottom:12px;">
+            {% for e in errors %}<div>{{ e }}</div>{% endfor %}
+        </div>
         {% endif %}
+
+        {% if form.non_field_errors %}
+        <div style="background:#fee2e2;color:#991b1b;padding:10px;border-radius:8px;margin-bottom:12px;">
+            {{ form.non_field_errors }}
+        </div>
+        {% endif %}
+
+        <div class="section-label">Customer Details</div>
         <div class="form-grid">
             {% for field in form %}
-                <div class="{% if field.name == 'customer_name' or field.name == 'description' %}full{% endif %}">
-                    <label>{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.name == 'customer' %}
-                        <small class="autofill-hint">Pick an existing customer to auto-fill name &amp; contact, or leave blank and type below.</small>
-                    {% endif %}
-                    {% if field.errors %}<small style="color:#dc2626;">{{ field.errors|striptags }}</small>{% endif %}
-                </div>
+            <div class="{% if field.name == 'customer_name' or field.name == 'shipping_address' %}full{% endif %}">
+                <label>{{ field.label }}</label>
+                {{ field }}
+                {% if field.name == 'customer' %}
+                    <small class="autofill-hint">Pick an existing customer to auto-fill name &amp; contact.</small>
+                {% endif %}
+                {% if field.errors %}<small style="color:#dc2626;">{{ field.errors|striptags }}</small>{% endif %}
+            </div>
             {% endfor %}
         </div>
 
-        <div class="live-totals">
+        <div class="section-label">Products</div>
+        <table class="items-table" id="items-table">
+            <thead>
+                <tr>
+                    <th style="width:40%">Product</th>
+                    <th style="width:15%">Qty</th>
+                    <th style="width:20%">Unit Price (₹)</th>
+                    <th style="width:15%" class="line-total">Line Total</th>
+                    <th style="width:10%"></th>
+                </tr>
+            </thead>
+            <tbody id="item-rows">
+                {% if editing and existing_items %}
+                    {% for ii in existing_items %}
+                    <tr class="item-row">
+                        <td>
+                            <select name="product_id[]" class="prod-select" required>
+                                <option value="">— Select product —</option>
+                                {% for p in all_products %}
+                                <option value="{{ p.id }}"
+                                    data-price="{{ p.price }}"
+                                    data-stock="{{ p.quantity }}"
+                                    {% if p.id == ii.product_id %}selected{% endif %}>
+                                    {{ p.name }} ({{ p.quantity }} in stock)
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><input type="number" name="quantity[]" class="qty-input" min="1" value="{{ ii.quantity }}" required></td>
+                        <td><input type="number" name="price[]" class="price-input" min="0" step="0.01" value="{{ ii.price }}" required></td>
+                        <td class="line-total"><span class="row-total">₹ {{ ii.line_total|floatformat:2 }}</span></td>
+                        <td><button type="button" class="btn-remove-row" title="Remove row">×</button></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr class="item-row">
+                    <td>
+                        <select name="product_id[]" class="prod-select" required>
+                            <option value="">— Select product —</option>
+                            {% for p in all_products %}
+                            <option value="{{ p.id }}" data-price="{{ p.price }}" data-stock="{{ p.quantity }}">
+                                {{ p.name }} ({{ p.quantity }} in stock)
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="number" name="quantity[]" class="qty-input" min="1" value="1" required></td>
+                    <td><input type="number" name="price[]" class="price-input" min="0" step="0.01" value="0" required></td>
+                    <td class="line-total"><span class="row-total">₹ 0.00</span></td>
+                    <td><button type="button" class="btn-remove-row" title="Remove row">×</button></td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+
+        <button type="button" class="btn-add-row" id="add-row-btn">+ Add Product</button>
+
+        <div class="live-totals" style="margin-top:16px;">
             <div class="row">
-                <span>Stock available</span>
-                <span class="stock-pill" id="live_stock">—</span>
+                <span>Items Subtotal</span>
+                <span id="live_subtotal">₹ 0.00</span>
             </div>
             <div class="row">
-                <span>Subtotal (Qty × Price)</span>
-                <span id="live_subtotal">₹ 0.00</span>
+                <span>Shipping &amp; Handling</span>
+                <span id="live_shipping">₹ 0.00</span>
             </div>
             <div class="row grand">
                 <span>Grand Total</span>
@@ -49,7 +145,8 @@
 
         <div style="margin-top:18px;text-align:right;">
             <a href="{% url 'invoicelist' %}" class="btn btn-secondary">Cancel</a>
-            <button type="submit" class="btn btn-primary" style="background:#2563eb;color:#fff;border:none;padding:8px 22px;border-radius:8px;font-weight:600;">
+            <button type="submit" class="btn btn-primary"
+                style="background:#2563eb;color:#fff;border:none;padding:8px 22px;border-radius:8px;font-weight:600;">
                 Save Invoice
             </button>
         </div>
@@ -57,8 +154,116 @@
 </div>
 
 <script>
-    window.__priceMode = 'price';
-    window.__partyMode = 'customer';
+(function () {
+    var tbody      = document.getElementById('item-rows');
+    var addBtn     = document.getElementById('add-row-btn');
+    var subBox     = document.getElementById('live_subtotal');
+    var shipBox    = document.getElementById('live_shipping');
+    var totalBox   = document.getElementById('live_total');
+    var shipInput  = document.getElementById('id_shipping');
+
+    var productOptions = '';
+    (function buildOptions() {
+        var selects = tbody.querySelectorAll('.prod-select');
+        if (selects.length > 0) {
+            productOptions = selects[0].innerHTML;
+        }
+    })();
+
+    function fmt(n) { return '₹ ' + (Number(n) || 0).toFixed(2); }
+
+    function rowTotal(row) {
+        var qty   = parseFloat(row.querySelector('.qty-input').value)  || 0;
+        var price = parseFloat(row.querySelector('.price-input').value) || 0;
+        return qty * price;
+    }
+
+    function recompute() {
+        var subtotal = 0;
+        tbody.querySelectorAll('.item-row').forEach(function (row) {
+            var t = rowTotal(row);
+            row.querySelector('.row-total').textContent = fmt(t);
+            subtotal += t;
+        });
+        var ship = parseFloat((shipInput && shipInput.value) || 0) || 0;
+        if (subBox)   subBox.textContent   = fmt(subtotal);
+        if (shipBox)  shipBox.textContent  = fmt(ship);
+        if (totalBox) totalBox.textContent = fmt(subtotal + ship);
+    }
+
+    function attachRowListeners(row) {
+        row.querySelectorAll('input, select').forEach(function (el) {
+            el.addEventListener('input', recompute);
+            el.addEventListener('change', recompute);
+        });
+
+        var prodSel = row.querySelector('.prod-select');
+        var priceIn = row.querySelector('.price-input');
+        if (prodSel && priceIn) {
+            prodSel.addEventListener('change', function () {
+                var opt = prodSel.options[prodSel.selectedIndex];
+                var p = parseFloat(opt.getAttribute('data-price')) || 0;
+                if (p > 0 && (parseFloat(priceIn.value) || 0) === 0) {
+                    priceIn.value = p.toFixed(2);
+                }
+                recompute();
+            });
+        }
+
+        var removeBtn = row.querySelector('.btn-remove-row');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', function () {
+                if (tbody.querySelectorAll('.item-row').length > 1) {
+                    row.remove();
+                    recompute();
+                }
+            });
+        }
+    }
+
+    tbody.querySelectorAll('.item-row').forEach(attachRowListeners);
+
+    addBtn.addEventListener('click', function () {
+        var newRow = document.createElement('tr');
+        newRow.className = 'item-row';
+        newRow.innerHTML =
+            '<td><select name="product_id[]" class="prod-select" required>' + productOptions + '</select></td>' +
+            '<td><input type="number" name="quantity[]" class="qty-input" min="1" value="1" required></td>' +
+            '<td><input type="number" name="price[]" class="price-input" min="0" step="0.01" value="0" required></td>' +
+            '<td class="line-total"><span class="row-total">₹ 0.00</span></td>' +
+            '<td><button type="button" class="btn-remove-row" title="Remove row">×</button></td>';
+        tbody.appendChild(newRow);
+        attachRowListeners(newRow);
+        recompute();
+    });
+
+    if (shipInput) { shipInput.addEventListener('input', recompute); }
+
+    recompute();
+
+    var customerSel = document.getElementById('id_customer');
+    var nameEl  = document.getElementById('id_customer_name');
+    var phoneEl = document.getElementById('id_contact_number');
+    var emailEl = document.getElementById('id_customer_email');
+    var addrEl  = document.getElementById('id_shipping_address');
+    function setVal(el, v) { if (el) el.value = v || ''; }
+    if (customerSel) {
+        customerSel.addEventListener('change', function () {
+            var pk = customerSel.value;
+            if (!pk) return;
+            fetch('/get-customer/' + pk + '/', { credentials: 'same-origin' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) {
+                    if (!d) return;
+                    setVal(nameEl, d.name);
+                    setVal(phoneEl, d.phone);
+                    setVal(emailEl, d.email);
+                    setVal(addrEl, d.address);
+                });
+        });
+    }
+})();
 </script>
+
 {% include "invoice/_pricing_js.html" %}
 {% endblock %}

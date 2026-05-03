@@ -71,20 +71,15 @@ def invoice_detail_json(request, pk):
     from invoice.models import Invoice
     try:
         inv = (
-            Invoice.objects.select_related("customer", "item")
-            .only(
-                "id", "invoice_number", "customer_name", "contact_number",
-                "customer_email", "shipping_address",
-                "customer__first_name", "customer__last_name",
-                "customer__email", "customer__phone", "customer__address",
-                "item__id", "item__name",
-            )
+            Invoice.objects.select_related("customer")
+            .prefetch_related("items__product")
             .get(pk=pk)
         )
     except Invoice.DoesNotExist:
         return JsonResponse({"error": "not found"}, status=404)
 
     cust = inv.customer
+    first_item = inv.items.first()
     return JsonResponse({
         "id": inv.id,
         "invoice_number": inv.invoice_number,
@@ -101,8 +96,8 @@ def invoice_detail_json(request, pk):
             or (cust.address if cust else "")
             or ""
         ),
-        "item_id": inv.item_id,
-        "item_name": inv.item.name if inv.item_id else "",
+        "item_id": first_item.product_id if first_item else None,
+        "item_name": first_item.product.name if first_item else "",
     })
 
 
