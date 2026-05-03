@@ -1,0 +1,160 @@
+ROLE:
+Act as a senior Django backend engineer. Refactor and implement a robust Invoice system integrated with existing Sales. Follow strict database design and business logic.
+
+---
+
+SYSTEM OVERVIEW:
+
+* Django-based Inventory Management System
+* Sales already implemented
+* Each Sale has a unique ID and contains multiple products
+* Revenue is calculated ONLY when a Sale is created (this is correct and must not change)
+
+---
+
+CRITICAL BUSINESS RULE:
+
+* Revenue must NEVER be updated during Invoice creation
+* Invoice is a document, NOT a financial transaction
+
+---
+
+REQUIREMENTS:
+
+## 1. DATABASE DESIGN (STRICT)
+
+Implement the following models:
+
+Sale:
+
+* id (primary key)
+* customer
+* total_amount
+
+Invoice:
+
+* id (primary key)
+* customer
+* date
+* sale (ForeignKey to Sale, NULLABLE, SET_NULL on delete)
+* total_amount
+
+InvoiceItem:
+
+* id
+* invoice (ForeignKey to Invoice, CASCADE)
+* product (ForeignKey to Product)
+* quantity (IntegerField)
+* price (DecimalField)
+
+RELATIONSHIPS:
+
+* One Sale → can generate one Invoice
+* One Invoice → has multiple InvoiceItems
+* Invoice.sale is OPTIONAL (for manual invoices)
+
+---
+
+## 2. AUTO INVOICE FROM SALE
+
+Create functionality:
+
+* Add "Create Invoice" button in Sales list page
+* When clicked:
+
+  1. Fetch Sale using Sale ID
+  2. Create Invoice linked to that Sale
+  3. Copy Sale data:
+
+     * customer
+     * total_amount
+  4. For each Sale item:
+
+     * create corresponding InvoiceItem
+
+VALIDATION:
+
+* Prevent duplicate invoice creation for same Sale (unless explicitly allowed)
+* Do NOT update revenue
+
+---
+
+## 3. MANUAL INVOICE CREATION
+
+Create separate flow:
+
+* User can create Invoice without Sale
+* Invoice.sale = NULL
+* Allow multiple products via dynamic form
+* Create multiple InvoiceItem entries
+
+---
+
+## 4. VIEW LOGIC
+
+Implement:
+
+Function: create_invoice_from_sale(sale_id)
+
+* Fetch Sale
+* Check if Invoice already exists
+* Create Invoice
+* Loop through Sale items → create InvoiceItems
+
+Function: create_manual_invoice(request)
+
+* Create Invoice
+* Loop through form lists:
+  products[], quantities[], prices[]
+* Create InvoiceItems
+
+---
+
+## 5. FRONTEND REQUIREMENTS
+
+Sales Page:
+
+* Table of Sales
+* Button per row: "Create Invoice"
+
+Invoice Form Page:
+
+* Dynamic rows for multiple products
+* Fields per row:
+
+  * product dropdown
+  * quantity input
+  * price input
+* "Add Product" button (JavaScript)
+
+---
+
+## 6. CONSTRAINTS
+
+* Do NOT modify Sale revenue logic
+* Do NOT duplicate revenue updates anywhere
+* Do NOT create one-product-per-invoice structure
+* Use clean Django ORM patterns
+* Keep code modular and readable
+
+---
+
+## 7. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (updated)
+2. views.py (invoice creation logic)
+3. urls.py additions
+4. HTML template (dynamic multi-product form)
+5. Short explanation of implementation
+
+---
+
+EXPECTED RESULT:
+
+* User can generate Invoice from Sale using Sale ID
+* User can also create Invoice manually
+* Invoice supports multiple products
+* No duplicate revenue counting
+* System follows real-world accounting logic

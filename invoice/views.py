@@ -4,8 +4,10 @@ from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from django.views.generic import DetailView, DeleteView, ListView
 from django.db import transaction
+
 from django.db.models import Q
 
 from store.models import Item
@@ -27,7 +29,7 @@ class InvoiceListView(LoginRequiredMixin, ListView):
     }
 
     def get_queryset(self):
-        qs = super().get_queryset().prefetch_related("items__product").select_related("customer")
+        qs = super().get_queryset().prefetch_related("items__product").select_related("customer", "sale")
 
         q = self.request.GET.get("q")
         if q:
@@ -71,7 +73,7 @@ class InvoiceDetailView(LoginRequiredMixin, DetailView):
     context_object_name = "invoice"
 
     def get_queryset(self):
-        return super().get_queryset().prefetch_related("items__product")
+        return super().get_queryset().prefetch_related("items__product").select_related("sale")
 
 
 def _parse_items(post):
@@ -210,6 +212,64 @@ def invoice_update(request, slug):
         "editing": True,
         "invoice": invoice,
     })
+
+
+@login_required
+def create_invoice_from_sale(request, sale_id):
+    """
+    Auto-generate an Invoice from an existing POS Sale.
+
+    - Copies customer info and all SaleDetail lines into the Invoice.
+    - The Invoice is linked to the Sale via Invoice.sale (OneToOne).
+    - Stock is NOT touched here (already deducted at sale time).
+    - Revenue is NOT touched here (already counted in the Sale).
+    - Prevents creating a duplicate invoice for the same sale.
+    """
+    from transactions.models import Sale, SaleDetail
+
+    sale = get_object_or_404(Sale, pk=sale_id)
+
+    # Duplicate guard — one sale → at most one invoice
+    if hasattr(sale, 'invoice') and sale.invoice is not None:
+        messages.warning(
+            request,
+            f"An invoice ({sale.invoice.invoice_number}) already exists for Sale #{sale.id}."
+        )
+        return redirect("invoice-detail", slug=sale.invoice.slug)
+
+    try:
+        with transaction.atomic():
+            customer = sale.customer
+            invoice = Invoice.objects.create(
+                sale=sale,
+                customer=customer,
+                customer_name=customer.get_full_name(),
+                contact_number=customer.phone or "",
+                customer_email=customer.email or "",
+                shipping_address=customer.address or "",
+                shipping=0.0,
+                status="PENDING",
+            )
+
+            for detail in sale.saledetail_set.select_related("item").all():
+                InvoiceItem.objects.create(
+                    invoice=invoice,
+                    product=detail.item,
+                    quantity=detail.quantity,
+                    price=detail.price,
+                )
+
+            invoice.recompute_total()
+
+        messages.success(
+            request,
+            f"Invoice {invoice.invoice_number} created from Sale #{sale.id}."
+        )
+        return redirect("invoice-detail", slug=invoice.slug)
+
+    except Exception as e:
+        messages.error(request, f"Could not create invoice: {e}")
+        return redirect("saleslist")
 
 
 class InvoiceDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):

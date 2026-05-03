@@ -19,6 +19,9 @@ class Invoice(models.Model):
     Supports multiple products via InvoiceItem.
     Stock is managed in the view layer, not here.
     Revenue is tracked via Sale only — invoices do NOT update revenue.
+
+    The optional `sale` FK links this invoice to the POS Sale it was generated
+    from. Manual invoices leave this NULL.
     """
 
     slug = AutoSlugField(unique=True, populate_from='date')
@@ -29,12 +32,21 @@ class Invoice(models.Model):
     date = models.DateTimeField(auto_now=True, verbose_name='Date')
     due_date = models.DateField(null=True, blank=True)
 
+    # Optional link to a POS Sale. NULL = manual invoice.
+    sale = models.OneToOneField(
+        'transactions.Sale',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='invoice',
+        help_text="The POS Sale this invoice was generated from, if any.",
+    )
+
     customer = models.ForeignKey(
         Customer, on_delete=models.SET_NULL, null=True, blank=True,
         related_name="invoices"
     )
     customer_name = models.CharField(max_length=60)
-    contact_number = models.CharField(max_length=20)
+    contact_number = models.CharField(max_length=20, blank=True)
     customer_email = models.EmailField(max_length=120, blank=True, null=True)
     shipping_address = models.CharField(
         max_length=255, blank=True, null=True,

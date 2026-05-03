@@ -130,19 +130,30 @@ class SaleListView(LoginRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        order = self.request.GET.get('order', 'old')  # 👈 DEFAULT OLD
+        order = self.request.GET.get('order', 'old')
+
+        qs = Sale.objects.select_related('customer').prefetch_related(
+            'saledetail_set__item'
+        )
 
         if order == 'new':
-            return Sale.objects.all().order_by('-date_added')
-
+            return qs.order_by('-date_added')
         elif order == 'high':
-            return Sale.objects.all().order_by('-grand_total')
-
+            return qs.order_by('-grand_total')
         elif order == 'low':
-            return Sale.objects.all().order_by('grand_total')
+            return qs.order_by('grand_total')
+        else:
+            return qs.order_by('date_added')
 
-        else:  # default
-            return Sale.objects.all().order_by('date_added')
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        from invoice.models import Invoice
+        invoiced_sale_ids = set(
+            Invoice.objects.filter(sale__isnull=False)
+            .values_list('sale_id', flat=True)
+        )
+        ctx['invoiced_sale_ids'] = invoiced_sale_ids
+        return ctx
 
 
 class SaleDetailView(LoginRequiredMixin, DetailView):

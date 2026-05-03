@@ -1,15 +1,26 @@
 {% extends "store/base.html" %}
 {% block content %}
 
-<!-- Buttons -->
-<div class="text-center my-3">
-    <button onclick="printReceipt()" class="btn btn-success btn-sm me-2">
+<!-- Action buttons -->
+<div class="text-center my-3 d-flex justify-content-center gap-2 flex-wrap">
+    <button onclick="printReceipt()" class="btn btn-success btn-sm">
         🖨 Print
     </button>
-
     <button onclick="downloadPDF()" class="btn btn-primary btn-sm">
         ⬇ Download PDF
     </button>
+
+    {% if sale.invoice %}
+        <a href="{% url 'invoice-detail' sale.invoice.slug %}"
+           class="btn btn-outline-secondary btn-sm">
+            📄 View Invoice ({{ sale.invoice.invoice_number }})
+        </a>
+    {% else %}
+        <a href="{% url 'invoice-from-sale' sale.id %}"
+           class="btn btn-warning btn-sm">
+            📋 Generate Invoice
+        </a>
+    {% endif %}
 </div>
 
 <!-- Receipt -->
@@ -28,6 +39,31 @@
         <p>Receipt: IMS{{ sale.id }}</p>
 
         <hr>
+
+        <!-- Items table -->
+        {% if sale.saledetail_set.all %}
+        <table style="width:100%;font-size:13px;margin-bottom:8px;">
+            <thead>
+                <tr>
+                    <th style="text-align:left;">Item</th>
+                    <th style="text-align:right;">Qty</th>
+                    <th style="text-align:right;">Price</th>
+                    <th style="text-align:right;">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for detail in sale.saledetail_set.all %}
+                <tr>
+                    <td>{{ detail.item.name }}</td>
+                    <td style="text-align:right;">{{ detail.quantity }}</td>
+                    <td style="text-align:right;">₹{{ detail.price }}</td>
+                    <td style="text-align:right;">₹{{ detail.total_detail }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <hr>
+        {% endif %}
 
         <div class="row-line">
             <span>Sub Total</span>
@@ -77,84 +113,41 @@ function printReceipt() {
 
 function downloadPDF() {
     const element = document.getElementById("receipt");
-
-    // Temporarily resize for proper PDF scaling
     const originalWidth = element.style.width;
     element.style.width = "300px";
-
     const opt = {
         margin: 5,
         filename: 'receipt.pdf',
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
-        jsPDF: {
-            unit: 'mm',
-            format: [80, 200],   // proper receipt size
-            orientation: 'portrait'
-        }
+        jsPDF: { unit: 'mm', format: [80, 200], orientation: 'portrait' }
     };
-
     html2pdf().set(opt).from(element).save().then(() => {
-        element.style.width = originalWidth; // restore
+        element.style.width = originalWidth;
     });
 }
 </script>
 
 <!-- Styling -->
 <style>
-
-/* Web View (Big & Comfortable) */
 #receipt {
-    width: 450px;
-    min-height: 600px;
-    margin: auto;
-    background: white;
-    padding: 25px;
-    font-family: monospace;
-    font-size: 15px;
-    line-height: 1.7;
+    width: 450px; min-height: 600px; margin: auto; background: white;
+    padding: 25px; font-family: monospace; font-size: 15px; line-height: 1.7;
     box-shadow: 0 0 12px rgba(0,0,0,0.1);
 }
+.row-line { display:flex; justify-content:space-between; margin-bottom:10px; }
 
-/* Row layout */
-.row-line {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-}
-
-/* PRINT STYLE */
 @media print {
-
-    body {
-        background: white !important;
-    }
-
-    body * {
-        visibility: hidden;
-    }
-
-    #receipt, #receipt * {
-        visibility: visible;
-    }
-
+    body { background:white !important; }
+    body * { visibility:hidden; }
+    #receipt, #receipt * { visibility:visible; }
     #receipt {
-        position: absolute;
-        left: 50%;
-        top: 0;
-        transform: translateX(-50%);
-        width: 320px !important;
-        font-size: 13px !important;
-        padding: 20px;
-        box-shadow: none;
-        border: none;
+        position:absolute; left:50%; top:0; transform:translateX(-50%);
+        width:320px !important; font-size:13px !important;
+        padding:20px; box-shadow:none; border:none;
     }
-
-    button {
-        display: none !important;
-    }
+    button, a.btn { display:none !important; }
 }
-
 </style>
 
 {% endblock %}
