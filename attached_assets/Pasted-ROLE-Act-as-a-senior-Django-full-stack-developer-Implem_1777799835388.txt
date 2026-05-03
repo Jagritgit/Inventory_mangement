@@ -1,0 +1,176 @@
+ROLE:
+Act as a senior Django full-stack developer. Implement a Purchases module similar to Zoho Inventory with Vendor, Purchase Orders, and Bills.
+
+---
+
+SYSTEM CONTEXT:
+
+* Django Inventory Management System
+* Existing modules: Products, Sales, Delivery, Invoice
+* Need to add Purchases section in sidebar
+
+---
+
+## 1. SIDEBAR STRUCTURE
+
+Add a new section:
+
+Purchases:
+
+* Vendors
+* Purchase Orders
+* Bills
+
+---
+
+## 2. VENDOR MODULE
+
+Create Vendor model:
+
+Fields:
+
+* id
+* name
+* phone
+* email
+* address
+* created_at
+
+Features:
+
+* Add Vendor
+* Edit Vendor
+* View Vendor list
+* Optional: search/filter
+
+---
+
+## 3. PURCHASE ORDER MODULE
+
+Purpose:
+Track what you ordered from vendors and whether it was received
+
+Model: PurchaseOrder
+
+Fields:
+
+* id
+* vendor (ForeignKey)
+* order_date
+* status:
+
+  * pending
+  * ordered
+  * partially_received
+  * received
+* total_amount
+
+Create PurchaseOrderItem:
+
+Fields:
+
+* purchase_order (FK)
+* product (FK)
+* quantity
+* price
+
+Features:
+
+* Create purchase order
+* Add multiple products
+* Track status (received or not)
+
+---
+
+## 4. BILL MODULE (IMPORTANT)
+
+Purpose:
+Store actual bill/invoice from vendor
+
+Model: Bill
+
+Fields:
+
+* id
+* vendor (FK)
+* purchase_order (optional FK)
+* bill_date
+* total_amount
+* status:
+
+  * unpaid
+  * paid
+
+Create BillItem:
+
+Fields:
+
+* bill (FK)
+* product (FK)
+* quantity
+* cost_price
+
+---
+
+## 5. CONNECTION WITH PRODUCT (COST PRICE)
+
+* When Bill is created:
+  → Update Product.cost_price using latest bill item price
+
+* Logic:
+  latest bill price = product cost_price
+
+---
+
+## 6. WORKFLOW (IMPORTANT)
+
+1. Create Vendor
+2. Create Purchase Order
+3. Mark as received
+4. Create Bill
+5. Update Product cost price
+
+---
+
+## 7. UI REQUIREMENTS
+
+Sidebar:
+
+* Add "Purchases" dropdown
+
+Each module:
+
+* Table layout (like products list)
+* Actions: View / Edit / Delete
+
+---
+
+## 8. CONSTRAINTS
+
+* Do NOT mix Purchases with Sales
+* Keep models normalized (use separate item tables)
+* Use clean Django ORM practices
+* Avoid unnecessary duplication
+
+---
+
+## 9. OUTPUT FORMAT
+
+Provide:
+
+1. models.py (Vendor, PurchaseOrder, Bill, items)
+2. views.py
+3. urls.py
+4. templates (list + form)
+5. short explanation of workflow
+
+---
+
+## EXPECTED RESULT
+
+* Sidebar shows Purchases section
+* Vendors can be managed
+* Purchase Orders track ordered vs received
+* Bills store actual purchase data
+* Product cost_price updates automatically from bills
+* System behaves like real inventory software

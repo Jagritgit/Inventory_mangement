@@ -1,0 +1,38 @@
+{% extends "store/base.html" %}
+{% block title %}Delete {{ object.order_number }}{% endblock %}
+{% block content %}
+{% include "invoice/_styles.html" %}
+
+<div class="module-wrap" style="max-width:540px;margin:0 auto;">
+
+    <div class="module-header" style="background: linear-gradient(135deg, #7f1d1d 0%, #dc2626 100%);">
+        <div>
+            <h2><i class="fa-solid fa-triangle-exclamation me-2"></i>Delete Purchase Order</h2>
+            <small>This action cannot be undone</small>
+        </div>
+    </div>
+
+    <div style="background:#fff;border-radius:14px;box-shadow:0 4px 18px rgba(0,0,0,0.07);padding:28px;text-align:center;">
+        <p style="font-size:16px;color:#111827;margin-bottom:6px;">
+            Are you sure you want to delete <strong>{{ object.order_number }}</strong>?
+        </p>
+        <p style="color:#6b7280;font-size:14px;margin-bottom:24px;">
+            Vendor: {{ object.vendor.name|default:"—" }} &nbsp;·&nbsp;
+            {{ object.items.count }} item{{ object.items.count|pluralize }} &nbsp;·&nbsp;
+            ₹ {{ object.total_amount|floatformat:2 }}
+        </p>
+        <form method="POST" style="display:flex;gap:10px;justify-content:center;">
+            {% csrf_token %}
+            <a href="{% url 'purchase-order-list' %}"
+               style="background:#f1f5f9;color:#374151;border-radius:8px;padding:9px 20px;font-weight:600;text-decoration:none;">
+                Cancel
+            </a>
+            <button type="submit"
+                    style="background:#dc2626;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-weight:700;cursor:pointer;">
+                Yes, Delete
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

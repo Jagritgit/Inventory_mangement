@@ -112,6 +112,10 @@ class Bill(models.Model):
 
             super().save(*args, **kwargs)
 
+            # Auto-sync Item.cost_price from this bill's cost_price
+            if self.item_id and self.cost_price:
+                Item.objects.filter(pk=self.item_id).update(cost_price=self.cost_price)
+
     def delete(self, *args, **kwargs):
         with transaction.atomic():
             if self.item_id and self.quantity:

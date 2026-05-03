@@ -1,0 +1,87 @@
+{% extends "store/base.html" %}
+{% block title %}Purchase Orders{% endblock %}
+{% block content %}
+{% include "invoice/_styles.html" %}
+
+<div class="module-wrap">
+
+    <div class="module-header" style="background: linear-gradient(135deg, #1e3a5f 0%, #1d4ed8 100%);">
+        <div>
+            <h2><i class="fa-solid fa-cart-arrow-down me-2"></i>Purchase Orders</h2>
+            <small>Track stock replenishment from vendors</small>
+        </div>
+        <div class="module-actions">
+            <a class="btn-action primary" href="{% url 'purchase-order-create' %}">+ New Order</a>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="filter-bar">
+        <input type="text" name="q" value="{{ q }}" placeholder="Search by PO # or vendor…">
+        <select name="status">
+            <option value="">All statuses</option>
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Apply</button>
+        <a class="clear" href="{% url 'purchase-order-list' %}">Reset</a>
+    </form>
+
+    <!-- Table -->
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>PO #</th>
+                <th>Vendor</th>
+                <th>Items</th>
+                <th class="num">Total (₹)</th>
+                <th>Order Date</th>
+                <th>Expected</th>
+                <th>Status</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>{{ order.order_number }}</strong></td>
+                <td>{{ order.vendor.name|default:"—" }}</td>
+                <td style="color:#6b7280;">{{ order.items.count }} product{{ order.items.count|pluralize }}</td>
+                <td class="num">₹ {{ order.total_amount|floatformat:2 }}</td>
+                <td>{{ order.order_date|date:"d M Y" }}</td>
+                <td>{{ order.expected_date|date:"d M Y"|default:"—" }}</td>
+                <td><span class="status-badge {{ order.status_color }}">{{ order.get_status_display }}</span></td>
+                <td style="display:flex;gap:6px;">
+                    <a class="view-btn" href="{% url 'purchase-order-detail' order.slug %}">View</a>
+                    {% if user.is_superuser %}
+                    <a class="view-btn" href="{% url 'purchase-order-update' order.slug %}"
+                       style="background:#f59e0b;">Edit</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" style="text-align:center;padding:36px;color:#9ca3af;">
+                    No purchase orders yet.
+                    <a href="{% url 'purchase-order-create' %}" style="color:#2563eb;">Create one →</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div class="pagination-bar">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&status={{ status }}">‹ Prev</a>
+        {% endif %}
+        <span class="current">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&status={{ status }}">Next ›</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
