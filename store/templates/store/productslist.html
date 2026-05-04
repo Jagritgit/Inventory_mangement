@@ -295,7 +295,7 @@
          LIST VIEW
     ═══════════════════════════════════════════════════ -->
     <div id="list-view">
-        <p class="view-hint">List view — fast scanning. Switch to Grid for pricing details.</p>
+        
         <div class="pl-table-wrap">
             <div style="overflow-x:auto;">
                 <table class="pl-table">
@@ -343,10 +343,10 @@
                             <td class="col-price" style="font-weight:700;color:#1d4ed8;">
                                 ₹ {{ item.price|floatformat:2 }}
                             </td>
-                            <td class="col-vendor" style="color:#374151;">
+                            <td class="col-vendor" style="color:#000000;">
                                 {{ item.vendor.company_name|default:item.vendor.name|default:"—" }}
                             </td>
-                            <td class="col-date" style="color:#6b7280;">
+                            <td class="col-date" style="color:#000000;">
                                 {{ item.created_at|date:"d M Y"|default:"—" }}
                             </td>
                             <td class="col-status">
