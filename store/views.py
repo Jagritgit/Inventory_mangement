@@ -226,13 +226,18 @@ def dashboard(request):
     from bills.models import Bill
 
     sales_revenue = money(
-        Sale.objects.aggregate(total=Sum("grand_total")).get("total")
+    Sale.objects.aggregate(total=Sum("grand_total")).get("total")
     )
+
+    # Keep this if you still want to display it separately (optional)
     paid_invoice_revenue = money(
         Invoice.objects.filter(status="PAID")
         .aggregate(total=Sum("grand_total")).get("total")
     )
-    total_revenue = money(sales_revenue + paid_invoice_revenue)
+
+    # ✅ FIX: DO NOT ADD BOTH
+    total_revenue = sales_revenue
+
 
     total_expenses = money(
         Bill.objects.filter(status="PAID")
